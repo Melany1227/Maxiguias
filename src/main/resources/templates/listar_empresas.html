@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Empresas</title>
+</head>
+<body>
+<h1>Lista de Empresas</h1>
+<table border="1">
+  <thead>
+  <tr>
+    <th>NIT</th>
+    <th>Nombre</th>
+    <th>Fecha de creación</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="empresa : ${empresas}">
+    <td th:text="${empresa.nitEmpresa}"></td>
+    <td th:text="${empresa.nombreEmpresa}"></td>
+    <td th:text="${#dates.format(empresa.fechaCreacionEmpresa, 'dd/MM/yyyy')}"></td>
+  </tr>
+  </tbody>
+</table>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Nueva Factura</title>
+</head>
+<body>
+<h1>Crear Nueva Factura</h1>
+
+<form th:action="@{/facturas/guardar}" method="post" th:object="${factura}">
+
+  <label>Fecha de Venta:</label>
+  <input type="date" th:field="*{fechaVenta}" required><br>
+
+  <label>Descripción de la Venta:</label>
+  <input type="text" th:field="*{descripcionVenta}" required><br>
+
+  <label>Usuario:</label>
+  <select th:field="*{usuario.documento}">
+    <option th:each="u : ${usuarios}" th:value="${u.documento}" th:text="${u.nombre}"></option>
+  </select><br>
+
+  <label>Empresa:</label>
+  <select th:field="*{empresa.nitEmpresa}">
+    <option th:each="e : ${empresas}" th:value="${e.nitEmpresa}" th:text="${e.nombreEmpresa}"></option>
+  </select><br>
+
+  <label>Ciudad:</label>
+  <select th:field="*{ciudad.id}">
+    <option th:each="c : ${ciudades}" th:value="${c.id}" th:text="${c.nombre}"></option>
+  </select><br><br>
+
+  <h3>Detalles de la Factura</h3>
+
+  <div th:each="i : ${#numbers.sequence(0,2)}">
+    <label>Producto:</label>
+    <select name="productoId">
+      <option th:each="p : ${productos}" th:value="${p.id}" th:text="${p.nombre}"></option>
+    </select>
+
+    <label>Cantidad:</label>
+    <input type="number" name="cantidad" min="1" required>
+
+    <label>Valor:</label>
+    <input type="number" name="valor" step="0.01" required>
+
+    <label>Descripción:</label>
+    <input type="text" name="descripcion">
+    <br><br>
+  </div>
+
+  <button type="submit">Guardar Factura</button>
+</form>
+</body>
+</html>
