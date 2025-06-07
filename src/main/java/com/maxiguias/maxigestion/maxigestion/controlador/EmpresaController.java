@@ -21,6 +21,6 @@ public class EmpresaController {
     public String listarEmpresas(Model model) {
         List<Empresa> empresas = empresaService.listarEmpresas();
         model.addAttribute("empresas", empresas);
-        return "listar_empresas"; // Nombre de la plantilla Thymeleaf
+        return "listar_empresas";
     }
 }

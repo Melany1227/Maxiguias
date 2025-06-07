@@ -33,12 +33,8 @@ public class Usuario {
     @Column(name = "CONTRASENA", length = 30, nullable = false)
     private String contrasena;
 
-    /*
     @ManyToOne
     @JoinColumn(name = "TIPO_USUARIO", nullable = false)
     private TipoUsuario tipoUsuario;
 
-    @ManyToOne
-    @JoinColumn(name = "PERFILES_ID_PERFIL", nullable = false)
-    private Perfil perfil;*/
 }

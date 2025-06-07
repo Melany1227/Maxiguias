@@ -14,7 +14,7 @@
   <label>Descripción de la Venta:</label>
   <input type="text" th:field="*{descripcionVenta}" required><br>
 
-  <label>Usuario:</label>
+  <label>Cliente:</label>
   <select th:field="*{usuario.documento}">
     <option th:each="u : ${usuarios}" th:value="${u.documento}" th:text="${u.nombre}"></option>
   </select><br>
@@ -33,15 +33,24 @@
 
   <div th:each="i : ${#numbers.sequence(0,2)}">
     <label>Producto:</label>
-    <select name="productoId">
-      <option th:each="p : ${productos}" th:value="${p.id}" th:text="${p.nombre}"></option>
+    <select name="productoId" id="productoSelect">
+      <option value="">-- Selecciona un producto --</option>
+      <option th:each="p : ${productos}"
+              th:value="${p.id}"
+              th:text="${p.nombre}">
+
+
+      </option>
     </select>
 
     <label>Cantidad:</label>
     <input type="number" name="cantidad" min="1" required>
 
     <label>Valor:</label>
-    <input type="number" name="valor" step="0.01" required>
+    <input type="number" name="valor" step="0.01" required readonly id="valor">
+
+    <label>Total:</label>
+    <input type="number" name="total" step="0.01" readonly >
 
     <label>Descripción:</label>
     <input type="text" name="descripcion">
@@ -52,3 +61,7 @@
 </form>
 </body>
 </html>
+
+<
+
+

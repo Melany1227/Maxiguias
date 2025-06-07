@@ -3,10 +3,7 @@ package com.maxiguias.maxigestion.maxigestion.controlador;
 import com.maxiguias.maxigestion.maxigestion.modelo.DetalleFactura;
 import com.maxiguias.maxigestion.maxigestion.modelo.Factura;
 import com.maxiguias.maxigestion.maxigestion.modelo.Producto;
-import com.maxiguias.maxigestion.maxigestion.repositorio.CiudadRepository;
-import com.maxiguias.maxigestion.maxigestion.repositorio.EmpresaRepository;
-import com.maxiguias.maxigestion.maxigestion.repositorio.ProductoRepository;
-import com.maxiguias.maxigestion.maxigestion.repositorio.UsuarioRepository;
+import com.maxiguias.maxigestion.maxigestion.repositorio.*;
 import com.maxiguias.maxigestion.maxigestion.servicio.FacturaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -23,6 +20,9 @@ public class FacturaController {
 
     @Autowired
     private FacturaService facturaService;
+
+    @Autowired
+    private FacturaRepository facturaRepository;
 
     @Autowired
     private UsuarioRepository usuarioRepository;
@@ -73,5 +73,13 @@ public class FacturaController {
 
         return "redirect:/facturas/lista";
     }
+
+    @GetMapping("/lista")
+    public String listarFacturas(Model model) {
+        List<Factura> facturas = facturaRepository.findAll();
+        model.addAttribute("facturas", facturas);
+        return "factura-lista";
+    }
+
 }
 
