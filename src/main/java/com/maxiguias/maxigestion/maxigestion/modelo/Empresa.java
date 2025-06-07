@@ -34,6 +34,9 @@ public class Empresa {
     })
     private PersonaInfo infoPersona;
 
+    public Empresa() {}
+
+
     // Constructor con parámetros
     public Empresa(String nitEmpresa, Date fechaCreacionEmpresa, PersonaInfo infoPersona) {
         this.nitEmpresa = nitEmpresa;

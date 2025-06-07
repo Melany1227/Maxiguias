@@ -1,11 +1,18 @@
 package com.maxiguias.maxigestion.maxigestion.modelo;
 
-import jakarta.persistence.*;
-import lombok.Data;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.Data;
 
 @Entity
 @Table(name = "FACTURAS")
@@ -36,7 +43,7 @@ public class Factura {
     private BigDecimal totalFactura;
 
     @ManyToOne
-    @JoinColumn(name = "ID_CUIDAD")
+    @JoinColumn(name = "LUGAR_VENTA")
     private Ciudad ciudad;
 
     @OneToMany(mappedBy = "factura", cascade = CascadeType.ALL)

@@ -8,20 +8,25 @@
 
 <form th:action="@{/facturas/guardar}" method="post" th:object="${factura}">
 
-  <label>Fecha de Venta:</label>
-  <input type="date" th:field="*{fechaVenta}" required><br>
+  <label for="fechaVenta">Fecha de Venta:</label>
+  <input type="date" th:field="*{fechaVenta}" id="fechaVenta" required><br>
 
-  <label>Descripción de la Venta:</label>
-  <input type="text" th:field="*{descripcionVenta}" required><br>
+  <label for="descripcionVenta">Descripción de la Venta:</label>
+  <input type="text" th:field="*{descripcionVenta}" id="descripcionVenta" required><br>
 
-  <label>Cliente:</label>
-  <select th:field="*{usuario.documento}">
-    <option th:each="u : ${usuarios}" th:value="${u.documento}" th:text="${u.nombre}"></option>
+  <label for="empresa">Empresa:</label>
+  <select th:field="*{empresa.nitEmpresa}" id="empresa">
+      <option value="">-- Selecciona una empresa --</option>
+      <option th:each="e : ${empresas}" 
+              th:value="${e.nitEmpresa}" 
+              th:text="${e.infoPersona.nombre}">
+      </option>
   </select><br>
 
-  <label>Empresa:</label>
-  <select th:field="*{empresa.nitEmpresa}">
-    <option th:each="e : ${empresas}" th:value="${e.nitEmpresa}" th:text="${e.nombreEmpresa}"></option>
+  <label>Cliente:</label>
+  <select th:field="*{usuario.documento}" id="usuario">
+    <option value="">-- Selecciona un usuario --</option>
+    <option th:each="u : ${usuarios}" th:value="${u.documento}" th:text="${u.infoPersona.nombre}"></option>
   </select><br>
 
   <label>Ciudad:</label>
@@ -61,7 +66,5 @@
 </form>
 </body>
 </html>
-
-<
 
 
