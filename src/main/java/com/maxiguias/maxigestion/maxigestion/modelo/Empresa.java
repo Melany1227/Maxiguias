@@ -1,10 +1,21 @@
 package com.maxiguias.maxigestion.maxigestion.modelo;
 
-import jakarta.persistence.*;
 import java.util.Date;
+
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import lombok.Data;
 
 @Entity
 @Table(name = "EMPRESAS")
+@Data
 public class Empresa {
 
     @Id
@@ -17,14 +28,11 @@ public class Empresa {
 
     @Embedded
     @AttributeOverrides({
-        @AttributeOverride(name = "nombre", column = @Column(name = "INFO_PERSONA.NOMBRE")),
-        @AttributeOverride(name = "direccion", column = @Column(name = "INFO_PERSONA.DIRECCION")),
-        @AttributeOverride(name = "telefono", column = @Column(name = "INFO_PERSONA.TELEFONO"))
+        @AttributeOverride(name = "nombre", column = @Column(name = "INFORMACION_PERSONAL.NOMBRE")),
+        @AttributeOverride(name = "direccion", column = @Column(name = "INFORMACION_PERSONAL.DIRECCION")),
+        @AttributeOverride(name = "telefono", column = @Column(name = "INFORMACION_PERSONAL.TELEFONO"))
     })
     private PersonaInfo infoPersona;
-
-    // Constructor vacío
-    public Empresa() {}
 
     // Constructor con parámetros
     public Empresa(String nitEmpresa, Date fechaCreacionEmpresa, PersonaInfo infoPersona) {
@@ -33,41 +41,4 @@ public class Empresa {
         this.infoPersona = infoPersona;
     }
 
-    // Getters y Setters
-    public String getNitEmpresa() {
-        return nitEmpresa;
-    }
-
-    public void setNitEmpresa(String nitEmpresa) {
-        this.nitEmpresa = nitEmpresa;
-    }
-
-    public Date getFechaCreacionEmpresa() {
-        return fechaCreacionEmpresa;
-    }
-
-    public void setFechaCreacionEmpresa(Date fechaCreacionEmpresa) {
-        this.fechaCreacionEmpresa = fechaCreacionEmpresa;
-    }
-
-    public PersonaInfo getInfoPersona() {
-        return infoPersona;
-    }
-
-    public void setInfoPersona(PersonaInfo infoPersona) {
-        this.infoPersona = infoPersona;
-    }
-
-    // Métodos de conveniencia para acceder a los datos del objeto
-    public String getNombre() {
-        return infoPersona != null ? infoPersona.getNombre() : null;
-    }
-
-    public String getDireccion() {
-        return infoPersona != null ? infoPersona.getDireccion() : null;
-    }
-
-    public String getTelefono() {
-        return infoPersona != null ? infoPersona.getTelefono() : null;
-    }
 }
