@@ -36,7 +36,7 @@ public class Factura {
     private BigDecimal totalFactura;
 
     @ManyToOne
-    @JoinColumn(name = "LUGAR_VENTA")
+    @JoinColumn(name = "ID_CUIDAD")
     private Ciudad ciudad;
 
     @OneToMany(mappedBy = "factura", cascade = CascadeType.ALL)

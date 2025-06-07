@@ -1,25 +1,46 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <title>Empresas</title>
+    <title>Empresas</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
-<h1>Lista de Empresas</h1>
-<table border="1">
-  <thead>
-  <tr>
-    <th>NIT</th>
-    <th>Nombre</th>
-    <th>Fecha de creación</th>
-  </tr>
-  </thead>
-  <tbody>
-  <tr th:each="empresa : ${empresas}">
-    <td th:text="${empresa.nitEmpresa}"></td>
-    <td th:text="${empresa.nombreEmpresa}"></td>
-    <td th:text="${#dates.format(empresa.fechaCreacionEmpresa, 'dd/MM/yyyy')}"></td>
-  </tr>
-  </tbody>
-</table>
+<div class="container mt-4">
+    <h1 class="text-primary">Lista de Empresas</h1>
+
+    <!-- Mostrar error si existe -->
+    <div th:if="${error}" class="alert alert-danger" role="alert">
+        <span th:text="${error}"></span>
+    </div>
+
+    <!-- Mostrar mensaje si no hay empresas -->
+    <div th:if="${empresas != null and empresas.isEmpty()}" class="alert alert-info" role="alert">
+        No hay empresas registradas.
+    </div>
+
+    <!-- Tabla de empresas -->
+    <div th:if="${empresas != null and !empresas.isEmpty()}">
+        <table class="table table-striped table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>NIT</th>
+                    <th>Nombre</th>
+                    <th>Dirección</th>
+                    <th>Teléfono</th>
+                    <th>Fecha Creación</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="empresa : ${empresas}">
+                    <td th:text="${empresa.nitEmpresa}">-</td>
+                    <td th:text="${empresa.infoPersona.nombre}">-</td>
+                    <td th:text="${empresa.infoPersona.direccion}">-</td>
+                    <td th:text="${empresa.infoPersona.telefono}">-</td>
+                    <td th:text="${empresa.fechaCreacionEmpresa != null ? #dates.format(empresa.fechaCreacionEmpresa, 'dd/MM/yyyy') : '-'}">-</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 </body>
 </html>

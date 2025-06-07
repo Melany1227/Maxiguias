@@ -1,10 +1,9 @@
 package com.maxiguias.maxigestion.maxigestion.modelo;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
+
+import java.util.List;
 
 @Entity
 @Table(name = "PRODUCTOS")
@@ -22,5 +21,8 @@ public class Producto {
 
     @Column(name = "CANTIDAD_DISPONIBLE")
     private Integer cantidadDisponible;
+
+    @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Terminados> terminados;
 }
 
