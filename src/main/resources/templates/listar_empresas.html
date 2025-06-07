@@ -33,9 +33,9 @@
             <tbody>
                 <tr th:each="empresa : ${empresas}">
                     <td th:text="${empresa.nitEmpresa}">-</td>
-                    <td th:text="${empresa.nombre}">-</td>
-                    <td th:text="${empresa.direccion}">-</td>
-                    <td th:text="${empresa.telefono}">-</td>
+                    <td th:text="${empresa.infoPersona.nombre}">-</td>
+                    <td th:text="${empresa.infoPersona.direccion}">-</td>
+                    <td th:text="${empresa.infoPersona.telefono}">-</td>
                     <td th:text="${empresa.fechaCreacionEmpresa != null ? #dates.format(empresa.fechaCreacionEmpresa, 'dd/MM/yyyy') : '-'}">-</td>
                 </tr>
             </tbody>
