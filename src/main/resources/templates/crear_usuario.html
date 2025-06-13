@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Crear Usuario</title>
+</head>
+<body>
+
+<h2>Formulario de Crear Usuario</h2>
+
+<form th:action="${usuario.documento} == null ? @{/usuarios} : @{/usuarios/actualizar}" th:object="${usuario}" method="post">
+    <label for="documento">Documento:</label>
+    <input type="number" th:field="*{documento}" required /><br>
+
+    <label for="nombre">Nombre:</label>
+    <input type="text" th:field="*{nombre}" required /><br>
+
+    <label for="primerApellido">Primer Apellido:</label>
+    <input type="text" th:field="*{primerApellido}" /><br>
+
+    <label for="segundoApellido">Segundo Apellido:</label>
+    <input type="text" th:field="*{segundoApellido}" /><br>
+
+    <label for="direccion">Dirección:</label>
+    <input type="text" th:field="*{direccion}" /><br>
+
+    <label for="telefono">Teléfono:</label>
+    <input type="number" th:field="*{telefono}" /><br>
+
+    <label for="usuario">Usuario:</label>
+    <input type="text" th:field="*{nombreUsuario}"/><br>
+
+    <label for="contrasena">Contraseña:</label>
+    <input type="password" th:field="*{contrasena}" /><br>
+
+    <label for="tipoUsuario">Tipo Usuario:</label>
+    <select th:field="*{tipoUsuario}" required>
+        <option value="">Seleccione</option>
+        <option th:each="tipo : ${tiposUsuario}"
+                th:value="${tipo.id}"
+                th:text="${tipo.nombre}"></option>
+    </select><br>
+
+    <label for="perfil">Perfil:</label>
+    <select th:field="*{perfil}" required>
+        <option value="">Seleccione</option>
+        <option th:each="perfil : ${perfiles}"
+                th:value="${perfil.id}"
+                th:text="${perfil.nombrePerfil}"></option>
+    </select><br>
+
+    <button type="submit">Crear</button>
+
+    <p th:if="${mensajeError}" th:text="${mensajeError}" style="color:red;"></p>
+</form>
+
+</body>
+</html>
