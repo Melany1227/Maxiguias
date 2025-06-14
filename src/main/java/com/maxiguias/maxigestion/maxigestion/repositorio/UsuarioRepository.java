@@ -1,6 +1,13 @@
 package com.maxiguias.maxigestion.maxigestion.repositorio;
 
-import com.maxiguias.maxigestion.maxigestion.modelo.Usuario;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface UsuarioRepository extends JpaRepository<Usuario, Long> {}
+import com.maxiguias.maxigestion.maxigestion.modelo.Usuario;
+
+public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
+
+   List<Usuario> findByTipoUsuario_NombreIn(List<String> nombres);
+    
+}
