@@ -3,329 +3,127 @@
 <head>
   <meta charset="UTF-8">
   <title>Nueva Factura</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 30px; }
-    h1, h3 { text-align: center; }
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" th:href="@{/css/estilos.css}">
 
-    label {
-      display: inline-block;
-      width: 150px;
-      font-weight: bold;
-      margin-top: 10px;
-    }
-
-    input, select {
-      padding: 5px;
-      margin: 5px;
-    }
-
-    .inline { display: inline-block; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-
-    th, td {
-      border: 1px solid #aaa;
-      padding: 8px;
-      text-align: center;
-    }
-
-    .cantidad-controls button {
-      padding: 0 8px;
-      margin: 0 2px;
-      font-weight: bold;
-    }
-
-    .btn-submit {
-      display: block;
-      margin: 20px auto;
-      padding: 10px 30px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .btn-submit:hover {
-      background-color: #0056b3;
-    }
-
-    .controls {
-      text-align: center;
-      margin-top: 10px;
-    }
-
-    .btn-add, .btn-remove {
-      padding: 4px 10px;
-      margin: 5px;
-      font-size: 16px;
-    }
-  </style>
 </head>
 <body>
-
-<h1>Crear Nueva Factura</h1>
-
-<form th:action="@{/facturas/guardar}" method="post" th:object="${factura}">
-
-  <div>
-    <label>Ciudad:</label>
-    <select th:field="*{ciudad.id}">
-      <option th:each="c : ${ciudades}" th:value="${c.id}" th:text="${c.nombre}"></option>
-    </select>
+  <div class="sidebar">
+    <img src="/img/logo.png" alt="Logo MXG">
+    <a href="#" class="btn">INGRESAR</a>
+    <a href="#" class="btn">CATÁLOGO</a>
+    <a href="/usuarios" class="btn">USUARIOS</a>
   </div>
 
-  <div>
-    <label>Fecha de Venta:</label>
-    <input type="date" th:field="*{fechaVenta}" required>
+  <div class="main-content">
+    <div class="form-container">
+      
+        <h4 class="form-title">
+          <i class="fa-solid fa-id-card"></i> CREAR FACTURA
+        </h4>
+
+        <form th:action="@{/facturas/guardar}" method="post" th:object="${factura}">
+        <div class="row">
+          <div class="col-md-6">
+            <label class="form-icon-label"> <i class="fa-solid fa-location-dot"></i>Ciudad:</label>
+            <select class="form-select" th:field="*{ciudad.id}">
+              <option value="">Seleccione</option>
+              <option th:each="c : ${ciudades}" th:value="${c.id}" th:text="${c.nombre}"></option>
+            </select>
+
+            <label class="form-icon-label">
+              <i class="fa-solid fa-calendar-day"></i> Fecha de Venta
+            </label>
+            <input type="date" th:field="*{fechaVenta}" class="form-control" required>
+
+            
+            <label class="form-icon-label">Debe a:</label>
+            <span id="empresa" th:text="${empresa.nombreEmpresa + ' - NIT: ' + empresa.nitEmpresa}"></span>
+            <input type="hidden" name="empresa.nitEmpresa" th:value="${empresa.nitEmpresa}" />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-icon-label"><i class="fa-solid fa-user"></i> Cliente</label>
+              <select id="clienteSelect" class="form-select" th:field="*{usuario.documento}" onchange="actualizarDocumento()">
+                <option value="">Seleccione</option>
+                <option th:each="u : ${usuarios}"
+                        th:value="${u.documento}"
+                        th:data-tipo="${u.tipoUsuario}"
+                        th:data-doc="${u.documento}"
+                        th:text="${u.nombre + ' ' + u.primerApellido}">
+                </option>
+              </select>
+                
+              <span id="labelDocumento" class="fw-bold ms-2"></span>
+
+              <label class="form-icon-label"><i class="fa-solid fa-align-left"></i> Descripción Venta</label>
+              <input type="text" class="form-control" th:field="*{descripcionVenta}" required>
+          </div>
+        </div>
+
+        
+          <div class="d-flex justify-content-between align-items-center my-3">
+            <button type="button" class="btn btn-outline-danger btn-xl" onclick="eliminarFila()">-</button>
+            <h5 class="m-0">Detalles de la Factura</h5>
+            <button type="button" class="btn btn-outline-success btn-sm" onclick="agregarFila()">+</button>
+          </div>
+
+          <table id="tablaDetalle" class="table tabla-usuarios">
+            <thead class="table-light">
+              <tr>
+                <th>Producto</th>
+                <th>Terminado</th>
+                <th>Cantidad</th>
+                <th>Valor</th>
+                <th>Descripción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <select class="form-select" name="productoId">
+                    <option value="">Seleccione un producto</option>
+                    <option th:each="p : ${productos}" th:value="${p.id}" th:data-nombre="${p.nombre}" th:text="${p.nombre}"></option>
+                  </select>
+                </td>
+                <td>
+                  <select name="terminadoId" class="form-select select-terminado">
+                    <option value="">Seleccione un terminado</option>
+                  </select>
+                </td>
+                <td>
+                  <div class="input-group justify-content-center align-items-center">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="disminuir(this)">-</button>
+                    <input type="number" class="form-control text-center" name="cantidad" value="1" min="1" required style="max-width: 70px; margin-bottom: 0px;">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="aumentar(this)">+</button>
+                  </div>
+                </td>
+                <td>
+                  <input type="number" class="form-control" name="valor" step="0.01" required>
+                </td>
+                <td>
+                  <input type="text" class="form-control" name="descripcion">
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="text-end fw-bold fs-5 mt-3">
+            TOTAL: $<span id="totalFactura">0</span>
+          </div>
+
+          <input type="hidden" id="inputTotalFactura" name="totalFactura">
+
+          <div class="col-12 d-flex justify-content-end">
+              <button type="submit" class="custom-btn">
+                  <i class="fa-solid fa-save"></i> GUARDAR
+              </button>
+          </div>
+        </form>
+    </div>
   </div>
 
-  <div>
-    <label>Cliente:</label>
-    <select id="clienteSelect" th:field="*{usuario.documento}" onchange="actualizarDocumento()">
-      <option th:each="u : ${usuarios}" 
-              th:value="${u.documento}" 
-              th:data-tipo="${u.tipoUsuario}" 
-              th:data-doc="${u.documento}"
-              th:text="${u.nombre + ' ' + u.primerApellido}">
-      </option>
-    </select>
-
-    <label class="inline"></label>
-    <span id="labelDocumento" class="inline" style="font-weight: bold;"></span>
-  </div>
-
-  <div>
-    <label>Descripción Venta:</label>
-    <input type="text" th:field="*{descripcionVenta}" required>
-  </div>
-
-  <div>
-    <label>Debe a:</label>
-    <span th:text="${empresa.nombreEmpresa + ' - NIT: ' + empresa.nitEmpresa}"></span>
-  </div>
-
-  <h3>Detalles de la Factura</h3>
-
-  <div class="controls">
-    <button type="button" class="btn-remove" onclick="eliminarFila()">-</button>
-    <span>Detalles de la Factura</span>
-    <button type="button" class="btn-add" onclick="agregarFila()">+</button>
-  </div>
-
-  <table id="tablaDetalle">
-    <thead>
-      <tr>
-        <th>Producto</th>
-        <th>Terminado</th>
-        <th>Cantidad</th>
-        <th>Valor</th>
-        <th>Descripción</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>
-          <select name="productoId">
-            <option value="">Seleccione un producto</option>
-            <option th:each="p : ${productos}" th:value="${p.id}" th:data-nombre="${p.nombre}" th:text="${p.nombre}"></option>
-          </select>
-        </td>
-        <td>
-          <select name="terminadoId" class="select-terminado">
-            <option value="">Seleccione un terminado</option>
-          </select>
-        </td>
-        <td class="cantidad-controls">
-          <button type="button" onclick="disminuir(this)">-</button>
-          <input type="number" name="cantidad" value="1" min="1" required style="width: 50px;">
-          <button type="button" onclick="aumentar(this)">+</button>
-        </td>
-        <td>
-          <input type="number" name="valor" step="0.01" required>
-        </td>
-        <td>
-          <input type="text" name="descripcion">
-        </td>
-      </tr>
-    </tbody>
-  </table>
-
-  <div style="text-align: right; font-weight: bold; font-size: 18px; margin-top: 10px;">
-    TOTAL: $<span id="totalFactura">0</span>
-  </div>
-
-
-  <button type="submit" class="btn-submit">Guardar Factura</button>
-</form>
-
-<script>
-  let tipoClienteGlobal = "";
-  function actualizarDocumento() {
-    const select = document.getElementById("clienteSelect");
-    const option = select.options[select.selectedIndex];
-    const tipoStr = option.getAttribute("data-tipo");
-    const doc = option.getAttribute("data-doc");
-
-    const match = tipoStr.match(/nombre\s*=\s*(\w+)/);
-    const tipoNombre = match ? match[1].toUpperCase() : "";
-
-    const label = document.getElementById("labelDocumento");
-
-    if (tipoNombre === 'JURIDICO') {
-      label.textContent = "NIT: " + doc;
-    } else {
-      label.textContent = "Documento: " + doc;
-    }
-    tipoClienteGlobal = tipoNombre;
-
-    document.querySelectorAll("#tablaDetalle tbody tr").forEach(fila => {
-      actualizarPrecio(fila);
-    });
-
-    calcularTotalFactura();
-  }
-
-  function aumentar(btn) {
-    const input = btn.previousElementSibling;
-    input.value = parseInt(input.value) + 1;
-    const fila = btn.closest("tr");
-    actualizarPrecio(fila);
-  }
-
-  function disminuir(btn) {
-    const input = btn.nextElementSibling;
-    if (parseInt(input.value) > 1) {
-      input.value = parseInt(input.value) - 1;
-      const fila = btn.closest("tr");
-      actualizarPrecio(fila);
-    }
-  }
-
-  function agregarFila() {
-    const tabla = document.getElementById("tablaDetalle").querySelector("tbody");
-    const nuevaFila = tabla.rows[0].cloneNode(true);
-    nuevaFila.querySelectorAll("input").forEach(input => input.value = input.name === "cantidad" ? 1 : "");
-    tabla.appendChild(nuevaFila);
-    calcularTotalFactura();
-  }
-
-  function eliminarFila() {
-    const tabla = document.getElementById("tablaDetalle").querySelector("tbody");
-    if (tabla.rows.length > 1) {
-      tabla.deleteRow(tabla.rows.length - 1);
-      calcularTotalFactura();
-    }
-  }
-
-  window.onload = () => {
-    actualizarDocumento();
-    calcularTotalFactura();
-  };
-
-  function actualizarDescripcion(fila) {
-    const productoSelect = fila.querySelector("select[name='productoId']");
-    const terminadoSelect = fila.querySelector("select[name='terminadoId']");
-    const descripcionInput = fila.querySelector("input[name='descripcion']");
-
-    const productoNombre = productoSelect.options[productoSelect.selectedIndex]?.getAttribute("data-nombre") || "";
-    const terminadoInfo = terminadoSelect.options[terminadoSelect.selectedIndex]?.getAttribute("data-info") || "";
-
-    let descripcion = "";
-    if (productoNombre) {
-      descripcion = productoNombre;
-    }
-    if (terminadoInfo) {
-      descripcion += " - " + terminadoInfo;
-    }
-
-    descripcionInput.value = descripcion.trim();
-  }
-
-  document.addEventListener("change", function (e) {
-    const fila = e.target.closest("tr");
-
-    if (e.target.name === "productoId") {
-      const productoId = e.target.value;
-      const selectTerminado = fila.querySelector(".select-terminado");
-
-      selectTerminado.innerHTML = "<option value=''>Cargando...</option>";
-
-      fetch(`/terminados/por-producto/${productoId}`)
-        .then(res => res.json())
-        .then(data => {
-          selectTerminado.innerHTML = "<option value=''>Seleccione un terminado</option>";
-          data.forEach(t => {
-            const option = document.createElement("option");
-            option.value = t.id;
-            option.textContent = `${t.medidaTerminadoProducto}`;
-            option.setAttribute("data-info", `${t.medidaTerminadoProducto}`);
-            selectTerminado.appendChild(option);
-            option.setAttribute("data-publico", t.precioPublico);
-            option.setAttribute("data-mayor", t.precioPorMayor);
-            option.setAttribute("data-encargo", t.precioPorEncargo);
-          });
-          actualizarDescripcion(fila);
-        })
-        .catch(err => {
-          selectTerminado.innerHTML = "<option value=''>Error al cargar</option>";
-          console.error("Error cargando terminados:", err);
-        });
-    }
-
-    if (e.target.name === "terminadoId" || e.target.name === "productoId") {
-      actualizarDescripcion(fila);
-      actualizarPrecio(fila);
-    }
-  });
-
-  function actualizarPrecio(fila) {
-    const terminadoSelect = fila.querySelector("select[name='terminadoId']");
-    const cantidadInput = fila.querySelector("input[name='cantidad']");
-    const valorInput = fila.querySelector("input[name='valor']");
-
-    const publico = terminadoSelect.selectedOptions[0]?.getAttribute("data-publico");
-    const mayor = terminadoSelect.selectedOptions[0]?.getAttribute("data-mayor");
-    const encargo = terminadoSelect.selectedOptions[0]?.getAttribute("data-encargo");
-
-    const cantidad = parseInt(cantidadInput.value);
-
-    let precioFinal = 0;
-
-    if (tipoClienteGlobal === "NATURAL") {
-      precioFinal = publico;
-    } else if (tipoClienteGlobal === "JURIDICO") {
-      precioFinal = cantidad >= 3 ? mayor : encargo;
-    }
-
-    valorInput.value = precioFinal || 0;
-    calcularTotalFactura();
-  }
-
-  function calcularTotalFactura() {
-    let total = 0;
-    const filas = document.querySelectorAll("#tablaDetalle tbody tr");
-
-    filas.forEach(fila => {
-      const cantidad = parseFloat(fila.querySelector("input[name='cantidad']").value) || 0;
-      const valor = parseFloat(fila.querySelector("input[name='valor']").value) || 0;
-      total += cantidad * valor;
-    });
-
-    document.getElementById("totalFactura").textContent = total.toLocaleString("es-CO");
-  }
-
-  document.addEventListener("input", function (e) {
-    if (e.target.name === "cantidad" || e.target.name === "valor") {
-      calcularTotalFactura();
-    }
-  });
-
-</script>
-
+  <script th:src="@{/js/validaciones.js}"></script>
 </body>
 </html>

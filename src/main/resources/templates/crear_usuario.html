@@ -3,56 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <title>Crear Usuario</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
 </head>
 <body>
 
-<h2>Formulario de Crear Usuario</h2>
+    <div class="sidebar">
+        <img src="/img/logo.png" alt="Logo MXG">
+        <a href="#" class="btn">INGRESAR</a>
+        <a href="#" class="btn">CATÁLOGO</a>
+        <a href="facturas" class="btn">FACTURAS</a>
+    </div>
 
-<form th:action="${usuario.documento} == null ? @{/usuarios} : @{/usuarios/actualizar}" th:object="${usuario}" method="post">
-    <label for="documento">Documento:</label>
-    <input type="number" th:field="*{documento}" required /><br>
+    <div class="main-content">
+        <div class="form-container">
 
-    <label for="nombre">Nombre:</label>
-    <input type="text" th:field="*{nombre}" required /><br>
+            <h4 class="form-title">
+                <i class="fa-solid fa-id-card"></i> DATOS PERSONALES
+            </h4>    
 
-    <label for="primerApellido">Primer Apellido:</label>
-    <input type="text" th:field="*{primerApellido}" /><br>
+            <form th:action="${usuario.documento} == null ? @{/usuarios} : @{/usuarios/actualizar}" 
+                th:object="${usuario}" method="post" class="row g-3">
 
-    <label for="segundoApellido">Segundo Apellido:</label>
-    <input type="text" th:field="*{segundoApellido}" /><br>
 
-    <label for="direccion">Dirección:</label>
-    <input type="text" th:field="*{direccion}" /><br>
+                <div class="col-md-6">
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-id-badge"></i> Documento *
+                    </label>
+                    <input type="number" th:field="*{documento}" class="form-control" required>
 
-    <label for="telefono">Teléfono:</label>
-    <input type="number" th:field="*{telefono}" /><br>
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-user"></i> Primer Apellido
+                    </label>
+                    <input type="text" th:field="*{primerApellido}" class="form-control">
 
-    <label for="usuario">Usuario:</label>
-    <input type="text" th:field="*{nombreUsuario}"/><br>
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-location-dot"></i> Dirección *
+                    </label>
+                    <input type="text" th:field="*{direccion}" class="form-control" required>
+                    
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-user"></i> Nombre de Usuario
+                    </label>
+                    <input type="text" th:field="*{nombreUsuario}" class="form-control">
 
-    <label for="contrasena">Contraseña:</label>
-    <input type="password" th:field="*{contrasena}" /><br>
+                   <label class="form-icon-label">
+                        <i class="fa-solid fa-user"></i> Tipo de Usuario *
+                    </label>
+                    <select th:field="*{tipoUsuario}" class="form-control" required>
+                        <option value="">Seleccione</option>
+                        <option th:each="tipo : ${tiposUsuario}" th:value="${tipo.id}" th:text="${tipo.nombre}"></option>
+                    </select>
+                </div>
 
-    <label for="tipoUsuario">Tipo Usuario:</label>
-    <select th:field="*{tipoUsuario}" required>
-        <option value="">Seleccione</option>
-        <option th:each="tipo : ${tiposUsuario}"
-                th:value="${tipo.id}"
-                th:text="${tipo.nombre}"></option>
-    </select><br>
+                <div class="col-md-6">
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-user"></i> Nombre *
+                    </label>
+                    <input type="text" th:field="*{nombre}" class="form-control" required>
 
-    <label for="perfil">Perfil:</label>
-    <select th:field="*{perfil}" required>
-        <option value="">Seleccione</option>
-        <option th:each="perfil : ${perfiles}"
-                th:value="${perfil.id}"
-                th:text="${perfil.nombrePerfil}"></option>
-    </select><br>
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-user"></i> Segundo Apellido
+                    </label>
+                    <input type="text" th:field="*{segundoApellido}" class="form-control">
 
-    <button type="submit">Crear</button>
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-phone"></i> Teléfono *
+                    </label>
+                    <input type="number" th:field="*{telefono}" class="form-control" required>
 
-    <p th:if="${mensajeError}" th:text="${mensajeError}" style="color:red;"></p>
-</form>
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-user"></i> Contraseña 
+                    </label>
+                    <input type="password" th:field="*{contrasena}" class="form-control">
+
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-user"></i> Perfil *
+                    </label>
+                    <select th:field="*{perfil}" class="form-control" required>
+                        <option value="">Seleccione</option>
+                        <option th:each="perfil : ${perfiles}" th:value="${perfil.id}" th:text="${perfil.nombrePerfil}"></option>
+                    </select>
+                </div>
+
+                <div class="col-12 d-flex justify-content-end">
+                    <button type="submit" class="custom-btn">
+                        <i class="fa-solid fa-save"></i> GUARDAR
+                    </button>
+                </div>
+                          
+            </form>
+        </div>
+    </div>
+
+    <div class="modal fade" id="mensajeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center p-4" 
+                th:classappend="${tipoMensaje} == 'error' ? ' modal-error' : ' modal-success'">
+                <div class="modal-body">
+                    <h5 th:text="${mensajeModal}">Mensaje aquí</h5>
+                    <button type="button" id="okBtn" class="btn btn-warning mt-3" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        let mensaje = /*[[${mensajeModal}]]*/ null;
+        let redirigir = /*[[${redirigirDespues}]]*/ false;
+
+        if (mensaje && mensaje !== 'null' && mensaje.trim() !== '') {
+            const modalElement = document.getElementById('mensajeModal');
+            const modal = new bootstrap.Modal(modalElement);
+
+            modal.show();
+
+            document.getElementById('okBtn').addEventListener('click', function () {
+                if (redirigir) {
+                    window.location.href = '/usuarios'; 
+                }
+            });
+        }
+        /*]]>*/
+        document.addEventListener("DOMContentLoaded", function () {
+            const soloLetras = /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/;
+
+            const nombreInput = document.querySelector('[name="nombre"]');
+            const primerApellidoInput = document.querySelector('[name="primerApellido"]');
+            const segundoApellidoInput = document.querySelector('[name="segundoApellido"]');
+            const formulario = document.querySelector('form');
+
+            function esValido(input) {
+                const valor = input.value.trim();
+                return valor === '' || soloLetras.test(valor); // válido si está vacío o si cumple el patrón
+            }
+
+            formulario.addEventListener('submit', function (event) {
+                let mensaje = '';
+
+                if (!esValido(nombreInput)) {
+                    mensaje = 'El campo nombre solo permite letras y espacios.';
+                } else if (!esValido(primerApellidoInput)) {
+                    mensaje = 'El campo primer apellido solo permite letras y espacios.';
+                } else if (!esValido(segundoApellidoInput)) {
+                    mensaje = 'El campo segundo apellido solo permite letras y espacios.';
+                }
+
+                if (mensaje) {
+                    event.preventDefault();
+
+                    const mensajeTexto = document.querySelector('#mensajeModal h5');
+                    mensajeTexto.textContent = mensaje;
+
+                    const modalElement = document.getElementById('mensajeModal');
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
+                }
+            });
+        });
+    </script>
 
 </body>
 </html>

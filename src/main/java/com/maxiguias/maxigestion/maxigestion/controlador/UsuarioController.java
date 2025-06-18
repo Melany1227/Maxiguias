@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.maxiguias.maxigestion.maxigestion.modelo.Usuario;
 import com.maxiguias.maxigestion.maxigestion.servicio.PerfilService;
@@ -40,7 +41,7 @@ public class UsuarioController {
     @GetMapping("/crear")
     public String mostrarFormularioCrearUsuario(Model model) {
         model.addAttribute("usuario", new Usuario());
-        model.addAttribute("tiposUsuario", tipoUsuarioService.obtenerTiposUsuario()); // Lista desde la BD
+        model.addAttribute("tiposUsuario", tipoUsuarioService.obtenerTiposUsuario()); 
         model.addAttribute("perfiles", perfilService.obtenerPerfiles()); 
         return "crear_usuario";
     }
@@ -48,19 +49,27 @@ public class UsuarioController {
     @PostMapping()
     public String crearUsuario(@ModelAttribute Usuario usuario, Model model) {
         String resultado = usuarioService.crearUsuario(usuario);
+        model.addAttribute("tiposUsuario", tipoUsuarioService.obtenerTiposUsuario()); 
+        model.addAttribute("perfiles", perfilService.obtenerPerfiles()); 
 
-        if (!resultado.equals("OK")) {
-            model.addAttribute("usuario", usuario); 
-            model.addAttribute("mensajeError", resultado);
+        if (!resultado.equals("Usuario guardado exitosamente.")) {
+            model.addAttribute("usuario", usuario);
+            model.addAttribute("mensajeModal", resultado);
+            model.addAttribute("tipoMensaje", "error");
             return "crear_usuario";
         }
 
-        return listarUsuarios(model);
+        model.addAttribute("mensajeModal", resultado);
+        model.addAttribute("tipoMensaje", "success");
+        model.addAttribute("redirigirDespues", true);  
+        return "crear_usuario";
     }
 
     @GetMapping("/editar/{id}")
     public String mostrarFormularioEditar(@PathVariable Long id, Model model) {
         Usuario usuario = usuarioService.obtenerPorId(id); 
+        model.addAttribute("tiposUsuario", tipoUsuarioService.obtenerTiposUsuario()); 
+        model.addAttribute("perfiles", perfilService.obtenerPerfiles()); 
         model.addAttribute("usuario", usuario);
         model.addAttribute("tiposUsuario", tipoUsuarioService.obtenerTiposUsuario());
         model.addAttribute("perfiles", perfilService.obtenerPerfiles());
@@ -69,22 +78,31 @@ public class UsuarioController {
 
     @PostMapping("/actualizar")
     public String actualizarUsuario(@ModelAttribute Usuario usuario, Model model) {
-        String resultado = usuarioService.actualizarUsuario(usuario); 
-        if (!resultado.equals("OK")) {
-            model.addAttribute("mensajeError", resultado);
+        String resultado = usuarioService.actualizarUsuario(usuario);
+
+        if (!resultado.equals("Usuario actualizado exitosamente.")) {
+            model.addAttribute("mensajeModal", resultado); 
+            model.addAttribute("tipoMensaje", "error");
+            model.addAttribute("usuario", usuario);
             model.addAttribute("tiposUsuario", tipoUsuarioService.obtenerTiposUsuario());
             model.addAttribute("perfiles", perfilService.obtenerPerfiles());
             return "crear_usuario";
         }
-        return listarUsuarios(model);
+
+        model.addAttribute("mensajeModal", resultado);
+        model.addAttribute("tipoMensaje", "success");
+        model.addAttribute("redirigirDespues", true); 
+        return "crear_usuario";
     }
+
 
     @PostMapping("/eliminar/{id}")
-    public String eliminarUsuario(Model model, @PathVariable Long id) {
-        usuarioService.eliminarPorId(id); 
-        return listarUsuarios(model);
+    public String eliminarUsuario(RedirectAttributes redirectAttributes, @PathVariable Long id) {
+        usuarioService.eliminarPorId(id);
+        redirectAttributes.addFlashAttribute("mensajeModal", "Usuario eliminado exitosamente.");
+        redirectAttributes.addFlashAttribute("tipoMensaje", "success");
+        redirectAttributes.addFlashAttribute("redirigirDespues", true);
+        return "redirect:/usuarios";
     }
-
-
 
 }

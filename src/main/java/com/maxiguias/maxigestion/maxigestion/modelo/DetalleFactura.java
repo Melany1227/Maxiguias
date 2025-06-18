@@ -7,16 +7,18 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "DETALLE_FACTURAS")
-@IdClass(DetalleFacturaId.class)
 @Data
 public class DetalleFactura {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JoinColumn(name = "ID_DETALLE_FACTURA")
+    private Long id_detalle_factura;
+
     @ManyToOne
     @JoinColumn(name = "ID_FACTURA")
     private Factura factura;
 
-    @Id
     @ManyToOne
     @JoinColumn(name = "ID_PRODUCTO")
     private Producto producto;

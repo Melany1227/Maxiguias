@@ -30,28 +30,56 @@ public class UsuarioService {
         String tipo = usuario.getTipoUsuario().getNombre().toUpperCase();
 
         if (tipo.equals("NATURAL")) {
-            if (usuario.getNombreUsuario() != null && !usuario.getNombreUsuario().isEmpty() || usuario.getContrasena() != null && !usuario.getContrasena().isEmpty()) {
-                return "Error: Los usuarios NATURALES no deben tener usuario ni contraseña.";
+            boolean tieneUsuario = usuario.getNombreUsuario() != null && !usuario.getNombreUsuario().trim().isEmpty();
+            boolean tieneContrasena = usuario.getContrasena() != null && !usuario.getContrasena().trim().isEmpty();
+
+            if (tieneUsuario || tieneContrasena) {
+                return "Error: Los clientes naturales no deben tener usuario ni contraseña.";
             }
         }
 
         if (tipo.equals("JURIDICO")) {
-            if (usuario.getPrimerApellido() != null || usuario.getSegundoApellido() != null) {
-                return "Error: Los usuarios JURÍDICOS no deben tener apellidos.";
+            boolean tienePrimerApellido = usuario.getPrimerApellido() != null && !usuario.getPrimerApellido().trim().isEmpty();
+            boolean tieneSegundoApellido = usuario.getSegundoApellido() != null && !usuario.getSegundoApellido().trim().isEmpty();
+
+            if (tienePrimerApellido || tieneSegundoApellido) {
+                return "Error: Los clientes jurídicos no deben tener apellidos.";
             }
         }
 
         usuarioRepository.save(usuario);
-        return "OK";
+        return "Usuario guardado exitosamente.";
     }
 
     public String actualizarUsuario(Usuario usuario) {
         Usuario existente = obtenerPorId(usuario.getDocumento());
         if (existente == null) {
-            return "Usuario no encontrado";
+            return "Error: Usuario no encontrado";
+        }else{
+            String tipo = usuario.getTipoUsuario().getNombre().toUpperCase();
+
+            if (tipo.equals("NATURAL")) {
+                boolean tieneUsuario = usuario.getNombreUsuario() != null && !usuario.getNombreUsuario().trim().isEmpty();
+                boolean tieneContrasena = usuario.getContrasena() != null && !usuario.getContrasena().trim().isEmpty();
+
+                if (tieneUsuario || tieneContrasena) {
+                    return "Error: Los clientes naturales no deben tener usuario ni contraseña.";
+                }
+            }
+
+            if (tipo.equals("JURIDICO")) {
+                boolean tienePrimerApellido = usuario.getPrimerApellido() != null && !usuario.getPrimerApellido().trim().isEmpty();
+                boolean tieneSegundoApellido = usuario.getSegundoApellido() != null && !usuario.getSegundoApellido().trim().isEmpty();
+
+                if (tienePrimerApellido || tieneSegundoApellido) {
+                    return "Error: Los clientes jurídicos no deben tener apellidos.";
+                }
+            }
+            
+            usuarioRepository.save(usuario); 
+            return "Usuario actualizado exitosamente.";
         }
-        usuarioRepository.save(usuario); 
-        return "OK";
+       
     }
 
     

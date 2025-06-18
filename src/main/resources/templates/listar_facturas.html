@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Listado de Facturas</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" th:href="@{/css/estilos.css}">
+</head>
+<body>
+
+<div class="sidebar">
+    <img src="/img/logo.png" alt="Logo MXG">
+    <a href="#" class="btn">INGRESAR</a>
+    <a href="#" class="btn">CATÁLOGO</a>
+    <a href="usuarios" class="btn">USUARIOS</a>
+</div>
+
+<div class="main-content">
+    <div class="form-container">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="form-title">
+                <i class="fa-solid fa-id-card"></i> LISTA DE FACTURAS
+            </h4>
+
+            <a href="/facturas/nueva" class="btn" style="background-color: #000; color: white; width: 15%; margin-bottom: 15px; border-left: 5px solid #f3c623;">
+                <i class="fa-solid fa-plus"  style="padding-right: 8px;"></i> NUEVA FACTURA
+            </a>
+        </div>
+        <table class="table tabla-usuarios">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Empresa</th>
+                    <th>Fecha</th>
+                    <th>Ciudad</th>
+                    <th>Total</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="factura : ${facturas}">
+                    <td th:text="${factura.id}"></td>
+                    <td th:text="${factura.usuario.nombre + ' ' + factura.usuario.primerApellido}"></td>
+                    <td th:text="${factura.empresa.nombreEmpresa}"></td>
+                    <td th:text="${factura.fechaVenta}"></td>
+                    <td th:text="${factura.ciudad.nombre}"></td>
+                    <td th:text="${#numbers.formatDecimal(factura.totalFactura, 1, 'COMMA', 2, 'POINT')}">$0.00</td>
+                    <td class="text-center">
+                        <a th:href="@{/facturas/verMas/{id}(id=${factura.id})}"
+                           class="btn btn-outline-warning btn-sm me-1">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

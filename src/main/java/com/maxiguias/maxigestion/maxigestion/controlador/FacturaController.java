@@ -10,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -60,28 +61,54 @@ public class FacturaController {
     }
 
     @PostMapping("/guardar")
-    public String guardarFactura(@ModelAttribute Factura factura,
-                                 @RequestParam("productoId") List<Long> productoIds,
-                                 @RequestParam("cantidad") List<Integer> cantidades,
-                                 @RequestParam("valor") List<BigDecimal> valores,
-                                 @RequestParam("descripcion") List<String> descripciones) {
+    public String guardarFactura(
+            @ModelAttribute Factura factura,
+            @RequestParam("productoId") List<Long> productosId,
+            @RequestParam("terminadoId") List<Long> terminadosId,
+            @RequestParam("cantidad") List<Integer> cantidades,
+            @RequestParam("valor") List<BigDecimal> valores,
+            @RequestParam("descripcion") List<String> descripciones
+    ) {
 
-        List<DetalleFactura> detalles = new ArrayList<>();
+        Factura facturaGuardada = facturaService.guardarFactura(factura);
 
-        for (int i = 0; i < productoIds.size(); i++) {
+        for (int i = 0; i < productosId.size(); i++) {
             DetalleFactura detalle = new DetalleFactura();
-            Producto producto = new Producto();
-            producto.setId(productoIds.get(i));
-            detalle.setProducto(producto);
+            Producto producto = productoRepository.findById(productosId.get(i))
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+            detalle.setFactura(facturaGuardada); 
+            detalle.setProducto(producto);       
             detalle.setCantidad(cantidades.get(i));
             detalle.setValor(valores.get(i));
             detalle.setDescripcion(descripciones.get(i));
-            detalles.add(detalle);
+            facturaService.guardarDetalles(detalle);
         }
 
-        facturaService.crearFactura(factura, detalles);
-
-        return "redirect:/facturas/lista";
+        return "redirect:/facturas";
     }
+
+    @GetMapping
+    public String listarFacturas(Model model) {
+        List<Factura> facturas = facturaService.obtenerTodasLasFacturas();
+        model.addAttribute("facturas", facturas);
+        return "listar_facturas"; 
+    }
+
+    @GetMapping("/verMas/{id}")
+    public String verDetalleFactura(@PathVariable("id") Long id, Model model) {
+        Factura factura = facturaService.obtenerFacturaPorId(id);
+        if (factura == null) {
+            return "redirect:/facturas"; // Por si no se encuentra
+        }
+
+        model.addAttribute("factura", factura);
+        model.addAttribute("detalles", factura.getDetalles());
+        return "factura-detalle"; // nombre del HTML
+    }
+
+
+
+    
 }
 
