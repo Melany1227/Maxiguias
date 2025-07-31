@@ -3,6 +3,8 @@ package com.maxiguias.maxigestion.maxigestion.servicio;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.maxiguias.maxigestion.maxigestion.modelo.Usuario;
@@ -12,6 +14,9 @@ import com.maxiguias.maxigestion.maxigestion.repositorio.UsuarioRepository;
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public UsuarioService(UsuarioRepository usuarioRepository) {
         this.usuarioRepository = usuarioRepository;
@@ -47,6 +52,11 @@ public class UsuarioService {
             }
         }
 
+        // Encriptar contraseña si existe
+        if (usuario.getContrasena() != null && !usuario.getContrasena().trim().isEmpty()) {
+            usuario.setContrasena(passwordEncoder.encode(usuario.getContrasena()));
+        }
+
         usuarioRepository.save(usuario);
         return "Usuario guardado exitosamente.";
     }
@@ -76,6 +86,14 @@ public class UsuarioService {
                 }
             }
             
+            // Encriptar contraseña si se está actualizando
+            if (usuario.getContrasena() != null && !usuario.getContrasena().trim().isEmpty()) {
+                usuario.setContrasena(passwordEncoder.encode(usuario.getContrasena()));
+            } else {
+                // Mantener la contraseña existente si no se proporciona una nueva
+                usuario.setContrasena(existente.getContrasena());
+            }
+            
             usuarioRepository.save(usuario); 
             return "Usuario actualizado exitosamente.";
         }
@@ -87,5 +105,12 @@ public class UsuarioService {
         usuarioRepository.deleteById(id);
     }
 
+    public String encriptarContrasena(String contrasenaPlana) {
+        return passwordEncoder.encode(contrasenaPlana);
+    }
+
+    public boolean validarContrasena(String contrasenaPlana, String contrasenaEncriptada) {
+        return passwordEncoder.matches(contrasenaPlana, contrasenaEncriptada);
+    }
 
 }

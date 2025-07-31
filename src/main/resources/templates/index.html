@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="es">
     <head>
         <meta charset="UTF-8">
         <title>MXG - Inicio</title>
@@ -9,9 +9,19 @@
     <body>
         <div class="sidebar">
             <img src="/img/logo.png" alt="Logo MXG">
-            <a href="#" class="btn">INGRESAR</a>
-            <a href="facturas" class="btn">FACTURAS</a>
-            <a href="usuarios" class="btn">USUARIOS</a>
+            
+            <!-- Si no está autenticado, mostrar botón INGRESAR -->
+            <div sec:authorize="!isAuthenticated()">
+                <a href="/login" class="btn">INGRESAR</a>
+            </div>
+            
+            <!-- Si está autenticado, mostrar menú completo -->
+            <div sec:authorize="isAuthenticated()">
+                <p sec:authentication="name" style="color: white; margin: 10px 0;"></p>
+                <a href="facturas" class="btn">FACTURAS</a>
+                <a href="usuarios" class="btn">USUARIOS</a>
+                <a href="/logout" class="btn">CERRAR SESIÓN</a>
+            </div>
         </div>
 
         <div class="main-content">
