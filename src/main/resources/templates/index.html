@@ -20,7 +20,9 @@
                 <p sec:authentication="name" style="color: white; margin: 10px 0;"></p>
                 <a href="facturas" class="btn">FACTURAS</a>
                 <a href="usuarios" class="btn">USUARIOS</a>
-                <a href="/logout" class="btn">CERRAR SESIÓN</a>
+                <form th:action="@{/logout}" method="post" style="display: inline;">
+                    <button type="submit" class="btn">CERRAR SESIÓN</button>
+                </form>
             </div>
         </div>
 
