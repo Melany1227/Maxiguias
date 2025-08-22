@@ -1,4 +1,89 @@
 let tipoClienteGlobal = "";
+
+// Función para verificar si una combinación ya está seleccionada
+function esCombinacionDuplicada(productoId, terminadoId, filaActual) {
+    const filas = document.querySelectorAll("#tablaDetalle tbody tr");
+    
+    for (let fila of filas) {
+        if (fila === filaActual) continue; // Saltar la fila actual
+        
+        const prodSeleccionado = fila.querySelector("select[name='productoId']").value;
+        const termSeleccionado = fila.querySelector("select[name='terminadoId']").value;
+        
+        if (prodSeleccionado === productoId && termSeleccionado === terminadoId) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+// Función para verificar si un producto tiene terminados disponibles
+async function productoTieneTerminadosDisponibles(productoId, filaActual) {
+    try {
+        const response = await fetch(`/terminados/por-producto/${productoId}`);
+        const terminados = await response.json();
+        
+        // Verificar si hay al menos un terminado que no esté siendo usado en otra fila
+        return terminados.some(terminado => 
+            !esCombinacionDuplicada(productoId, terminado.id.toString(), filaActual)
+        );
+    } catch (error) {
+        console.error("Error verificando terminados:", error);
+        return true; // En caso de error, mostrar el producto
+    }
+}
+
+// Función para actualizar las opciones de productos en una fila específica
+async function actualizarOpcionesProducto(fila) {
+    const productoSelect = fila.querySelector("select[name='productoId']");
+    const productoActual = productoSelect.value;
+    
+    // Obtener todas las opciones originales (guardar referencia)
+    if (!window.opcionesProductosOriginales) {
+        window.opcionesProductosOriginales = Array.from(productoSelect.options)
+            .filter(option => option.value !== "")
+            .map(option => ({
+                value: option.value,
+                text: option.textContent,
+                dataNombre: option.getAttribute("data-nombre")
+            }));
+    }
+    
+    // Limpiar opciones excepto la primera
+    productoSelect.innerHTML = '<option value="">Seleccione un producto</option>';
+    
+    // Agregar solo productos que tengan terminados disponibles
+    for (const opcion of window.opcionesProductosOriginales) {
+        const tieneDisponibles = await productoTieneTerminadosDisponibles(opcion.value, fila);
+        if (tieneDisponibles) {
+            const option = document.createElement("option");
+            option.value = opcion.value;
+            option.textContent = opcion.text;
+            option.setAttribute("data-nombre", opcion.dataNombre);
+            productoSelect.appendChild(option);
+        }
+    }
+    
+    // Restaurar selección si el producto sigue disponible
+    if (productoActual) {
+        productoSelect.value = productoActual;
+        // Si el producto ya no está disponible, limpiar terminados
+        if (!productoSelect.value) {
+            const selectTerminado = fila.querySelector(".select-terminado");
+            selectTerminado.innerHTML = "<option value=''>Seleccione un terminado</option>";
+        }
+    }
+}
+
+// Función para actualizar todas las filas con productos disponibles
+async function actualizarTodasLasOpcionesProducto() {
+    const filas = document.querySelectorAll("#tablaDetalle tbody tr");
+    for (const fila of filas) {
+        await actualizarOpcionesProducto(fila);
+    }
+}
+
 function actualizarDocumento() {
 const select = document.getElementById("clienteSelect");
 const option = select.options[select.selectedIndex];
@@ -44,6 +129,15 @@ function agregarFila() {
 const tabla = document.getElementById("tablaDetalle").querySelector("tbody");
 const nuevaFila = tabla.rows[0].cloneNode(true);
 nuevaFila.querySelectorAll("input").forEach(input => input.value = input.name === "cantidad" ? 1 : "");
+// Limpiar selects de la nueva fila
+nuevaFila.querySelectorAll("select").forEach(select => {
+    if (select.name === "productoId") {
+        select.selectedIndex = 0;
+    } else if (select.name === "terminadoId") {
+        select.innerHTML = "<option value=''>Seleccione un terminado</option>";
+        select.selectedIndex = 0;
+    }
+});
 tabla.appendChild(nuevaFila);
 calcularTotalFactura();
 }
@@ -94,14 +188,17 @@ if (e.target.name === "productoId") {
     .then(data => {
         selectTerminado.innerHTML = "<option value=''>Seleccione un terminado</option>";
         data.forEach(t => {
-        const option = document.createElement("option");
-        option.value = t.id;
-        option.textContent = `${t.medidaTerminadoProducto}`;
-        option.setAttribute("data-info", `${t.medidaTerminadoProducto}`);
-        selectTerminado.appendChild(option);
-        option.setAttribute("data-publico", t.precioPublico);
-        option.setAttribute("data-mayor", t.precioPorMayor);
-        option.setAttribute("data-encargo", t.precioPorEncargo);
+            // Solo agregar terminados que no estén ya seleccionados en otras filas
+            if (!esCombinacionDuplicada(productoId, t.id.toString(), fila)) {
+                const option = document.createElement("option");
+                option.value = t.id;
+                option.textContent = `${t.medidaTerminadoProducto}`;
+                option.setAttribute("data-info", `${t.medidaTerminadoProducto}`);
+                option.setAttribute("data-publico", t.precioPublico);
+                option.setAttribute("data-mayor", t.precioPorMayor);
+                option.setAttribute("data-encargo", t.precioPorEncargo);
+                selectTerminado.appendChild(option);
+            }
         });
         actualizarDescripcion(fila);
     })
@@ -111,7 +208,22 @@ if (e.target.name === "productoId") {
     });
 }
 
-if (e.target.name === "terminadoId" || e.target.name === "productoId") {
+if (e.target.name === "terminadoId") {
+    // Verificar si la combinación ya existe (validación adicional)
+    const productoId = fila.querySelector("select[name='productoId']").value;
+    const terminadoId = e.target.value;
+    
+    if (productoId && terminadoId && esCombinacionDuplicada(productoId, terminadoId, fila)) {
+        alert("Esta combinación de producto y terminado ya está seleccionada en otra fila.");
+        e.target.selectedIndex = 0;
+        return;
+    }
+    
+    actualizarDescripcion(fila);
+    actualizarPrecio(fila);
+}
+
+if (e.target.name === "productoId") {
     actualizarDescripcion(fila);
     actualizarPrecio(fila);
 }

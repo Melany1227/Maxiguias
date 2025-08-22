@@ -43,6 +43,8 @@ public class UsuarioController {
         model.addAttribute("usuario", new Usuario());
         model.addAttribute("tiposUsuario", tipoUsuarioService.obtenerTiposUsuario()); 
         model.addAttribute("perfiles", perfilService.obtenerPerfiles()); 
+        model.addAttribute("esEdicion", false);
+        model.addAttribute("tieneContrasena", false);
         return "crear_usuario";
     }
 
@@ -51,28 +53,38 @@ public class UsuarioController {
         String resultado = usuarioService.crearUsuario(usuario);
         model.addAttribute("tiposUsuario", tipoUsuarioService.obtenerTiposUsuario()); 
         model.addAttribute("perfiles", perfilService.obtenerPerfiles()); 
+        model.addAttribute("esEdicion", false);
 
         if (!resultado.equals("Usuario guardado exitosamente.")) {
             model.addAttribute("usuario", usuario);
             model.addAttribute("mensajeModal", resultado);
             model.addAttribute("tipoMensaje", "error");
+            model.addAttribute("tieneContrasena", false);
             return "crear_usuario";
         }
 
         model.addAttribute("mensajeModal", resultado);
         model.addAttribute("tipoMensaje", "success");
-        model.addAttribute("redirigirDespues", true);  
+        model.addAttribute("redirigirDespues", true);
+        model.addAttribute("tieneContrasena", false);
         return "crear_usuario";
     }
 
     @GetMapping("/editar/{id}")
     public String mostrarFormularioEditar(@PathVariable Long id, Model model) {
         Usuario usuario = usuarioService.obtenerPorId(id); 
+        
+        // Guardar si tiene contraseña para el placeholder, luego limpiar el campo
+        boolean tieneContrasena = usuario.getContrasena() != null && !usuario.getContrasena().trim().isEmpty();
+        if (tieneContrasena) {
+            usuario.setContrasena(""); // Limpiar para que no se muestre la encriptada
+        }
+        
         model.addAttribute("tiposUsuario", tipoUsuarioService.obtenerTiposUsuario()); 
         model.addAttribute("perfiles", perfilService.obtenerPerfiles()); 
         model.addAttribute("usuario", usuario);
-        model.addAttribute("tiposUsuario", tipoUsuarioService.obtenerTiposUsuario());
-        model.addAttribute("perfiles", perfilService.obtenerPerfiles());
+        model.addAttribute("esEdicion", true);
+        model.addAttribute("tieneContrasena", tieneContrasena);
         return "crear_usuario"; 
     }
 
@@ -86,12 +98,16 @@ public class UsuarioController {
             model.addAttribute("usuario", usuario);
             model.addAttribute("tiposUsuario", tipoUsuarioService.obtenerTiposUsuario());
             model.addAttribute("perfiles", perfilService.obtenerPerfiles());
+            model.addAttribute("esEdicion", true);
+            model.addAttribute("tieneContrasena", true); // Asumir que tiene contraseña en edición
             return "crear_usuario";
         }
 
         model.addAttribute("mensajeModal", resultado);
         model.addAttribute("tipoMensaje", "success");
         model.addAttribute("redirigirDespues", true); 
+        model.addAttribute("esEdicion", true);
+        model.addAttribute("tieneContrasena", true);
         return "crear_usuario";
     }
 

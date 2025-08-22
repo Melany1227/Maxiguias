@@ -12,5 +12,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
    List<Usuario> findByTipoUsuario_NombreIn(List<String> nombres);
    
    Optional<Usuario> findByNombreUsuario(String nombreUsuario);
+   
+   boolean existsByDocumento(Long documento);
+   
+   boolean existsByNombreUsuario(String nombreUsuario);
     
 }
