@@ -139,6 +139,8 @@ nuevaFila.querySelectorAll("select").forEach(select => {
     }
 });
 tabla.appendChild(nuevaFila);
+// Actualizar opciones de productos en la nueva fila
+actualizarOpcionesProducto(nuevaFila);
 calcularTotalFactura();
 }
 
@@ -146,6 +148,8 @@ function eliminarFila() {
 const tabla = document.getElementById("tablaDetalle").querySelector("tbody");
 if (tabla.rows.length > 1) {
     tabla.deleteRow(tabla.rows.length - 1);
+    // Actualizar opciones de productos en todas las filas después de eliminar
+    setTimeout(() => actualizarTodasLasOpcionesProducto(), 100);
     calcularTotalFactura();
 }
 }
@@ -221,6 +225,9 @@ if (e.target.name === "terminadoId") {
     
     actualizarDescripcion(fila);
     actualizarPrecio(fila);
+    
+    // Actualizar opciones de productos en otras filas después del cambio
+    setTimeout(() => actualizarTodasLasOpcionesProducto(), 100);
 }
 
 if (e.target.name === "productoId") {
