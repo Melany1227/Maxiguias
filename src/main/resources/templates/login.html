@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Maxigestion</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+   
+</head>
+<body>
+    <div class="layout">
+        <!-- ===== SIDEBAR (con tu logo) ===== -->
+        <div class="sidebar">
+            <img src="/img/logo.png" alt="Logo MXG">
+            <a href="/" class="btn">INICIO</a>
+            <a href="#" class="btn">CATÁLOGO</a>
+        </div>
+    
+        <!-- ===== CONTENIDO PRINCIPAL ===== -->
+        <main class="main">
+          <section class="card">
+            <h1>INICIAR SESIÓN</h1>
+          
+            <!-- Mensajes -->
+            <div th:if="${errorMessage}" class="alert alert-danger">
+              <span th:text="${errorMessage}"></span>
+            </div>
+            <div th:if="${logoutMessage}" class="alert alert-success">
+              <span th:text="${logoutMessage}"></span>
+            </div>
+    
+            <!-- Formulario -->
+            <form class="form" th:action="@{/login}" method="post">
+              <div class="form-group">
+                <label for="username">Usuario</label>
+                <input id="username" name="username" type="text" required />
+              </div>
+              <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input id="password" name="password" type="password" required />
+              </div>
+              <button type="submit" class="btn-login">INICIAR</button>
+              <!-- <p class="hint"><a href="#" tabindex="-1">¿Olvidaste tu contraseña?</a></p>-->
+            </form>
+          </section>
+        </main>
+      </div>
+</body>
+</html>
