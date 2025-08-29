@@ -29,7 +29,7 @@
             <span th:text="${factura.usuario.nombre + ' ' + factura.usuario.primerApellido}"></span>
           </p>
           <p><strong><i class="fa-solid fa-building"></i> Empresa:</strong>
-            <span th:text="${factura.empresa.nombreEmpresa}"></span>
+            <span th:text="${factura.empresa.nombreEmpresa + ' - ' + factura.empresa.nitEmpresa}"></span>
           </p>
           <p><strong><i class="fa-solid fa-calendar-day"></i> Fecha:</strong>
             <span th:text="${factura.fechaVenta}"></span>
@@ -53,23 +53,26 @@
       <table class="table tabla-usuarios">
         <thead class="table-light">
           <tr>
-            <th>Producto</th>
             <th>Descripción</th>
             <th>Cantidad</th>
             <th>Valor</th>
+            <th>Total</th>
           </tr>
         </thead>
         <tbody>
           <tr th:each="detalle : ${detalles}">
-            <td th:text="${detalle.producto.nombre}">Producto</td>
             <td th:text="${detalle.descripcion}">Descripción</td>
             <td th:text="${detalle.cantidad}">1</td>
             <td th:text="${detalle.valor}">0.00</td>
+            <td th:text="${detalle.cantidad * detalle.valor}">0.00</td>
           </tr>
         </tbody>
       </table>
 
       <div class="col-12 d-flex justify-content-end mt-4">
+        <a th:href="@{'/facturas/pdf/' + ${factura.id}}" class="custom-btn me-3">
+          <i class="fa-solid fa-file-pdf"></i> DESCARGAR PDF
+        </a>
         <a href="/facturas" class="custom-btn">
           <i class="fa-solid fa-arrow-left"></i> VOLVER
         </a>
