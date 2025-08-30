@@ -14,6 +14,7 @@
         <a href="#" class="btn">INGRESAR</a>
         <a href="#" class="btn">CATÁLOGO</a>
         <a href="facturas" class="btn">FACTURAS</a>
+        <a href="/productos" class="btn">PRODUCTOS</a>
     </div>
 
     <div class="main-content">
@@ -23,7 +24,7 @@
                 <i class="fa-solid fa-id-card"></i> DATOS PERSONALES
             </h4>    
 
-            <form th:action="${usuario.documento} == null ? @{/usuarios} : @{/usuarios/actualizar}" 
+            <form th:action="${esEdicion} ? @{/usuarios/actualizar} : @{/usuarios}" 
                 th:object="${usuario}" method="post" class="row g-3">
 
 
@@ -76,7 +77,9 @@
                     <label class="form-icon-label">
                         <i class="fa-solid fa-user"></i> Contraseña 
                     </label>
-                    <input type="password" th:field="*{contrasena}" class="form-control">
+                    <input type="password" th:field="*{contrasena}" 
+                           th:placeholder="${esEdicion and tieneContrasena} ? '••••••••' : ''" 
+                           class="form-control">
 
                     <label class="form-icon-label">
                         <i class="fa-solid fa-user"></i> Perfil *

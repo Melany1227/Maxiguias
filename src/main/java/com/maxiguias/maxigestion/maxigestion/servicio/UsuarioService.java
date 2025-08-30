@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +33,18 @@ public class UsuarioService {
     }
 
     public String crearUsuario(Usuario usuario) {
+        // Validar si el documento ya existe
+        if (usuarioRepository.existsByDocumento(usuario.getDocumento())) {
+            return "Error: Ya existe un usuario con el documento " + usuario.getDocumento() + ".";
+        }
+        
+        // Validar si el nombre de usuario ya existe (solo si se proporciona)
+        if (usuario.getNombreUsuario() != null && !usuario.getNombreUsuario().trim().isEmpty()) {
+            if (usuarioRepository.existsByNombreUsuario(usuario.getNombreUsuario())) {
+                return "Error: Ya existe un usuario con el nombre de usuario '" + usuario.getNombreUsuario() + "'.";
+            }
+        }
+        
         String tipo = usuario.getTipoUsuario().getNombre().toUpperCase();
 
         if (tipo.equals("NATURAL")) {
@@ -57,8 +70,20 @@ public class UsuarioService {
             usuario.setContrasena(passwordEncoder.encode(usuario.getContrasena()));
         }
 
-        usuarioRepository.save(usuario);
-        return "Usuario guardado exitosamente.";
+        try {
+            usuarioRepository.save(usuario);
+            return "Usuario guardado exitosamente.";
+        } catch (DataIntegrityViolationException e) {
+            // Manejar violaciones de restricciones únicas no capturadas por las validaciones previas
+            String mensaje = e.getMessage();
+            if (mensaje.contains("UK3m5n1w5trapxlbo2s42ugwdmd") || mensaje.contains("nombreUsuario")) {
+                return "Error: Ya existe un usuario con ese nombre de usuario.";
+            } else if (mensaje.contains("documento")) {
+                return "Error: Ya existe un usuario con ese documento.";
+            } else {
+                return "Error: No se pudo guardar el usuario debido a datos duplicados.";
+            }
+        }
     }
 
     public String actualizarUsuario(Usuario usuario) {
