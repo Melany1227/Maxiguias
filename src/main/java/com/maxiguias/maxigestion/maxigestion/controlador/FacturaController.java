@@ -6,6 +6,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -107,7 +111,21 @@ public class FacturaController {
         return "factura-detalle"; // nombre del HTML
     }
 
-
+    @GetMapping("/pdf/{id}")
+    public ResponseEntity<byte[]> descargarFacturaPDF(@PathVariable("id") Long id) {
+        try {
+            byte[] pdfBytes = facturaService.generarFacturaPDF(id);
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "factura_" + id + ".pdf");
+            headers.setContentLength(pdfBytes.length);
+            
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     
 }
