@@ -1,0 +1,133 @@
+/* Estilos para la página de reportes */
+.reportes-container {
+    padding: 20px;
+}
+
+.reportes-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.reportes-header h1 {
+    color: #333;
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.reportes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.reporte-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 25px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.reporte-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+}
+
+.reporte-icon {
+    font-size: 3rem;
+    color: #FFD700;
+    margin-bottom: 15px;
+}
+
+.reporte-card h3 {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 1.5rem;
+}
+
+.reporte-card p {
+    color: #666;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* Estilos del modal */
+.modal-header {
+    background-color: #FFD700;
+    color: #333;
+}
+
+.modal-title {
+    font-weight: bold;
+}
+
+.estadisticas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.estadistica-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    border: 2px solid #e9ecef;
+}
+
+.estadistica-card h5 {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.estadistica-numero {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.estadistica-card.total {
+    border-color: #FFD700;
+    background-color: #fffbf0;
+}
+
+.estadistica-card.natural {
+    border-color: #28a745;
+    background-color: #f0f9f0;
+}
+
+.estadistica-card.juridico {
+    border-color: #007bff;
+    background-color: #f0f7ff;
+}
+
+.filter-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #dee2e6;
+}
+
+.btn-excel {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.btn-excel:hover {
+    background-color: #218838;
+    color: white;
+}
+
+.btn-excel i {
+    margin-right: 8px;
+}

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes - Maxigestion</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" th:href="@{/css/reportes.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="sidebar">
+        <img src="/img/logo.png" alt="Logo MXG">
+        <a href="/" class="btn">INICIO</a>
+        <a href="#" class="btn">CATÁLOGO</a>
+        <a href="/usuarios" class="btn">USUARIOS</a>
+        <a href="/reportes" class="btn">REPORTES</a>
+    </div>
+
+    <div class="main-content">
+        <div class="reportes-container">
+            <div class="reportes-header">
+                <h1>Reportes</h1>
+                <p>Genera y descarga reportes del sistema</p>
+            </div>
+
+            <div class="reportes-grid">
+                <!-- Reporte de Clientes -->
+                <div class="reporte-card" onclick="mostrarInformeClientes()">
+                    <div class="reporte-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Informe clientes nuevos por mes</h3>
+                    <p>Visualiza y exporta información detallada de clientes naturales y jurídicos</p>
+                </div>
+
+                <!-- Aquí puedes agregar más tipos de reportes en el futuro -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Informe de Clientes -->
+    <div class="modal fade" id="informeClientesModal" tabindex="-1" aria-labelledby="informeClientesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="informeClientesModalLabel">
+                        <i class="fas fa-users"></i> Informe de Clientes
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Estadísticas -->
+                    <div class="estadisticas-grid">
+                        <div class="estadistica-card total">
+                            <h5>Total Clientes</h5>
+                            <div class="estadistica-numero" id="totalUsuarios">0</div>
+                        </div>
+                        <div class="estadistica-card natural">
+                            <h5>Clientes Naturales</h5>
+                            <div class="estadistica-numero" id="usuariosNaturales">0</div>
+                        </div>
+                        <div class="estadistica-card juridico">
+                            <h5>Clientes Jurídicos</h5>
+                            <div class="estadistica-numero" id="usuariosJuridicos">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Filtro por mes -->
+                    <div class="filter-section">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <label for="mesFilter" class="form-label">Filtrar por mes (Año <span id="anioActual"></span>):</label>
+                                <select class="form-select" id="mesFilter" onchange="actualizarEstadisticas()">
+                                    <option value="">Todos los meses</option>
+                                    <option value="1">Enero</option>
+                                    <option value="2">Febrero</option>
+                                    <option value="3">Marzo</option>
+                                    <option value="4">Abril</option>
+                                    <option value="5">Mayo</option>
+                                    <option value="6">Junio</option>
+                                    <option value="7">Julio</option>
+                                    <option value="8">Agosto</option>
+                                    <option value="9">Septiembre</option>
+                                    <option value="10">Octubre</option>
+                                    <option value="11">Noviembre</option>
+                                    <option value="12">Diciembre</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <button class="btn btn-excel" onclick="generarExcel()">
+                                    <i class="fas fa-file-excel"></i> Generar Excel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Mostrar el año actual
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('anioActual').textContent = new Date().getFullYear();
+        });
+
+        function mostrarInformeClientes() {
+            // Cargar estadísticas iniciales
+            fetch('/reportes/estadisticas-clientes')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('totalUsuarios').textContent = data.total;
+                    document.getElementById('usuariosNaturales').textContent = data.naturales;
+                    document.getElementById('usuariosJuridicos').textContent = data.juridicos;
+                })
+                .catch(error => console.error('Error:', error));
+            
+            // Mostrar el modal
+            const modal = new bootstrap.Modal(document.getElementById('informeClientesModal'));
+            modal.show();
+        }
+
+        function actualizarEstadisticas() {
+            const mes = document.getElementById('mesFilter').value;
+            const url = mes ? `/reportes/estadisticas-clientes?mes=${mes}` : '/reportes/estadisticas-clientes';
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('totalUsuarios').textContent = data.total;
+                    document.getElementById('usuariosNaturales').textContent = data.naturales;
+                    document.getElementById('usuariosJuridicos').textContent = data.juridicos;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function generarExcel() {
+            const mes = document.getElementById('mesFilter').value;
+            const url = mes ? `/reportes/exportar-excel?mes=${mes}` : '/reportes/exportar-excel';
+            window.location.href = url;
+        }
+    </script>
+</body>
+</html>
