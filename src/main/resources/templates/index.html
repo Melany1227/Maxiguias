@@ -20,6 +20,7 @@
             <div sec:authorize="isAuthenticated()">
                 <p sec:authentication="name" style="color: white; margin: 10px 0;"></p>
                 <a href="facturas" class="btn">FACTURAS</a>
+                <a href="ordenes" class="btn">ÓRDENES</a>
                 <a href="productos" class="btn">PRODUCTOS</a>
                 <a href="usuarios" class="btn">USUARIOS</a>
                 <form th:action="@{/logout}" method="post" style="display: inline;">

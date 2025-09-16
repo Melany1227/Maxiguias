@@ -29,7 +29,8 @@ public class TerminadoController {
     @GetMapping("/por-producto/{id}")
     @ResponseBody
     public List<Terminado> obtenerTerminadosPorProducto(@PathVariable("id") Long productoId) {
-        return terminadoService.obtenerTerminadosPorProducto(productoId);
+        List<Terminado> terminados = terminadoService.obtenerTerminadosPorProducto(productoId);
+        return terminados;
     }
 
 
