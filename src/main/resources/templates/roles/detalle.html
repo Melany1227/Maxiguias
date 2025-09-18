@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
     <head>
         <meta charset="UTF-8">
-        <title>Detalle del Perfil</title>
+        <title>Detalle del Rol</title>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <link rel="stylesheet" th:href="@{/css/estilos.css}">
@@ -14,23 +14,24 @@
             <a href="#" class="btn">CATÁLOGO</a>
             <a href="/usuarios" class="btn">USUARIOS</a>
             <a href="/facturas" class="btn">FACTURAS</a>
-            <a href="/perfiles" class="btn active">PERFILES</a>
+            <a href="/perfiles" class="btn">PERFILES</a>
+            <a href="/roles" class="btn active">ROLES</a>
             <a href="/reportes" class="btn">REPORTES</a>
         </div>
 
         <div class="main-content">
             <div class="form-container">
                 <h4 class="form-title">
-                    <i class="fa-solid fa-user-tag"></i> DETALLE DEL PERFIL
+                    <i class="fa-solid fa-user-shield"></i> DETALLE DEL ROL
                 </h4>
 
                 <!-- Botones de navegación -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <a href="/perfiles" class="btn btn-outline-secondary">
+                    <a href="/roles" class="btn btn-outline-secondary">
                         <i class="fas fa-arrow-left"></i> Volver a la lista
                     </a>
                     <div>
-                        <a th:href="@{/perfiles/{id}/editar(id=${perfil.id})}" class="btn btn-outline-warning me-2">
+                        <a th:href="@{/roles/{id}/editar(id=${rol.id})}" class="btn btn-outline-warning me-2">
                             <i class="fas fa-pen"></i> Editar
                         </a>
                         <button type="button"
@@ -42,45 +43,21 @@
                     </div>
                 </div>
 
-                <!-- Información principal del perfil -->
+                <!-- Información principal del rol -->
                 <div class="row">
                     <div class="col-md-6">
                         <div class="card h-100">
                             <div class="card-header">
-                                <h6 class="mb-0"><i class="fas fa-info-circle"></i> Información Básica</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">ID del Perfil:</label>
-                                    <p th:text="${perfil.id}" class="form-control-plaintext"></p>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Nombre del Perfil:</label>
-                                    <p th:text="${perfil.nombrePerfil}" class="form-control-plaintext"></p>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Fecha de Creación:</label>
-                                    <p class="form-control-plaintext text-muted">
-                                        <i class="fas fa-calendar-alt"></i> Información no disponible
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="card h-100">
-                            <div class="card-header">
-                                <h6 class="mb-0"><i class="fas fa-user-shield"></i> Rol Asignado</h6>
+                                <h6 class="mb-0"><i class="fas fa-info-circle"></i> Información Básica del Rol</h6>
                             </div>
                             <div class="card-body">
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">ID del Rol:</label>
-                                    <p th:text="${perfil.rol.id}" class="form-control-plaintext"></p>
+                                    <p th:text="${rol.id}" class="form-control-plaintext"></p>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">Nombre del Rol:</label>
-                                    <p th:text="${perfil.rol.nombreRol}" class="form-control-plaintext"></p>
+                                    <p th:text="${rol.nombreRol}" class="form-control-plaintext"></p>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">Estado:</label>
@@ -91,9 +68,31 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-users"></i> Perfiles Asociados</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>Información:</strong> Los perfiles que usan este rol se mostrarán aquí cuando esté implementada la funcionalidad.
+                                </div>
+                                <div class="text-center p-3">
+                                    <i class="fas fa-user-tag fa-3x text-muted mb-2"></i>
+                                    <p class="text-muted">
+                                        Para ver los perfiles asociados a este rol, 
+                                        visite la sección de <a href="/perfiles" class="text-decoration-none">Perfiles</a>.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-            
+
+                
 
                 <!-- Modal de confirmación para eliminar -->
                 <div class="modal fade" id="modalEliminar" tabindex="-1" aria-hidden="true">
@@ -106,23 +105,28 @@
                                 </h5>
                             </div>
                             <div class="modal-body">
-                                <p>¿Está seguro de que desea eliminar este perfil?</p>
+                                <p>¿Está seguro de que desea eliminar este rol?</p>
                                 <div class="alert alert-warning">
-                                    <strong>Perfil:</strong> <span th:text="${perfil.nombrePerfil}"></span><br>
-                                    <strong>Rol:</strong> <span th:text="${perfil.rol.nombreRol}"></span>
+                                    <strong>Rol:</strong> <span th:text="${rol.nombreRol}"></span><br>
+                                    <strong>ID:</strong> <span th:text="${rol.id}"></span>
                                 </div>
-                                <p class="text-danger">
-                                    <i class="fas fa-warning"></i>
-                                    <strong>Advertencia:</strong> Esta acción no se puede deshacer.
-                                </p>
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <strong>Advertencia:</strong> 
+                                    <ul class="mb-0 mt-2">
+                                        <li>Esta acción no se puede deshacer.</li>
+                                        <li>Si existen perfiles asociados a este rol, la eliminación fallará.</li>
+                                        <li>Verifique que no haya dependencias antes de eliminar.</li>
+                                    </ul>
+                                </div>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                     <i class="fas fa-times"></i> Cancelar
                                 </button>
-                                <form th:action="@{/perfiles/{id}/eliminar(id=${perfil.id})}" method="post" style="display: inline;">
+                                <form th:action="@{/roles/{id}/eliminar(id=${rol.id})}" method="post" style="display: inline;">
                                     <button type="submit" class="btn btn-danger">
-                                        <i class="fas fa-trash"></i> Eliminar Perfil
+                                        <i class="fas fa-trash"></i> Eliminar Rol
                                     </button>
                                 </form>
                             </div>
