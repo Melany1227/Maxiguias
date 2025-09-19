@@ -17,6 +17,10 @@ public class ProductoService {
         this.productoRepository = productoRepository;
     }
 
+    public List<Producto> buscarPorCodigoONombre(String keyword) {
+        return productoRepository.findByIdProductoOrNombreGuia(keyword);
+    }
+
     public List<Producto> listarProductos() {
         return productoRepository.findAll();
     }

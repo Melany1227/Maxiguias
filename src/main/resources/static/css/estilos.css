@@ -1,45 +1,93 @@
+
+
+
+/* MENÚ CENTRALIZADO PARA TODOS LOS MODULOS */
+
+.btn-black-yellow {
+            background-color: black;
+            color: #d0a736;
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-weight: bold;
+        }
+        .btn-black-yellow:hover {
+            background-color: #333;
+            color: #d0a736;
+        }
+
+          td:last-child {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+
+        body {
+    margin: 0;
+    display: flex;
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 220px; /* ancho fijo */
+    height: 100vh; /* ocupa toda la altura */
+    background-color: #000;
+    color: white;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: fixed; /* se queda fijo a la izquierda */
+    top: 0;
+    left: 0;
+}
+
+.sidebar img {
+    max-width: 120px;
+    margin-bottom: 20px;
+}
+
+.sidebar .btn {
+    width: 100%;
+    text-align: center;
+    background: none;
+    color: #d0a736;
+    font-weight: bold;
+    margin: 10px 0;
+    text-decoration: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 10px; /* espacio entre ícono y texto */
+    font-size: 16px;
+}
+.sidebar .btn:hover {
+    color: white;
+}
+
+/* Contenido */
+.main-content {
+    margin-left: 240px; /* deja espacio para el sidebar */
+    padding: 30px;
+    width: calc(100% - 240px); /* ocupa el resto de la pantalla */
+}
+
+.sidebar img {
+    height: 120px;   /* tamaño más grande */
+    margin-bottom: 30px;
+}
+
+
+/* Estilos usuarios, facturas y login */
+
 body {
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
 }
 
-/* === SIDEBAR (igual que antes) === */
-.sidebar {
-    height: 100vh;
-    width: 220px;
-    background-color: #2d2e2b;
-    padding: 20px 15px;
-    position: fixed;
-}
 
-.sidebar img {
-    width: 100%;
-    margin-bottom: 30px;
-}
-
-.sidebar .btn {
-    width: 100%;
-    margin-bottom: 15px;
-    background-color: #000;
-    border-left: 5px solid #f3c623;
-    color: white;
-}
-
-.sidebar .btn:hover {
-    background-color: #333;
-}
-
-/* === MAIN centrado para el login === */
-.main {
-    margin-left: 240px;            /* espacio para sidebar */
-    min-height: 100vh;             /* ocupa toda la altura */
-    display: flex;                 /* centrado flex */
-    align-items: center;           /* centrado vertical */
-    justify-content: center;       /* centrado horizontal */
-    padding: 40px 20px;
-    background-color: #edf1f7;     /* fondo claro */
-}
 
 /* Tarjeta de login */
 .card {
@@ -278,4 +326,329 @@ td .input-group {
 
 .tabla-usuarios tbody tr:nth-child(odd) {
     background-color: #f8f9fa;
+}
+
+/*  test */
+
+/* ===== Ajustes especiales para la página de login ===== */
+
+
+.login-page .main-content {
+    margin-left: 0; /* quita el espacio del sidebar */
+    width: 100%; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* centra verticalmente */
+    padding: 0;
+}
+
+/* Estilos especiales para login */
+.login-page {
+    display: flex;
+    justify-content: center;  /* centra horizontal */
+    align-items: center;      /* centra vertical */
+    height: 100vh;            /* ocupa toda la pantalla */
+    margin: 0;
+}
+
+.login-page .main-content {
+    margin-left: 0;   /* elimina el espacio reservado para el sidebar */
+    width: auto;
+    padding: 0;
+}
+
+
+/* Botones/enlaces del sidebar */
+.sidebar .btn,
+.sidebar .sidebar-btn {
+    width: 100%;
+    background: none;
+    color: #d0a736;
+    font-weight: bold;
+    margin: 10px 0;
+    text-decoration: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* ícono a la izquierda */
+    gap: 10px;
+    font-size: 16px;
+    padding: 8px 12px;
+    text-align: left;
+    cursor: pointer;
+}
+
+/* Hover */
+.sidebar .btn:hover,
+.sidebar .sidebar-btn:hover {
+    color: white;
+}
+
+/* Catalogo */
+  body {
+            background-color: #f8f9fa;
+        }
+        h2 {
+            color: #000;
+            font-weight: bold;
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+        }
+        .card-title {
+            font-weight: bold;
+            color: #000;
+        }
+        .card p {
+            color: #555;
+            font-size: 1rem;
+        }
+        .btn-dark {
+            background-color: #000;
+            border: none;
+            font-weight: bold;
+            color: #FFD700; /* dorado */
+        }
+        .btn-dark:hover {
+            background-color: #333;
+            color: #FFD700;
+        }
+        /* Modal */
+        .modal-content {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+        }
+        .modal-header {
+            background-color: #000;
+            color: #FFD700;
+        }
+        .modal-footer .btn-secondary {
+            background-color: #555;
+            border: none;
+        }
+        .modal-footer .btn-secondary:hover {
+            background-color: #333;
+        }
+
+
+ /* ---- forzar título dorado solo en el modal (detalle) ---- */
+.modal-header .modal-title,
+.modal .modal-title {
+  color: #FFD700 !important;   /* dorado */
+  font-weight: 700;
+}
+
+/* ESTILOS DE LA VISTA CATALOGO DE PRODUCTOS PUBLICO - CLIENTE FINAL*/
+
+ /* Ajuste del contenedor principal respetando sidebar */
+        .main-content {
+            margin-left: 250px; /* ancho del sidebar */
+            padding: 20px;
+        }
+
+        /* Ajuste de cards */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            max-width: 90%; /* las hace un poco más pequeñas */
+            margin: auto;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+        }
+
+        /* Títulos de producto en dorado */
+        .card-title {
+            font-weight: bold;
+            color: black; /* dorado */
+        }
+
+        /* Botón */
+        .btn-dark {
+            background-color: #000;
+            border: none;
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .btn-dark:hover {
+            background-color: #333;
+            color: #FFD700;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            height: 100vh;
+            background-color: #000;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .sidebar img {
+            max-width: 120px;
+            margin-bottom: 20px;
+        }
+
+        .sidebar .btn {
+            color: #FFD700;
+            font-weight: bold;
+            margin: 10px 0;
+            text-align: left;
+            width: 100%;
+        }
+
+        .sidebar .btn:hover {
+            color: #fff;
+        }
+
+
+    
+    /* ESTILOS DE LA VISTA LISTAR PRODUCTOS */
+
+     /* Fondo del contenedor blanco */
+        .form-container {
+            background-color: #fff !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        /* Botón buscar mismo alto que el input */
+        .form-container .btn-dark {
+            height: 38px;
+        }
+
+        /* Botón Nuevo Producto más pequeño */
+        .btn-nuevo {
+            background-color: #000;
+            color: white;
+            width: auto;
+            padding: 8px 14px;
+            font-size: 14px;
+            border-left: 5px solid #f3c623;
+        }
+        .btn-nuevo i {
+            margin-right: 6px;
+        }
+
+        /* Icono de acciones responsivo */
+        .dropdown .btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            font-size: 14px;
+        }
+
+
+            td:last-child {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        td:last-child .dropdown > button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: auto;   /* lo lleva al centro del td */
+    }
+
+
+
+    /* ESTILOS DE LA VISTA NUEVO PRODUCTO */
+
+    .btn-black-yellow {
+            background-color: black;
+            color: #d0a736;
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-weight: bold;
+        }
+        .btn-black-yellow:hover {
+            background-color: #333;
+            color: #d0a736;
+        }
+
+          td:last-child {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+
+        body {
+    margin: 0;
+    display: flex;
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 220px; /* ancho fijo */
+    height: 100vh; /* ocupa toda la altura */
+    background-color: #000;
+    color: white;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: fixed; /* se queda fijo a la izquierda */
+    top: 0;
+    left: 0;
+}
+
+.sidebar img {
+    max-width: 120px;
+    margin-bottom: 20px;
+}
+
+.sidebar .btn {
+    width: 100%;
+    text-align: center;
+    background: none;
+    color: #d0a736;
+    font-weight: bold;
+    margin: 10px 0;
+    text-decoration: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 10px; /* espacio entre ícono y texto */
+    font-size: 16px;
+}
+.sidebar .btn:hover {
+    color: white;
+}
+
+/* Contenido */
+.main-content {
+    margin-left: 240px; /* deja espacio para el sidebar */
+    padding: 30px;
+    width: calc(100% - 240px); /* ocupa el resto de la pantalla */
+}
+
+.sidebar img {
+    height: 120px;   /* tamaño más grande */
+    margin-bottom: 30px;
 }

@@ -38,4 +38,10 @@ public class Terminado {
     @Column(name = "PRECIO_X_ENCARGO", nullable = false)
     private Integer precioPorEncargo;
 
+    @Column(name = "GANANCIA_X_MAYOR", precision = 10, scale = 2, nullable = true)
+    private BigDecimal gananciaXMayor;
+
+    @Column(name = "GANANCIA_X_ENCARGO", precision = 10, scale = 2, nullable = true)
+    private BigDecimal gananciaXEncargo;
+
 }
