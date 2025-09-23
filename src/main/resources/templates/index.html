@@ -9,13 +9,13 @@
     <body>
         <div class="sidebar">
             <img src="/img/logo.png" alt="Logo MXG">
-            
+
             <!-- Si no está autenticado, mostrar botón INGRESAR -->
             <div sec:authorize="!isAuthenticated()">
                 <a href="/login" class="btn">INGRESAR</a>
                 <a href="#" class="btn">CATÁLOGO</a>
             </div>
-            
+
             <!-- Si está autenticado, mostrar menú completo -->
             <div sec:authorize="isAuthenticated()">
                 <p sec:authentication="name" style="color: white; margin: 10px 0;"></p>
@@ -23,6 +23,9 @@
                 <a href="ordenes" class="btn">ÓRDENES</a>
                 <a href="productos" class="btn">PRODUCTOS</a>
                 <a href="usuarios" class="btn">USUARIOS</a>
+                <a href="perfiles" class="btn">PERFILES</a>
+                <a href="/roles" class="btn">ROLES</a>
+                <a href="/reportes" class="btn">REPORTES</a>
                 <form th:action="@{/logout}" method="post" style="display: inline;">
                     <button type="submit" class="btn">CERRAR SESIÓN</button>
                 </form>
