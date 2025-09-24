@@ -1,40 +1,44 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <title>MXG - Inicio</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link rel="stylesheet" th:href="@{/css/estilos.css}">
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" 
+      lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>MXG - Inicio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
     </head>
-    <body>
-        <div class="sidebar">
-            <img src="/img/logo.png" alt="Logo MXG">
 
-            <!-- Si no está autenticado, mostrar botón INGRESAR -->
-            <div sec:authorize="!isAuthenticated()">
-                <a href="/login" class="btn">INGRESAR</a>
-                <a href="#" class="btn">CATÁLOGO</a>
-            </div>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <img src="/img/logo.png" alt="Logo MXG">
 
-            <!-- Si está autenticado, mostrar menú completo -->
-            <div sec:authorize="isAuthenticated()">
-                <p sec:authentication="name" style="color: white; margin: 10px 0;"></p>
-                <a href="facturas" class="btn">FACTURAS</a>
-                <a href="ordenes" class="btn">ÓRDENES</a>
-                <a href="productos" class="btn">PRODUCTOS</a>
-                <a href="usuarios" class="btn">USUARIOS</a>
-                <a href="perfiles" class="btn">PERFILES</a>
-                <a href="/roles" class="btn">ROLES</a>
-                <a href="/reportes" class="btn">REPORTES</a>
-                <form th:action="@{/logout}" method="post" style="display: inline;">
-                    <button type="submit" class="btn">CERRAR SESIÓN</button>
-                </form>
-            </div>
+        <!-- Si NO está autenticado -->
+        <div sec:authorize="!isAuthenticated()">
+            <a href="/login" class="btn"><i class="bi bi-box-arrow-in-right"></i> INGRESAR</a>
+            <a href="/productos/catalogo" class="btn"><i class="bi bi-journal-text"></i> CATÁLOGO</a>
         </div>
 
-        <div class="main-content">
-            <h1>Bienvenido a MaxiGestion</h1>
-            <p>Hecho con ❤️ por estudiantes!</p>
+        <!-- Si está autenticado -->
+        <div sec:authorize="isAuthenticated()">
+            <p sec:authentication="name" style="color: white; margin: 10px 0;"></p>
+            <a href="/facturas" class="btn"><i class="bi bi-receipt"></i> FACTURAS</a>
+            <a href="/productos" class="btn"><i class="bi bi-box-seam"></i> PRODUCTOS</a>
+            <a href="/usuarios" class="btn"><i class="bi bi-people-fill"></i> USUARIOS</a>
+            <form th:action="@{/logout}" method="post" style="display: inline;">
+            <button type="submit" class="btn"><i class="bi bi-box-arrow-right"></i>CERRAR SESIÓN</button>
+            </form>
+
         </div>
-    </body>
+    </div>
+
+    <!-- Contenido -->
+    <div class="main-content">
+        <h1>Bienvenido a MaxiGestion</h1>
+        <p>Hecho con ❤️ por estudiantes!</p>
+    </div>
+</body>
 </html>

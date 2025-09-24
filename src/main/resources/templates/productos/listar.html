@@ -1,130 +1,109 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
+    <meta charset="UTF-8">
     <title>Gestión de Productos</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+ <style>
+       
 
-
-    <style>
-        body {
-            background-color: #fff;
-            color: #000;
-            font-family: Arial, sans-serif;
-        }
-
-        .card {
-            border-radius: 1rem;
-            box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .btn-custom {
-            border-radius: 50px;
-            padding: 6px 18px;
-        }
-
-        .table th {
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        .table td {
-            vertical-align: middle;
-        }
-
-        img {
-            border-radius: 10px;
-            border: 1px solid #ddd;
-            padding: 4px;
-            background: white;
-        }
-
-        .table-dark thead {
-            background-color: #444;
-            color: #fff;
-        }
-
-        .dropdown-toggle::after {
-            display: none; /* oculta flechita del dropdown */
-        }
-
-         .btn-nuevoProducto {
-            background-color: black;
-            color: #d0a736;
-            border-radius: 20px;
-            padding: 6px 18px;
-            font-weight: bold;
-            border: none;
-        }
     </style>
+
+
 </head>
-<body class="container py-5">
+<body>
+    <!-- Sidebar -->
+   <div class="sidebar">
+        <img src="/img/logo.png" alt="Logo MXG">
+        <a href="/" class="btn"><i class="bi bi-house-door-fill"></i> INICIO</a>
+        <a href="/productos/catalogo" class="btn"><i class="bi bi-journal-text"></i> CATÁLOGO PUBLICO</a>
+        <a href="/usuarios" class="btn"><i class="bi bi-receipt"></i> USUARIOS</a>
+        <a href="/facturas" class="btn"><i class="bi bi-receipt"></i> FACTURAS</a>
+        <a href="/productos" class="btn"><i class="bi bi-box-seam"></i> PRODUCTOS</a>
+    </div>
 
-    <div class="card p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="fw-bold text-dark">Gestión de Productos</h2>
-            <a href="/productos/nuevo" class="btn-nuevoProducto">
-                + Nuevo Producto
-            </a>
-        </div>
+    <!-- Contenido principal -->
+    <div class="main-content">
+        <div class="form-container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="form-title m-0">
+                    <i class="fa-solid fa-plus"></i> GESTIÓN DE PRODUCTOS
+                </h4>
 
-        <div class="table-responsive">
-            <table class="table table-hover align-middle text-center">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Código Producto</th>
-                        <th>Nombre</th>
-                        <th>Cantidad</th>
-                        <th>Imagen</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="producto : ${productos}">
-                        <td th:text="${producto.id}"></td>
-                        <td class="fw-semibold" th:text="${producto.nombre}"></td>
-                        <td>
-                            <span class="badge bg-secondary" th:text="${producto.cantidadDisponible}"></span>
-                        </td>
-                        <td>
-                            <img th:src="@{${producto.imagen}}" alt="Imagen"
-                                 style="width: 70px; height: auto;">
-                        </td>
-                        <td>
-                            <!-- Dropdown con ícono -->
-                            <div class="dropdown">
-                                <button class="btn btn-dark btn-sm rounded-circle" type="button" 
-                                        data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <a class="dropdown-item" 
-                                           th:href="@{/productos/{id}/editar(id=${producto.id})}">
-                                           <i class="bi bi-pencil-square text-primary"></i> Editar
-                                        </a>
-                                    </li>
-                                    <li>
+                <a href="/productos/nuevo" class="btn" style="background-color: #000; color: white; width: 18%; margin-bottom: 15px; border-left: 5px solid #f3c623;">
+                    <i class="fa-solid fa-plus" style="padding-right: 8px;"></i> NUEVO PRODUCTO
+                </a>
+            </div>
+
+            <!-- Buscador -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <form th:action="@{/productos}" method="get" class="d-flex">
+                        <input type="text" name="keyword" th:value="${keyword}" 
+                            placeholder="Buscar por código o nombre" 
+                            class="form-control me-2"/>
+                        <button type="submit" class="btn btn-dark">Buscar</button>
+                    </form>
+                </div>
+            </div>
+ 
+
+            <!-- Tabla -->
+            <div class="table-responsive">
+                <table class="table table-hover align-middle text-center">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Código Producto</th>
+                            <th>Nombre</th>
+                            <th>Imagen</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="producto : ${productos}">
+                            <td th:text="${producto.id}"></td>
+                            <td class="fw-semibold" th:text="${producto.nombre}"></td>
+                            <td>
+                                <img th:src="@{${producto.imagen}}" alt="Imagen"
+                                     style="width: 70px; height: auto;">
+                            </td>
+                            <td>
+                                <!-- Dropdown con ícono -->
+                                <div class="dropdown">
+                                    <button class="btn btn-dark btn-sm rounded-circle" type="button" 
+                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" 
+                                               th:href="@{/productos/{id}/editar(id=${producto.id})}">
+                                               <i class="fa-solid fa-pen text-primary"></i> Editar
+                                            </a>
+                                        </li>
                                         <li>
                                             <a class="dropdown-item" href="javascript:void(0)"
                                             th:onclick="'confirmarEliminar(' + ${producto.id} + ');'">
-                                            <i class="bi bi-trash text-danger"></i> Eliminar
+                                            <i class="fa-solid fa-trash text-danger"></i> Eliminar
                                             </a>
                                         </li>
-                                        
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="#" 
-                                           th:attr="data-bs-toggle='modal', data-bs-target='#detalleModal-' + ${producto.id}">
-                                           <i class="bi bi-eye text-info"></i> Ver Detalles
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                                        <li>
+                                            <a class="dropdown-item" href="#" 
+                                               th:attr="data-bs-toggle='modal', data-bs-target='#detalleModal-' + ${producto.id}">
+                                               <i class="fa-solid fa-eye text-info"></i> Ver Detalles
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -145,6 +124,8 @@
                                     <th>Precio Público</th>
                                     <th>Precio x Mayor</th>
                                     <th>Precio x Encargo</th>
+                                    <th>% Ganancia x Mayor</th>
+                                    <th>% Ganancia x Encargo</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -153,6 +134,8 @@
                                     <td th:text="${t.precioPublico}"></td>
                                     <td th:text="${t.precioPorMayor}"></td>
                                     <td th:text="${t.precioPorEncargo}"></td>
+                                    <td th:text="${t.gananciaXMayor}"><span class="input-group-text">%</span></td>
+                                    <td th:text="${t.gananciaXEncargo}"><span class="input-group-text">%</span></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -165,13 +148,11 @@
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
+    <!-- Bootstrap y scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-
     async function confirmarEliminar(id) {
         const result = await Swal.fire({
             title: '¿Estás seguro?',
@@ -181,9 +162,7 @@
             confirmButtonColor: '#d33',
             cancelButtonColor: '#3085d6',
             confirmButtonText: 'Sí, eliminar',
-            confirmButtonColor: "#b8922f",
-            cancelButtonText: 'Cancelar',
-            confirmButtonColor: "#000000"
+            cancelButtonText: 'Cancelar'
         });
 
         if (!result.isConfirmed) {
@@ -193,12 +172,10 @@
         try {
             const response = await fetch(`/productos/${id}/eliminar`, {
                 method: 'DELETE',
-                  headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-    
-            }
-        });
-            console.log("Código de respuesta:", response.status);
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            });
 
             if (response.ok) {
                 Swal.fire(
@@ -207,10 +184,7 @@
                     'success'
                 ).then(() => location.reload());
             } else {
-                // Leer el texto de error del backend si lo hay
                 const errorText = await response.text();
-                console.error("Error al eliminar:", errorText);
-
                 Swal.fire(
                     'Error',
                     `No se pudo eliminar el producto. Código: ${response.status}`,
@@ -218,28 +192,24 @@
                 );
             }
         } catch (error) {
-            console.error("Excepción atrapada:", error);
-
             Swal.fire(
                 'Error',
-                'Ocurrió un problema al intentar eliminar. Revisa la consola.',
+                'Ocurrió un problema al intentar eliminar.',
                 'error'
             );
         }
     }
-</script>
+    </script>
 
-<script th:if="${mensaje}">
-    Swal.fire({
-        title: '¡Éxito!',
-        text: 'Producto creado satisfactoriamente',
-        icon: 'success',
-        confirmButtonText: 'Aceptar',
-        confirmButtonColor: "#b8922f"
-
-    })
-</script>
-
+    <script th:if="${mensaje}">
+        Swal.fire({
+            title: '¡Éxito!',
+            text: 'Producto creado satisfactoriamente',
+            icon: 'success',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: "#b8922f"
+        })
+    </script>
 
 </body>
 </html>
