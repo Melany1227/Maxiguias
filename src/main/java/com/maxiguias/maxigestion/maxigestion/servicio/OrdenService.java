@@ -76,10 +76,13 @@ public class OrdenService {
 
             infoTable.addCell(createInfoCell("Cliente: " + 
                     orden.getUsuario().getNombre() + " " + orden.getUsuario().getPrimerApellido(), normalFont));
-            infoTable.addCell(createInfoCell("Ciudad: " + orden.getCiudad().getNombre(), normalFont));
+            infoTable.addCell(createInfoCell("Documento: " + orden.getUsuario().getDocumento(), normalFont));
+            infoTable.addCell(createInfoCell("Dirección: " + orden.getUsuario().getDireccion(), normalFont));
+            infoTable.addCell(createInfoCell("Ciudad: " + orden.getUsuario().getCiudad().getNombre(), normalFont));
+            infoTable.addCell(createInfoCell("Departamento: " + orden.getUsuario().getCiudad().getDepartamento().getNombre(), normalFont));
             infoTable.addCell(createInfoCell("Empresa: " + orden.getEmpresa().getNombreEmpresa(), normalFont));
-            infoTable.addCell(createInfoCell("Total: $" + orden.getTotalFactura(), normalFont));
             infoTable.addCell(createInfoCell("Fecha: " + orden.getFechaVenta().toString(), normalFont));
+            infoTable.addCell(createInfoCell("Total: $" + orden.getTotalFactura(), normalFont));
             infoTable.addCell(createInfoCell("Descripción Venta: " + orden.getDescripcionVenta(), normalFont));
 
             document.add(infoTable);

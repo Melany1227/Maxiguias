@@ -65,3 +65,13 @@ ADD COLUMN ganancia_x_mayor DECIMAL(5,2) NULL AFTER precio_x_mayor,
 ADD COLUMN ganancia_x_encargo DECIMAL(5,2) NULL AFTER precio_x_encargo;
 ALTER TABLE productos MODIFY COLUMN cantidad_disponible INT NULL;
 
+ALTER TABLE usuarios ADD COLUMN id_ciudad INT;
+
+UPDATE usuarios SET id_ciudad = 1  WHERE id_ciudad IS NULL;
+
+ALTER TABLE usuarios MODIFY COLUMN id_ciudad INT NOT NULL;
+
+ALTER TABLE usuarios ADD CONSTRAINT fk_usuarios_ciudades FOREIGN KEY (id_ciudad) REFERENCES ciudades(id_ciudad);
+
+ALTER TABLE ordenes DROP COLUMN lugar_venta;
+

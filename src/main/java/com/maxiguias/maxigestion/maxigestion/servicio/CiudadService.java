@@ -21,7 +21,7 @@ public class CiudadService {
         return ciudadRepository.findAll();
     }
 
-    public Optional<Ciudad> obtenerCiudadPorId(Long id) {
+    public Optional<Ciudad> obtenerCiudadPorId(int id) {
         return ciudadRepository.findById(id);
     }
 
@@ -29,7 +29,7 @@ public class CiudadService {
         return ciudadRepository.save(ciudad);
     }
 
-    public void eliminarCiudad(Long id) {
+    public void eliminarCiudad(int id) {
         ciudadRepository.deleteById(id);
     }
 }

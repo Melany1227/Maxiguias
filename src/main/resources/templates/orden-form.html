@@ -68,11 +68,6 @@
             
             <div class="row">
               <div class="col-md-6">
-                <label class="form-icon-label"> <i class="fa-solid fa-location-dot"></i>Ciudad:</label>
-                <select class="form-select" th:field="*{ciudad.id}">
-                  <option value="">Seleccione</option>
-                  <option th:each="c : ${ciudades}" th:value="${c.id}" th:text="${c.nombre}"></option>
-                </select>
 
                 <label class="form-icon-label">
                   <i class="fa-solid fa-calendar-day"></i> Fecha de Venta

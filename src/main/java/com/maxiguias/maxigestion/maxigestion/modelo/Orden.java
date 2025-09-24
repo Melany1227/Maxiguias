@@ -45,9 +45,6 @@ public class Orden {
     @Column(name = "TOTAL_FACTURA")
     private BigDecimal totalFactura;
 
-    @ManyToOne
-    @JoinColumn(name = "LUGAR_VENTA")
-    private Ciudad ciudad;
 
     @OneToMany(mappedBy = "orden", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DetalleOrden> detalles;
