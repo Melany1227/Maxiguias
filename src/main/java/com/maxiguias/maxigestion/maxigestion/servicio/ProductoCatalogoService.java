@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.maxiguias.maxigestion.maxigestion.dto.ProductoCatalogoDTO;
-import com.maxiguias.maxigestion.maxigestion.modelo.DetalleFactura;
 import com.maxiguias.maxigestion.maxigestion.modelo.Producto;
 import com.maxiguias.maxigestion.maxigestion.repositorio.ProductoRepository;
 
@@ -50,6 +49,7 @@ public class ProductoCatalogoService {
             BigDecimal sumaPrecios = BigDecimal.ZERO;
             int contador = 0;
             
+            /*
             if (producto.getDetalleFacturas() != null) {
                 for (DetalleFactura df : producto.getDetalleFacturas()) {
                     // Usa getCantidad() en lugar de getCantidadProducto()
@@ -62,7 +62,7 @@ public class ProductoCatalogoService {
                         contador++;
                     }
                 }
-            }
+            } */
             
             dto.setCantidad(cantidadTotal);
             
@@ -94,7 +94,7 @@ public class ProductoCatalogoService {
             dto.setId(producto.getId());
             dto.setNombre(producto.getNombre());
             dto.setImagen(producto.getImagen());
-            
+            /*
             if (producto.getDetalleFacturas() != null && !producto.getDetalleFacturas().isEmpty()) {
                 // Calcula cantidad total vendida
                 int cantidadTotal = producto.getDetalleFacturas().stream()
@@ -111,12 +111,12 @@ public class ProductoCatalogoService {
                     new BigDecimal(producto.getDetalleFacturas().size()), 
                     2, 
                     RoundingMode.HALF_UP
-                );
+                ); 
                 dto.setPrecio(precioPromedio);
-            } else {
+            } else {*/
                 dto.setCantidad(0);
                 dto.setPrecio(BigDecimal.ZERO);
-            }
+            //}
             
             productosDTO.add(dto);
         }
