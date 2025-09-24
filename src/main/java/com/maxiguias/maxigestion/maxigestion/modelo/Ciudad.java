@@ -17,4 +17,7 @@ public class Ciudad {
 
     @Column(name = "NOMBRE_CIUDAD")
     private String nombre;
+
+    @Column(name = "id_departamento")
+    private Integer idDepartamento;
 }

@@ -1,7 +1,9 @@
 package com.maxiguias.maxigestion.maxigestion.servicio;
 
+
 import java.util.List;
 import java.util.Optional;
+
 
 import org.springframework.stereotype.Service;
 
@@ -10,11 +12,15 @@ import com.maxiguias.maxigestion.maxigestion.repositorio.ProductoRepository;
 
 @Service
 public class ProductoService {
-
+    
     private final ProductoRepository productoRepository;
 
     public ProductoService(ProductoRepository productoRepository) {
         this.productoRepository = productoRepository;
+    }
+
+    public List<Producto> buscarPorCodigoONombre(String keyword) {
+        return productoRepository.findByIdProductoOrNombreGuia(keyword);
     }
 
     public List<Producto> listarProductos() {
@@ -80,3 +86,4 @@ public class ProductoService {
     }
 
 }
+

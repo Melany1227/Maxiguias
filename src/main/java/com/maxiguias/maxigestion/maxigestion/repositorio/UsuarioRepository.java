@@ -10,11 +10,16 @@ import com.maxiguias.maxigestion.maxigestion.modelo.Usuario;
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
    List<Usuario> findByTipoUsuario_NombreIn(List<String> nombres);
-   
+
    Optional<Usuario> findByNombreUsuario(String nombreUsuario);
-   
+
    boolean existsByDocumento(Long documento);
-   
+
    boolean existsByNombreUsuario(String nombreUsuario);
-    
+
+   // Métodos para reportes
+   Long countByTipoUsuario_Id(Integer tipoUsuarioId);
+
+   List<Usuario> findByTipoUsuario_Id(Integer tipoUsuarioId);
+
 }

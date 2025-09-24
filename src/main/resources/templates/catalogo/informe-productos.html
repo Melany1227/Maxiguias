@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe de Productos del Catálogo Web</title>
+    <link rel="stylesheet" th:href="@{/css/catalogo-productos.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Informe de Productos del Catálogo Web</h1>
+            <div class="header-buttons">
+                <button class="btn btn-secondary" onclick="window.location.href='/catalogo/productos/cerrar'">
+                    <i class="fas fa-times"></i> Cerrar
+                </button>
+            </div>
+        </div>
+
+        <!-- Barra de búsqueda y filtros -->
+        <div class="search-section">
+            <form th:action="@{/catalogo/productos/buscar}" method="post" class="search-form">
+                <div class="search-group">
+                    <label for="busqueda">Buscar:</label>
+                    <input type="text" 
+                           id="busqueda" 
+                           name="busqueda" 
+                           th:value="${busqueda}" 
+                           placeholder="Ingrese nombre del producto...">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Buscar
+                </button>
+                <button type="button" 
+                        class="btn btn-secondary" 
+                        onclick="window.location.href='/catalogo/productos'">
+                    <i class="fas fa-redo"></i> Limpiar
+                </button>
+            </form>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="stats-section">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-box"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Total Productos</h3>
+                    <p class="stat-number" th:text="${totalProductos}">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Precio Promedio</h3>
+                    <p class="stat-number" 
+                       th:text="${precioPromedio != null ? '$' + #numbers.formatDecimal(precioPromedio, 0, 'COMMA', 2, 'POINT') : '$0.00'}">
+                       $0.00
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de productos -->
+        <div class="table-container">
+            <table class="products-table">
+                <thead>
+                    <tr>
+                        <th width="10%">Imagen</th>
+                        <th width="40%">Nombre</th>
+                        <th width="25%">Cantidad</th>
+                        <th width="25%">Precio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${productos.empty}">
+                        <td colspan="4" class="text-center">
+                            <i class="fas fa-inbox"></i> No se encontraron productos
+                        </td>
+                    </tr>
+                    <tr th:each="producto : ${productos}">
+                        <td>
+                            <div class="product-icon">
+                                <i class="fas fa-box-open"></i>
+                            </div>
+                        </td>
+                        <td th:text="${producto.nombre}">Nombre del producto</td>
+                        <td th:text="${producto.cantidad}">0</td>
+                        <td>
+                            <span class="price" 
+                                  th:text="${producto.precio != null ? '$' + #numbers.formatDecimal(producto.precio, 0, 'COMMA', 2, 'POINT') : '$0.00'}">
+                                  $0.00
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="action-buttons">
+            <button class="btn btn-success" onclick="window.location.href='/catalogo/productos/exportar/excel'">
+                <i class="fas fa-file-excel"></i> Exportar a Excel
+            </button>
+            <button class="btn btn-danger" onclick="window.location.href='/catalogo/productos/exportar/pdf'">
+                <i class="fas fa-file-pdf"></i> Exportar a PDF
+            </button>
+            <button class="btn btn-info" onclick="window.print()">
+                <i class="fas fa-print"></i> Imprimir
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2024 MaxiGestión - Sistema de Gestión de Productos</p>
+        </div>
+    </div>
+</body>
+</html>

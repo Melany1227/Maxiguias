@@ -17,40 +17,40 @@ import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.itextpdf.text.BaseColor;
 
-import com.maxiguias.maxigestion.maxigestion.modelo.DetalleFactura;
-import com.maxiguias.maxigestion.maxigestion.modelo.Factura;
-import com.maxiguias.maxigestion.maxigestion.repositorio.DetalleFacturaRepository;
-import com.maxiguias.maxigestion.maxigestion.repositorio.FacturaRepository;
+import com.maxiguias.maxigestion.maxigestion.modelo.DetalleOrden;
+import com.maxiguias.maxigestion.maxigestion.modelo.Orden;
+import com.maxiguias.maxigestion.maxigestion.repositorio.DetalleOrdenRepository;
+import com.maxiguias.maxigestion.maxigestion.repositorio.OrdenRepository;
 
 @Service
-public class FacturaService {
+public class OrdenService {
 
     @Autowired
-    private FacturaRepository facturaRepository;
+    private OrdenRepository ordenRepository;
 
     @Autowired
-    private DetalleFacturaRepository detalleFacturaRepository;
+    private DetalleOrdenRepository detalleOrdenRepository;
 
-    public Factura guardarFactura(Factura factura) {
-        return facturaRepository.save(factura); 
+    public Orden guardarOrden(Orden orden) {
+        return ordenRepository.save(orden); 
     }
 
-    public void guardarDetalles(DetalleFactura detalles) {
-        detalleFacturaRepository.save(detalles); 
+    public void guardarDetalles(DetalleOrden detalles) {
+        detalleOrdenRepository.save(detalles); 
     }
 
-    public List<Factura> obtenerTodasLasFacturas() {
-        return facturaRepository.findAll();
+    public List<Orden> obtenerTodasLasOrdenes() {
+        return ordenRepository.findAll();
     }
     
-    public Factura obtenerFacturaPorId(Long id) {
-        return facturaRepository.findById(id).orElse(null);
+    public Orden obtenerOrdenPorId(Long id) {
+        return ordenRepository.findById(id).orElse(null);
     }
 
-    public byte[] generarFacturaPDF(Long facturaId) {
-        Factura factura = obtenerFacturaPorId(facturaId);
-        if (factura == null) {
-            throw new RuntimeException("Factura no encontrada");
+    public byte[] generarOrdenPDF(Long ordenId) {
+        Orden orden = obtenerOrdenPorId(ordenId);
+        if (orden == null) {
+            throw new RuntimeException("Orden no encontrada");
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -64,7 +64,7 @@ public class FacturaService {
             Font headerFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
             Font normalFont = new Font(Font.FontFamily.HELVETICA, 10);
 
-            Paragraph title = new Paragraph("DETALLE DE FACTURA", titleFont);
+            Paragraph title = new Paragraph("DETALLE DE ORDEN", titleFont);
             title.setAlignment(Element.ALIGN_CENTER);
             title.setSpacingAfter(20);
             document.add(title);
@@ -75,16 +75,16 @@ public class FacturaService {
             infoTable.setSpacingAfter(10);
 
             infoTable.addCell(createInfoCell("Cliente: " + 
-                    factura.getUsuario().getNombre() + " " + factura.getUsuario().getPrimerApellido(), normalFont));
-            infoTable.addCell(createInfoCell("Ciudad: " + factura.getCiudad().getNombre(), normalFont));
-            infoTable.addCell(createInfoCell("Empresa: " + factura.getEmpresa().getNombreEmpresa(), normalFont));
-            infoTable.addCell(createInfoCell("Total: $" + factura.getTotalFactura(), normalFont));
-            infoTable.addCell(createInfoCell("Fecha: " + factura.getFechaVenta().toString(), normalFont));
-            infoTable.addCell(createInfoCell("Descripción Venta: " + factura.getDescripcionVenta(), normalFont));
+                    orden.getUsuario().getNombre() + " " + orden.getUsuario().getPrimerApellido(), normalFont));
+            infoTable.addCell(createInfoCell("Ciudad: " + orden.getCiudad().getNombre(), normalFont));
+            infoTable.addCell(createInfoCell("Empresa: " + orden.getEmpresa().getNombreEmpresa(), normalFont));
+            infoTable.addCell(createInfoCell("Total: $" + orden.getTotalFactura(), normalFont));
+            infoTable.addCell(createInfoCell("Fecha: " + orden.getFechaVenta().toString(), normalFont));
+            infoTable.addCell(createInfoCell("Descripción Venta: " + orden.getDescripcionVenta(), normalFont));
 
             document.add(infoTable);
 
-            Paragraph productosTitle = new Paragraph("PRODUCTOS FACTURADOS", headerFont);
+            Paragraph productosTitle = new Paragraph("PRODUCTOS EN LA ORDEN", headerFont);
             productosTitle.setSpacingBefore(20);
             productosTitle.setSpacingAfter(10);
             document.add(productosTitle);
@@ -98,7 +98,7 @@ public class FacturaService {
             productosTable.addCell(createHeaderCell("Valor", headerFont));
             productosTable.addCell(createHeaderCell("Total", headerFont));
 
-            for (DetalleFactura detalle : factura.getDetalles()) {
+            for (DetalleOrden detalle : orden.getDetalles()) {
                 double total = detalle.getCantidad() * detalle.getValor().doubleValue();
                 productosTable.addCell(createDataCell(detalle.getDescripcion(), normalFont));
                 productosTable.addCell(createDataCell(String.valueOf(detalle.getCantidad()), normalFont));
@@ -138,4 +138,3 @@ public class FacturaService {
     }
 
 }
-
