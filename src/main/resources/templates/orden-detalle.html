@@ -39,7 +39,6 @@
                     <div class="card-body">
                         <p><strong>ID Orden:</strong> <span th:text="${orden.id}"></span></p>
                         <p><strong>Fecha:</strong> <span th:text="${#temporals.format(orden.fechaVenta, 'dd/MM/yyyy')}"></span></p>
-                        <p><strong>Ciudad:</strong> <span th:text="${orden.ciudad.nombre}"></span></p>
                         <p><strong>Descripción:</strong> <span th:text="${orden.descripcionVenta}"></span></p>
                         <p><strong>Total:</strong> <span class="fw-bold text-success" th:text="'$' + ${#numbers.formatDecimal(orden.totalFactura, 1, 2)}"></span></p>
                     </div>
@@ -57,6 +56,9 @@
                         <p><strong>Tipo:</strong> <span th:text="${orden.usuario.tipoUsuario.nombre}"></span></p>
                      <!--   <p><strong>Email:</strong> <span th:text="${orden.usuario.email}"></span></p>-->
                         <p><strong>Teléfono:</strong> <span th:text="${orden.usuario.telefono}"></span></p>
+                        <p><strong>Dirección:</strong> <span th:text="${orden.usuario.direccion}"></span></p>
+                        <p><strong>Ciudad:</strong> <span th:text="${orden.usuario.ciudad.nombre}"></span></p>
+                        <p><strong>Departamento:</strong> <span th:text="${orden.usuario.ciudad.departamento.nombre}"></span></p>
                     </div>
                 </div>
             </div>

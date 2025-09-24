@@ -32,7 +32,7 @@
                         <th>ID</th>
                         <th>Cliente</th>
                         <th>Fecha</th>
-                        <th>Ciudad</th>
+                        <th>Ciudad Cliente</th>
                         <th>Total</th>
                         <th>Descripción</th>
                         <th>Acciones</th>
@@ -43,7 +43,7 @@
                         <td th:text="${orden.id}"></td>
                         <td th:text="${orden.usuario.nombre + ' ' + orden.usuario.primerApellido}"></td>
                         <td th:text="${#temporals.format(orden.fechaVenta, 'dd/MM/yyyy')}"></td>
-                        <td th:text="${orden.ciudad.nombre}"></td>
+                        <td th:text="${orden.usuario.ciudad.nombre}"></td>
                         <td th:text="'$' + ${#numbers.formatDecimal(orden.totalFactura, 1, 2)}"></td>
                         <td th:text="${orden.descripcionVenta}"></td>
                         <td>
