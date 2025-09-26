@@ -75,3 +75,23 @@ ALTER TABLE usuarios ADD CONSTRAINT fk_usuarios_ciudades FOREIGN KEY (id_ciudad)
 
 ALTER TABLE ordenes DROP COLUMN lugar_venta;
 
+
+-- Insertar perfiles básicos
+INSERT INTO perfiles (id_perfil, nombre_perfil, roles_id_rol) VALUES 
+(5, 'ADMIN_GENERAL', 1)
+ON DUPLICATE KEY UPDATE nombre_perfil = VALUES(nombre_perfil);
+
+-- Insertar formularios del sistema
+INSERT INTO formularios (id_formulario, nombre_formulario, url, padre) VALUES 
+(1, 'Dashboard', '/', NULL),
+(2, 'Usuarios', '/usuarios', NULL),
+(3, 'Productos', '/productos', NULL),
+(4, 'Órdenes', '/ordenes', NULL),
+(5, 'Reportes', '/reportes', NULL)
+ON DUPLICATE KEY UPDATE nombre_formulario = VALUES(nombre_formulario);
+
+-- Asignar permisos completos al ADMINISTRADOR (perfil 1)
+INSERT INTO formularios_x_perfiles (perfiles_id_perfil, formularios_id_formulario, crear, editar, visualizar, eliminar) 
+SELECT 1, id_formulario, 'S', 'S', 'S', 'S' FROM formularios
+ON DUPLICATE KEY UPDATE crear = 'S', editar = 'S', visualizar = 'S', eliminar = 'S';
+

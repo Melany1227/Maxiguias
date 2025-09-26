@@ -36,16 +36,27 @@ public class PermisoInterceptor implements HandlerInterceptor {
         }
 
         Usuario usuario = (Usuario) session.getAttribute("usuario");
+        System.out.println("DEBUG - URI: " + uri + ", Usuario en sesión: " + (usuario != null ? usuario.getNombreUsuario() : "null"));
+        
         if (usuario == null) {
+            System.out.println("DEBUG - Usuario null, redirigiendo a login");
             redirigirALogin(request, response);
             return false;
         }
 
+        System.out.println("DEBUG - Usuario: " + usuario.getNombreUsuario() + 
+                          ", Perfil ID: " + (usuario.getPerfil() != null ? usuario.getPerfil().getId() : "null"));
+
         // Determinar la acción basada en el método HTTP y la URI
         String accion = determinarAccion(metodo, uri);
+        System.out.println("DEBUG - Acción determinada: " + accion);
         
         // Verificar permisos
-        if (!autorizacionService.tienePermiso(usuario, uri, accion)) {
+        boolean tienePermiso = autorizacionService.tienePermiso(usuario, uri, accion);
+        System.out.println("DEBUG - ¿Tiene permiso?: " + tienePermiso);
+        
+        if (!tienePermiso) {
+            System.out.println("DEBUG - Sin permisos, redirigiendo a 403");
             response.sendRedirect("/error/403");
             return false;
         }
