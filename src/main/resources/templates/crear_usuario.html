@@ -242,10 +242,48 @@
         // Cargar ciudades al cargar la página si ya hay un departamento seleccionado
         document.addEventListener('DOMContentLoaded', function() {
             const departamentoSelect = document.getElementById('departamentoSelect');
+            const ciudadSelect = document.getElementById('ciudadSelect');
+            
             if (departamentoSelect.value) {
-                cargarCiudades();
+                const ciudadActualId = ciudadSelect.value; // Guardar el ID de la ciudad actual
+                cargarCiudadesConSeleccion(ciudadActualId);
             }
         });
+        
+        // Función para cargar ciudades y seleccionar una específica
+        function cargarCiudadesConSeleccion(ciudadIdASeleccionar) {
+            const departamentoSelect = document.getElementById('departamentoSelect');
+            const ciudadSelect = document.getElementById('ciudadSelect');
+            const departamentoId = departamentoSelect.value;
+            
+            ciudadSelect.innerHTML = '<option value="">Cargando ciudades...</option>';
+            ciudadSelect.disabled = true;
+            
+            if (departamentoId) {
+                fetch(`/api/departamentos/${departamentoId}/ciudades`)
+                    .then(response => response.json())
+                    .then(ciudades => {
+                        ciudadSelect.innerHTML = '<option value="">Seleccione una ciudad</option>';
+                        ciudades.forEach(ciudad => {
+                            const option = document.createElement('option');
+                            option.value = ciudad.id;
+                            option.textContent = ciudad.nombre;
+                            
+                            // Seleccionar la ciudad si coincide con la guardada
+                            if (ciudadIdASeleccionar && ciudad.id == ciudadIdASeleccionar) {
+                                option.selected = true;
+                            }
+                            
+                            ciudadSelect.appendChild(option);
+                        });
+                        ciudadSelect.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar ciudades:', error);
+                        ciudadSelect.innerHTML = '<option value="">Error al cargar ciudades</option>';
+                    });
+            }
+        }
     </script>
 
 </body>
