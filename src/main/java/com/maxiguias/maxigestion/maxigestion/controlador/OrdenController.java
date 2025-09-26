@@ -78,12 +78,14 @@ public class OrdenController {
         
         return usuarios.stream()
             .filter(usuario -> {
-                String nombreCompleto = (usuario.getNombre() + " " + usuario.getPrimerApellido()).toLowerCase();
+                String nombre = usuario.getNombre() != null ? usuario.getNombre() : "";
+                String primerApellido = usuario.getPrimerApellido() != null ? usuario.getPrimerApellido() : "";
+                String nombreCompleto = (nombre + " " + primerApellido).toLowerCase();
                 String terminoBusqueda = termino.toLowerCase();
                 
                 return nombreCompleto.contains(terminoBusqueda) ||
-                       usuario.getNombre().toLowerCase().contains(terminoBusqueda) ||
-                       usuario.getPrimerApellido().toLowerCase().contains(terminoBusqueda) ||
+                       nombre.toLowerCase().contains(terminoBusqueda) ||
+                       primerApellido.toLowerCase().contains(terminoBusqueda) ||
                        usuario.getDocumento().toString().contains(termino);
             })
             .collect(Collectors.toList());
