@@ -41,6 +41,6 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         }
         
         // Redirigir al dashboard
-        response.sendRedirect("/dashboard");
+        response.sendRedirect("/");
     }
 }

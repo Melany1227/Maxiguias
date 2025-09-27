@@ -22,4 +22,7 @@ public interface FormularioXPerfilRepository extends JpaRepository<FormularioXPe
 
     @Query("SELECT fxp FROM FormularioXPerfil fxp WHERE fxp.perfil.id = :perfilId AND fxp.formulario.nombreFormulario = :nombreFormulario")
     Optional<FormularioXPerfil> findByPerfilIdAndFormularioNombre(@Param("perfilId") Long perfilId, @Param("nombreFormulario") String nombreFormulario);
+    
+    @Query("SELECT fxp FROM FormularioXPerfil fxp WHERE fxp.perfil.id = :perfilId AND :url LIKE CONCAT(fxp.formulario.url, '%') ORDER BY LENGTH(fxp.formulario.url) DESC")
+    List<FormularioXPerfil> findByPerfilIdAndUrlStartsWith(@Param("perfilId") Long perfilId, @Param("url") String url);
 }

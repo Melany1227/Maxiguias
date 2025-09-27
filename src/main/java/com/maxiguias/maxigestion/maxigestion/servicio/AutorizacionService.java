@@ -1,5 +1,6 @@
 package com.maxiguias.maxigestion.maxigestion.servicio;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,14 +21,29 @@ public class AutorizacionService {
             return false;
         }
 
+        System.out.println("DEBUG - Buscando permisos para URL: " + url + ", Perfil ID: " + usuario.getPerfil().getId());
+
+        // Primero intentar coincidencia exacta
         Optional<FormularioXPerfil> permisoOpt = formularioXPerfilRepository
                 .findByPerfilIdAndFormularioUrl(usuario.getPerfil().getId(), url);
 
+        // Si no encuentra exacta, buscar por prefijo (para URLs dinámicas)
         if (permisoOpt.isEmpty()) {
+            System.out.println("DEBUG - No encontró coincidencia exacta, buscando por prefijo...");
+            List<FormularioXPerfil> permisos = formularioXPerfilRepository.findByPerfilIdAndUrlStartsWith(usuario.getPerfil().getId(), url);
+            if (!permisos.isEmpty()) {
+                permisoOpt = Optional.of(permisos.get(0)); // Tomar el más específico (ordenado por longitud DESC)
+            }
+        }
+
+        if (permisoOpt.isEmpty()) {
+            System.out.println("DEBUG - No se encontraron permisos para la URL: " + url);
             return false;
         }
 
         FormularioXPerfil permiso = permisoOpt.get();
+        System.out.println("DEBUG - Permiso encontrado para formulario: " + permiso.getFormulario().getUrl() + 
+                          ", verificando acción: " + accion);
         return verificarAccion(permiso, accion);
     }
 
