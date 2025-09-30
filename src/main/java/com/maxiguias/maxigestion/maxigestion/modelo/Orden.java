@@ -17,9 +17,9 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "FACTURAS")
+@Table(name = "ordenes")
 @Data
-public class Factura {
+public class Orden {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID_FACTURA")
@@ -45,11 +45,8 @@ public class Factura {
     @Column(name = "TOTAL_FACTURA")
     private BigDecimal totalFactura;
 
-    @ManyToOne
-    @JoinColumn(name = "LUGAR_VENTA")
-    private Ciudad ciudad;
 
-    @OneToMany(mappedBy = "factura", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<DetalleFactura> detalles;
+    @OneToMany(mappedBy = "orden", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DetalleOrden> detalles;
 
 }

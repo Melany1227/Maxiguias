@@ -1,5 +1,7 @@
 package com.maxiguias.maxigestion.maxigestion.modelo;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -44,10 +46,17 @@ public class Usuario {
 
     @ManyToOne
     @JoinColumn(name = "TIPO_USUARIO", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private TipoUsuario tipoUsuario;
     
     @ManyToOne
     @JoinColumn(name = "PERFILES_ID_PERFIL", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Perfil perfil;
+
+    @ManyToOne
+    @JoinColumn(name = "id_ciudad", nullable = false)
+    @JsonIgnoreProperties({"departamento"})
+    private Ciudad ciudad;
 
 }

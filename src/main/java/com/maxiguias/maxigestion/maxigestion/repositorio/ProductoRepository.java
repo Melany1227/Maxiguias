@@ -1,13 +1,13 @@
 package com.maxiguias.maxigestion.maxigestion.repositorio;
 
-import com.maxiguias.maxigestion.maxigestion.modelo.Producto;
-
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import com.maxiguias.maxigestion.maxigestion.modelo.Producto;
 
 @Repository
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
@@ -25,5 +25,10 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
            "GROUP BY p.id_producto, p.nombre_guia", 
            nativeQuery = true)
     List<Object[]> obtenerProductosConEstadisticas();
+
+    @Query("SELECT p FROM Producto p WHERE " +
+            "CAST(p.id AS string) LIKE %:keyword% OR " +
+            "LOWER(p.nombre) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    List<Producto> findByIdProductoOrNombreGuia(@Param("keyword") String keyword);
 
 }

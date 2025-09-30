@@ -104,6 +104,7 @@ tipoClienteGlobal = tipoNombre;
 
 document.querySelectorAll("#tablaDetalle tbody tr").forEach(fila => {
     actualizarPrecio(fila);
+    actualizarTextoTerminados(fila);
 });
 
 calcularTotalFactura();
@@ -139,6 +140,8 @@ nuevaFila.querySelectorAll("select").forEach(select => {
     }
 });
 tabla.appendChild(nuevaFila);
+// Actualizar opciones de productos en la nueva fila
+actualizarOpcionesProducto(nuevaFila);
 calcularTotalFactura();
 }
 
@@ -146,6 +149,8 @@ function eliminarFila() {
 const tabla = document.getElementById("tablaDetalle").querySelector("tbody");
 if (tabla.rows.length > 1) {
     tabla.deleteRow(tabla.rows.length - 1);
+    // Actualizar opciones de productos en todas las filas después de eliminar
+    setTimeout(() => actualizarTodasLasOpcionesProducto(), 100);
     calcularTotalFactura();
 }
 }
@@ -192,7 +197,14 @@ if (e.target.name === "productoId") {
             if (!esCombinacionDuplicada(productoId, t.id.toString(), fila)) {
                 const option = document.createElement("option");
                 option.value = t.id;
-                option.textContent = `${t.medidaTerminadoProducto}`;
+                
+                // Determinar qué precio mostrar según el tipo de cliente
+                let precioAMostrar = t.precioPublico;
+                if (tipoClienteGlobal === "JURIDICO") {
+                    precioAMostrar = t.precioPorEncargo; // Por defecto encargo para jurídicos
+                }
+                
+                option.textContent = `${t.medidaTerminadoProducto} - $${precioAMostrar.toLocaleString('es-CO')}`;
                 option.setAttribute("data-info", `${t.medidaTerminadoProducto}`);
                 option.setAttribute("data-publico", t.precioPublico);
                 option.setAttribute("data-mayor", t.precioPorMayor);
@@ -221,6 +233,9 @@ if (e.target.name === "terminadoId") {
     
     actualizarDescripcion(fila);
     actualizarPrecio(fila);
+    
+    // Actualizar opciones de productos en otras filas después del cambio
+    setTimeout(() => actualizarTodasLasOpcionesProducto(), 100);
 }
 
 if (e.target.name === "productoId") {
@@ -228,6 +243,25 @@ if (e.target.name === "productoId") {
     actualizarPrecio(fila);
 }
 });
+
+function actualizarTextoTerminados(fila) {
+    const terminadoSelect = fila.querySelector("select[name='terminadoId']");
+    
+    Array.from(terminadoSelect.options).forEach(option => {
+        if (option.value !== "") {
+            const publico = option.getAttribute("data-publico");
+            const encargo = option.getAttribute("data-encargo");
+            const medida = option.getAttribute("data-info");
+            
+            let precioAMostrar = publico;
+            if (tipoClienteGlobal === "JURIDICO") {
+                precioAMostrar = encargo;
+            }
+            
+            option.textContent = `${medida} - $${parseInt(precioAMostrar).toLocaleString('es-CO')}`;
+        }
+    });
+}
 
 function actualizarPrecio(fila) {
 const terminadoSelect = fila.querySelector("select[name='terminadoId']");
@@ -245,7 +279,11 @@ let precioFinal = 0;
 if (tipoClienteGlobal === "NATURAL") {
     precioFinal = publico;
 } else if (tipoClienteGlobal === "JURIDICO") {
-    precioFinal = cantidad >= 3 ? mayor : encargo;
+    if (cantidad <= 2) {
+        precioFinal = encargo;
+    } else {
+        precioFinal = mayor;
+    }
 }
 
 valorInput.value = precioFinal || 0;

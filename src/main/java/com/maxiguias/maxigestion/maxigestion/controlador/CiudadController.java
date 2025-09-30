@@ -39,7 +39,7 @@ public class CiudadController {
     }
 
     @GetMapping("/{id}")
-    public String obtenerCiudadPorId(@PathVariable Long id, Model model) {
+    public String obtenerCiudadPorId(@PathVariable int id, Model model) {
         Optional<Ciudad> ciudad = ciudadService.obtenerCiudadPorId(id);
         if (ciudad.isPresent()) {
             model.addAttribute("ciudad", ciudad.get());
@@ -50,7 +50,7 @@ public class CiudadController {
     }
 
     @GetMapping("/{id}/editar")
-    public String mostrarFormularioEditar(@PathVariable Long id, Model model) {
+    public String mostrarFormularioEditar(@PathVariable int id, Model model) {
         Optional<Ciudad> ciudad = ciudadService.obtenerCiudadPorId(id);
         if (ciudad.isPresent()) {
             model.addAttribute("ciudad", ciudad.get());
@@ -76,7 +76,7 @@ public class CiudadController {
     }
 
     @PostMapping("/{id}/eliminar")
-    public String eliminarCiudad(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String eliminarCiudad(@PathVariable int id, RedirectAttributes redirectAttributes) {
         ciudadService.eliminarCiudad(id);
         redirectAttributes.addFlashAttribute("mensaje", "Ciudad eliminada exitosamente");
         return "redirect:/ciudades";

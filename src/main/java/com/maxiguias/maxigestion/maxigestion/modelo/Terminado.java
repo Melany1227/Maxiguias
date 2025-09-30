@@ -11,6 +11,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.ToString;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "TERMINADOS")
@@ -24,6 +26,8 @@ public class Terminado {
 
     @ManyToOne
     @JoinColumn(name = "ID_PRODUCTO", nullable = false)
+    @ToString.Exclude
+    @JsonBackReference
     private Producto producto;
 
     @Column(name = "MEDIDA_TERMINADO_PRODUCTO", nullable = false, precision = 4, scale = 2)
@@ -37,5 +41,11 @@ public class Terminado {
 
     @Column(name = "PRECIO_X_ENCARGO", nullable = false)
     private Integer precioPorEncargo;
+
+    @Column(name = "GANANCIA_X_MAYOR", precision = 10, scale = 2, nullable = true)
+    private BigDecimal gananciaXMayor;
+
+    @Column(name = "GANANCIA_X_ENCARGO", precision = 10, scale = 2, nullable = true)
+    private BigDecimal gananciaXEncargo;
 
 }
