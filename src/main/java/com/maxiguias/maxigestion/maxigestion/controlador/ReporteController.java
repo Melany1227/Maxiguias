@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.FillPatternType;
@@ -15,27 +17,35 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import com.maxiguias.maxigestion.maxigestion.modelo.Orden;
 import com.maxiguias.maxigestion.maxigestion.modelo.Usuario;
+import com.maxiguias.maxigestion.maxigestion.repositorio.OrdenRepository;
 import com.maxiguias.maxigestion.maxigestion.repositorio.UsuarioRepository;
+import com.maxiguias.maxigestion.maxigestion.servicio.OrdenService;
 import jakarta.servlet.http.HttpServletResponse;
 @Controller
 @RequestMapping("/reportes")
 public class ReporteController {
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private OrdenRepository ordenRepository;
+
+    @Autowired
+    private OrdenService ordenService;
+
     @GetMapping
     public String listarReportes(Model model) {
         return "reportes";
     }
-    
+
     @GetMapping("/")
     public String listarReportesConBarra(Model model) {
         return "reportes";
@@ -145,6 +155,72 @@ public class ReporteController {
             }
             // Escribir el archivo
             workbook.write(response.getOutputStream());
+        }
+    }
+
+    // ========== MÉTODOS PARA REPORTE DE ÓRDENES ==========
+
+    @GetMapping("/estadisticas-ordenes")
+    @ResponseBody
+    public Map<String, Long> obtenerEstadisticasOrdenes(@RequestParam(required = false) Integer mes) {
+        Map<String, Long> estadisticas = new HashMap<>();
+
+        if (mes != null && mes >= 1 && mes <= 12) {
+            // Si se especifica un mes, filtrar por mes del año actual
+            Integer anioActual = LocalDate.now().getYear();
+
+            // Obtener órdenes del mes especificado
+            Long totalOrdenes = ordenRepository.countByMes(mes, anioActual);
+
+            estadisticas.put("total", totalOrdenes);
+        } else {
+            // Si no se especifica mes, mostrar todas las órdenes
+            Long totalOrdenes = ordenRepository.count();
+
+            estadisticas.put("total", totalOrdenes);
+        }
+
+        return estadisticas;
+    }
+
+    @GetMapping("/exportar-zip-ordenes")
+    public void exportarZipOrdenes(@RequestParam(required = false) Integer mes, HttpServletResponse response) throws IOException {
+        // Configurar la respuesta HTTP
+        response.setContentType("application/zip");
+        String fileName = "ordenes_" + LocalDate.now() + ".zip";
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+
+        List<Orden> ordenes;
+
+        if (mes != null && mes >= 1 && mes <= 12) {
+            // Si se especifica un mes, filtrar por mes del año actual
+            Integer anioActual = LocalDate.now().getYear();
+            ordenes = ordenRepository.findByMes(mes, anioActual);
+        } else {
+            // Si no se especifica mes, obtener todas las órdenes
+            ordenes = ordenRepository.findAll();
+        }
+
+        // Crear el archivo ZIP
+        try (ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream())) {
+            for (Orden orden : ordenes) {
+                try {
+                    // Generar PDF para cada orden
+                    byte[] pdfBytes = ordenService.generarOrdenPDF(orden.getId());
+
+                    // Crear entrada en el ZIP
+                    String entryName = "orden_" + orden.getId() + "_" + orden.getFechaVenta() + ".pdf";
+                    ZipEntry zipEntry = new ZipEntry(entryName);
+                    zipOut.putNextEntry(zipEntry);
+
+                    // Escribir el PDF al ZIP
+                    zipOut.write(pdfBytes);
+                    zipOut.closeEntry();
+                } catch (Exception e) {
+                    // Si hay error con una orden específica, continuar con las demás
+                    System.err.println("Error generando PDF para orden " + orden.getId() + ": " + e.getMessage());
+                }
+            }
         }
     }
 }

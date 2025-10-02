@@ -1,6 +1,23 @@
 package com.maxiguias.maxigestion.maxigestion.repositorio;
 
-import com.maxiguias.maxigestion.maxigestion.modelo.Orden;
-import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
 
-public interface OrdenRepository extends JpaRepository<Orden, Long> {}
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.maxiguias.maxigestion.maxigestion.modelo.Orden;
+
+public interface OrdenRepository extends JpaRepository<Orden, Long> {
+
+    // Método para contar todas las órdenes
+    Long countBy();
+
+    // Métodos para reportes con filtro por mes
+    @Query("SELECT COUNT(o) FROM Orden o WHERE MONTH(o.fechaVenta) = :mes AND YEAR(o.fechaVenta) = :anio")
+    Long countByMes(@Param("mes") Integer mes, @Param("anio") Integer anio);
+
+    @Query("SELECT o FROM Orden o WHERE MONTH(o.fechaVenta) = :mes AND YEAR(o.fechaVenta) = :anio")
+    List<Orden> findByMes(@Param("mes") Integer mes, @Param("anio") Integer anio);
+
+}
