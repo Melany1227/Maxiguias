@@ -105,7 +105,7 @@ public class ReporteController {
             headerStyle.setFont(headerFont);
             // Crear fila de encabezado
             Row headerRow = sheet.createRow(0);
-            String[] headers = {"Documento", "Nombre", "Primer Apellido", "Segundo Apellido", "Dirección", "Teléfono", "Perfil", "Fecha Registro"};
+            String[] headers = {"Documento", "Nombre", "Primer Apellido", "Segundo Apellido", "Dirección", "Teléfono", "Perfil", "Ciudad", "Fecha Registro"};
             
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = headerRow.createCell(i);
@@ -123,7 +123,8 @@ public class ReporteController {
                 row.createCell(4).setCellValue(usuario.getDireccion() != null ? usuario.getDireccion() : "");
                 row.createCell(5).setCellValue(usuario.getTelefono() != null ? usuario.getTelefono().toString() : "");
                 row.createCell(6).setCellValue("Natural");
-                row.createCell(7).setCellValue(usuario.getFechaRegistro() != null ? usuario.getFechaRegistro().toString() : "");
+                row.createCell(7).setCellValue(usuario.getCiudad() != null ? usuario.getCiudad().getNombre() : "");
+                row.createCell(8).setCellValue(usuario.getFechaRegistro() != null ? usuario.getFechaRegistro().toString() : "");
             }
             // Agregar usuarios jurídicos
             for (Usuario usuario : usuariosJuridicos) {
@@ -135,7 +136,8 @@ public class ReporteController {
                 row.createCell(4).setCellValue(usuario.getDireccion() != null ? usuario.getDireccion() : "");
                 row.createCell(5).setCellValue(usuario.getTelefono() != null ? usuario.getTelefono().toString() : "");
                 row.createCell(6).setCellValue("Jurídico");
-                row.createCell(7).setCellValue(usuario.getFechaRegistro() != null ? usuario.getFechaRegistro().toString() : "");
+                row.createCell(7).setCellValue(usuario.getCiudad() != null ? usuario.getCiudad().getNombre() : "");
+                row.createCell(8).setCellValue(usuario.getFechaRegistro() != null ? usuario.getFechaRegistro().toString() : "");
             }
             // Ajustar el ancho de las columnas
             for (int i = 0; i < headers.length; i++) {
