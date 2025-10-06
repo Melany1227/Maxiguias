@@ -28,11 +28,9 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         HttpSession session = request.getSession();
         String nombreUsuario = authentication.getName();
         
-        // Buscar el usuario en la base de datos
         Usuario usuario = usuarioRepository.findByNombreUsuario(nombreUsuario).orElse(null);
         
         if (usuario != null) {
-            // Guardar el usuario completo en la sesión
             session.setAttribute("usuario", usuario);
             System.out.println("Usuario guardado en sesión: " + usuario.getNombreUsuario() + 
                              " con perfil ID: " + (usuario.getPerfil() != null ? usuario.getPerfil().getId() : "null"));
@@ -40,7 +38,6 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
             System.out.println("Usuario no encontrado en BD: " + nombreUsuario);
         }
         
-        // Redirigir al dashboard
         response.sendRedirect("/");
     }
 }

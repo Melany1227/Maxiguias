@@ -38,7 +38,7 @@
                     </div>
                     <div class="card-body">
                         <p><strong>ID Orden:</strong> <span th:text="${orden.id}"></span></p>
-                        <p><strong>Fecha:</strong> <span th:text="${#temporals.format(orden.fechaVenta, 'dd/MM/yyyy')}"></span></p>
+                        <p><strong>Fecha Entrega:</strong> <span th:text="${#temporals.format(orden.fechaEntrega, 'dd/MM/yyyy HH:mm')}"></span></p>
                         <p><strong>Descripción:</strong> <span th:text="${orden.descripcionVenta}"></span></p>
                         <p><strong>Total:</strong> <span class="fw-bold text-success" th:text="'$' + ${#numbers.formatDecimal(orden.totalFactura, 1, 2)}"></span></p>
                     </div>

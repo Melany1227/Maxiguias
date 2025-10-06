@@ -76,10 +76,14 @@ ALTER TABLE usuarios ADD CONSTRAINT fk_usuarios_ciudades FOREIGN KEY (id_ciudad)
 ALTER TABLE ordenes DROP COLUMN lugar_venta;
 
 
+
 -- Insertar perfiles básicos
-INSERT INTO perfiles (id_perfil, nombre_perfil, roles_id_rol) VALUES 
-(5, 'ADMIN_GENERAL', 1)
-ON DUPLICATE KEY UPDATE nombre_perfil = VALUES(nombre_perfil);
+INSERT INTO `maxigestion_db`.`roles` (`nombre_rol`) VALUES ('ADMINISTRADOR');
+INSERT INTO `maxigestion_db`.`roles` (`nombre_rol`) VALUES ('JURIDICO');
+INSERT INTO `maxigestion_db`.`perfiles` (`nombre_perfil`, `roles_id_rol`) VALUES ('ADMIN_GENERAL', (SELECT id_rol FROM roles WHERE nombre_rol = "ADMINISTRADOR"));
+INSERT INTO `maxigestion_db`.`perfiles` (`nombre_perfil`, `roles_id_rol`) VALUES ('DEVELOPER', (SELECT id_rol FROM roles WHERE nombre_rol = "ADMINISTRADOR"));
+INSERT INTO `maxigestion_db`.`perfiles` (`nombre_perfil`, `roles_id_rol`) VALUES ('ALMACEN', (SELECT id_rol FROM roles WHERE nombre_rol = "JURIDICO"));
+
 
 -- Insertar formularios del sistema
 INSERT INTO formularios (id_formulario, nombre_formulario, url, padre) VALUES 
@@ -91,7 +95,32 @@ INSERT INTO formularios (id_formulario, nombre_formulario, url, padre) VALUES
 ON DUPLICATE KEY UPDATE nombre_formulario = VALUES(nombre_formulario);
 
 -- Asignar permisos completos al ADMINISTRADOR (perfil 1)
-INSERT INTO formularios_x_perfiles (perfiles_id_perfil, formularios_id_formulario, crear, editar, visualizar, eliminar) 
-SELECT 1, id_formulario, 'S', 'S', 'S', 'S' FROM formularios
-ON DUPLICATE KEY UPDATE crear = 'S', editar = 'S', visualizar = 'S', eliminar = 'S';
+INSERT INTO formularios (id_formulario, nombre_formulario, url, padre) VALUES
+(1, 'Dashboard', '/', NULL),
+(2, 'Usuarios', '/usuarios', NULL),
+(3, 'Productos', '/productos', NULL),
+(4, 'Órdenes', '/ordenes', NULL),
+(5, 'Reportes', '/reportes', NULL),
+(6, 'Crear_Usuarios', '/usuarios/crear', NULL),
+(7, 'Crear_Ordenes', '/ordenes/nueva', NULL),
+(8, 'Buscar_Usuario_Ordenes', '/ordenes/buscar-usuarios', NULL),
+(9, 'Crear_Ordenes', '/ordenes/guardar', NULL),
+(10, 'Ver_Ordenes', '/ordenes/verMas', NULL);
 
+INSERT INTO formularios_x_perfiles (perfiles_id_perfil, formularios_id_formulario, crear, editar, visualizar, eliminar) VALUES
+(1, 1, 'S', 'S', 'S', 'S'),
+(1, 2, 'S', 'S', 'S', 'S'),
+(1, 3, 'S', 'S', 'S', 'S'),
+(1, 4, 'S', 'S', 'S', 'S'),
+(1, 5, 'S', 'S', 'S', 'S'),
+(1, 6, 'S', 'S', 'S', 'S'),
+(1, 7, 'S', 'S', 'S', 'S'),
+(1, 8, 'S', 'S', 'S', 'S'),
+(1, 9, 'S', 'S', 'S', 'S'),
+(1, 10, 'S', 'S', 'S', 'S');
+
+
+ALTER TABLE ordenes ADD COLUMN estado VARCHAR(20) DEFAULT 'PENDIENTE' NOT NULL;
+ALTER TABLE ordenes RENAME COLUMN fecha_venta TO fecha_entrega;
+ALTER TABLE ordenes MODIFY fecha_entrega DATETIME;
+ALTER TABLE ordenes ADD COLUMN fecha_orden DATETIME DEFAULT CURRENT_TIMESTAMP;
