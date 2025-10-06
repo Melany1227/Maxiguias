@@ -285,7 +285,7 @@ document.addEventListener("input", function (e) {
 });
 
 document.addEventListener('DOMContentLoaded', function () {
-    const fechaInput = document.querySelector('input[type="date"][name="fechaVenta"]');
+    const fechaInput = document.querySelector('input[type="datetime-local"][name="fechaEntrega"]');
 
     if (fechaInput) {
         const hoy = new Date();

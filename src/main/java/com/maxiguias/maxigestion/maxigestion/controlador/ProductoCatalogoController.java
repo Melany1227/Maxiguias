@@ -4,7 +4,11 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,6 +129,6 @@ public class ProductoCatalogoController {
     
     @GetMapping("/productos/cerrar")
     public String cerrarInforme() {
-        return "redirect:/dashboard";  // O la ruta que uses para tu página principal
+        return "redirect:/";  // O la ruta que uses para tu página principal
     }
 }

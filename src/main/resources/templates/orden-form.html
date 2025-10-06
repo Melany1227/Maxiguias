@@ -70,9 +70,9 @@
               <div class="col-md-6">
 
                 <label class="form-icon-label">
-                  <i class="fa-solid fa-calendar-day"></i> Fecha de Venta
+                  <i class="fa-solid fa-calendar-day"></i> Fecha de Entrega
                 </label>
-                <input type="date" th:field="*{fechaVenta}" class="form-control" required>
+                <input type="datetime-local" th:field="*{fechaEntrega}" class="form-control" required>
 
                 <label class="form-icon-label">Debe a:</label>
                 <span id="empresa" th:text="${empresa.nombreEmpresa + ' - NIT: ' + empresa.nitEmpresa}"></span>
