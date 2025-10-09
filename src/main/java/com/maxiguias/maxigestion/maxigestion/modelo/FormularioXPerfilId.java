@@ -13,7 +13,7 @@ import lombok.Data;
 
 @Embeddable
 @Data
-class FormularioXPerfilId implements Serializable{
+public class FormularioXPerfilId implements Serializable{
     @Column(name = "PERFILES_ID_PERFIL")
     private Long perfilId;
 

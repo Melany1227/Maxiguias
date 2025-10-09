@@ -311,7 +311,7 @@ if (e.target.name === "cantidad" || e.target.name === "valor") {
 });
 
 document.addEventListener('DOMContentLoaded', function () {
-const fechaInput = document.querySelector('input[type="date"][name="fechaVenta"]');
+const fechaInput = document.querySelector('input[type="datetime-local"][name="fechaEntrega"]');
 
 const hoy = new Date();
 const yyyy = hoy.getFullYear();

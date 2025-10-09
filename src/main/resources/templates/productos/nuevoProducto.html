@@ -41,7 +41,7 @@
             <h2 class="mb-4" th:text="${producto.id == null ? 'Registrar Nuevo Producto' : 'Editar Producto'}"></h2>
 
             <form th:action="${producto.id == null} ? @{/productos/nuevo} : @{/productos/{id}(id=${producto.id})}"
-                  th:object="${producto}" method="post" class="mt-3">
+                  th:object="${producto}" method="post" class="mt-3" enctype="multipart/form-data">
 
                 <!-- Datos Generales -->
                 <div class="row mb-3">
@@ -57,8 +57,15 @@
                         <input type="text" th:field="*{nombre}" class="form-control" required />
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Imagen (URL)</label>
-                        <input type="text" th:field="*{imagen}" class="form-control" />
+                        <label class="form-label">Imagen del Producto</label>
+                        <input type="file" name="imagenFile" class="form-control" accept="image/*" onchange="previewImage(this)" />
+                        <small class="text-muted">Formatos: JPG, PNG, GIF (máx. 5MB)</small>
+                    </div>
+                    <div class="col-md-3" th:if="${producto.imagen}">
+                        <label class="form-label">Imagen Actual</label>
+                        <div>
+                            <img th:src="${producto.imagen}" alt="Imagen del producto" style="max-width: 100px; max-height: 100px; object-fit: cover;" class="img-thumbnail" />
+                        </div>
                     </div>
                 </div>
 
@@ -140,6 +147,24 @@
                 });
             }
         }); 
+        
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Crear preview si no existe
+                    let preview = document.getElementById('imagePreview');
+                    if (!preview) {
+                        preview = document.createElement('div');
+                        preview.id = 'imagePreview';
+                        preview.innerHTML = '<label class="form-label">Vista Previa</label><br><img id="previewImg" style="max-width: 100px; max-height: 100px; object-fit: cover;" class="img-thumbnail" />';
+                        input.parentNode.parentNode.appendChild(preview);
+                    }
+                    document.getElementById('previewImg').src = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
     </script>
 </body>
 </html>
