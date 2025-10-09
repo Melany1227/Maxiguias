@@ -71,6 +71,7 @@ public class PermisoInterceptor implements HandlerInterceptor {
                uri.startsWith("/login") || 
                uri.startsWith("/auth/") ||
                uri.startsWith("/api/") ||
+               uri.startsWith("/.well-known/") ||
                uri.equals("/") ||
                uri.startsWith("/error/");
     }
