@@ -104,6 +104,7 @@ tipoClienteGlobal = tipoNombre;
 
 document.querySelectorAll("#tablaDetalle tbody tr").forEach(fila => {
     actualizarPrecio(fila);
+    actualizarTextoTerminados(fila);
 });
 
 calcularTotalFactura();
@@ -196,7 +197,14 @@ if (e.target.name === "productoId") {
             if (!esCombinacionDuplicada(productoId, t.id.toString(), fila)) {
                 const option = document.createElement("option");
                 option.value = t.id;
-                option.textContent = `${t.medidaTerminadoProducto}`;
+                
+                // Determinar qué precio mostrar según el tipo de cliente
+                let precioAMostrar = t.precioPublico;
+                if (tipoClienteGlobal === "JURIDICO") {
+                    precioAMostrar = t.precioPorEncargo; // Por defecto encargo para jurídicos
+                }
+                
+                option.textContent = `${t.medidaTerminadoProducto} - $${precioAMostrar.toLocaleString('es-CO')}`;
                 option.setAttribute("data-info", `${t.medidaTerminadoProducto}`);
                 option.setAttribute("data-publico", t.precioPublico);
                 option.setAttribute("data-mayor", t.precioPorMayor);
@@ -236,6 +244,25 @@ if (e.target.name === "productoId") {
 }
 });
 
+function actualizarTextoTerminados(fila) {
+    const terminadoSelect = fila.querySelector("select[name='terminadoId']");
+    
+    Array.from(terminadoSelect.options).forEach(option => {
+        if (option.value !== "") {
+            const publico = option.getAttribute("data-publico");
+            const encargo = option.getAttribute("data-encargo");
+            const medida = option.getAttribute("data-info");
+            
+            let precioAMostrar = publico;
+            if (tipoClienteGlobal === "JURIDICO") {
+                precioAMostrar = encargo;
+            }
+            
+            option.textContent = `${medida} - $${parseInt(precioAMostrar).toLocaleString('es-CO')}`;
+        }
+    });
+}
+
 function actualizarPrecio(fila) {
 const terminadoSelect = fila.querySelector("select[name='terminadoId']");
 const cantidadInput = fila.querySelector("input[name='cantidad']");
@@ -252,7 +279,11 @@ let precioFinal = 0;
 if (tipoClienteGlobal === "NATURAL") {
     precioFinal = publico;
 } else if (tipoClienteGlobal === "JURIDICO") {
-    precioFinal = cantidad >= 3 ? mayor : encargo;
+    if (cantidad <= 2) {
+        precioFinal = encargo;
+    } else {
+        precioFinal = mayor;
+    }
 }
 
 valorInput.value = precioFinal || 0;
@@ -280,7 +311,7 @@ if (e.target.name === "cantidad" || e.target.name === "valor") {
 });
 
 document.addEventListener('DOMContentLoaded', function () {
-const fechaInput = document.querySelector('input[type="date"][name="fechaVenta"]');
+const fechaInput = document.querySelector('input[type="datetime-local"][name="fechaEntrega"]');
 
 const hoy = new Date();
 const yyyy = hoy.getFullYear();

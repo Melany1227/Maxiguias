@@ -16,8 +16,11 @@
         <a href="/" class="btn"><i class="bi bi-house-door-fill"></i> INICIO</a>
         <a href="#" class="btn"><i class="bi bi-journal-text"></i> CATÁLOGO</a>
         <a href="/usuarios" class="btn"><i class="bi bi-receipt"></i> USUARIOS</a>
-        <a href="/facturas" class="btn"><i class="bi bi-receipt"></i> FACTURAS</a>
+        <a href="/ordenes" class="btn"><i class="bi bi-receipt"></i> ORDENES</a>
         <a href="/productos" class="btn"><i class="bi bi-box-seam"></i> PRODUCTOS</a>
+        <a href="/perfiles" class="btn"><i class="bi bi-box-seam"></i> PERFILES</a>
+        <a href="/roles" class="btn"><i class="bi bi-box-seam"></i> ROLES</a>
+        <a href="/reportes" class="btn"><i class="bi bi-box-seam"></i> REPORTES</a>
     </div>
 
     <div class="main-content">
@@ -76,6 +79,29 @@
                         <i class="fa-solid fa-phone"></i> Teléfono *
                     </label>
                     <input type="number" th:field="*{telefono}" class="form-control" required>
+
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-map"></i> Departamento *
+                    </label>
+                    <select id="departamentoSelect" class="form-control" required onchange="cargarCiudades()">
+                        <option value="">Seleccione un departamento</option>
+                        <option th:each="departamento : ${departamentos}" 
+                                th:value="${departamento.id}" 
+                                th:text="${departamento.nombre}"
+                                th:selected="${usuario.ciudad != null and usuario.ciudad.departamento != null and usuario.ciudad.departamento.id == departamento.id}">
+                        </option>
+                    </select>
+
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-location-dot"></i> Ciudad *
+                    </label>
+                    <select th:field="*{ciudad}" id="ciudadSelect" class="form-control" required>
+                        <option value="">Seleccione primero un departamento</option>
+                        <option th:each="ciudad : ${ciudades}" 
+                                th:value="${ciudad.id}" 
+                                th:text="${ciudad.nombre}">
+                        </option>
+                    </select>
 
                     <label class="form-icon-label">
                         <i class="fa-solid fa-user"></i> Contraseña 
@@ -170,6 +196,94 @@
                 }
             });
         });
+
+        // Función para cargar ciudades según el departamento seleccionado
+        function cargarCiudades() {
+            const departamentoSelect = document.getElementById('departamentoSelect');
+            const ciudadSelect = document.getElementById('ciudadSelect');
+            const departamentoId = departamentoSelect.value;
+            
+            // Limpiar el select de ciudades
+            ciudadSelect.innerHTML = '<option value="">Cargando ciudades...</option>';
+            ciudadSelect.disabled = true;
+            
+            if (departamentoId) {
+                fetch(`/api/departamentos/${departamentoId}/ciudades`)
+                    .then(response => {
+                        console.log('Response status:', response.status);
+                        return response.json();
+                    })
+                    .then(ciudades => {
+                        console.log('Ciudades recibidas:', ciudades);
+                        console.log('Número de ciudades:', ciudades.length);
+                        
+                        ciudadSelect.innerHTML = '<option value="">Seleccione una ciudad</option>';
+                        ciudades.forEach((ciudad, index) => {
+                            console.log(`Ciudad ${index + 1}:`, ciudad);
+                            const option = document.createElement('option');
+                            option.value = ciudad.id;
+                            option.textContent = ciudad.nombre;
+                            ciudadSelect.appendChild(option);
+                        });
+                        ciudadSelect.disabled = false;
+                        
+                        console.log('Opciones en el select:', ciudadSelect.children.length);
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar ciudades:', error);
+                        ciudadSelect.innerHTML = '<option value="">Error al cargar ciudades</option>';
+                    });
+            } else {
+                ciudadSelect.innerHTML = '<option value="">Seleccione primero un departamento</option>';
+                ciudadSelect.disabled = true;
+            }
+        }
+
+        // Cargar ciudades al cargar la página si ya hay un departamento seleccionado
+        document.addEventListener('DOMContentLoaded', function() {
+            const departamentoSelect = document.getElementById('departamentoSelect');
+            const ciudadSelect = document.getElementById('ciudadSelect');
+            
+            if (departamentoSelect.value) {
+                const ciudadActualId = ciudadSelect.value; // Guardar el ID de la ciudad actual
+                cargarCiudadesConSeleccion(ciudadActualId);
+            }
+        });
+        
+        // Función para cargar ciudades y seleccionar una específica
+        function cargarCiudadesConSeleccion(ciudadIdASeleccionar) {
+            const departamentoSelect = document.getElementById('departamentoSelect');
+            const ciudadSelect = document.getElementById('ciudadSelect');
+            const departamentoId = departamentoSelect.value;
+            
+            ciudadSelect.innerHTML = '<option value="">Cargando ciudades...</option>';
+            ciudadSelect.disabled = true;
+            
+            if (departamentoId) {
+                fetch(`/api/departamentos/${departamentoId}/ciudades`)
+                    .then(response => response.json())
+                    .then(ciudades => {
+                        ciudadSelect.innerHTML = '<option value="">Seleccione una ciudad</option>';
+                        ciudades.forEach(ciudad => {
+                            const option = document.createElement('option');
+                            option.value = ciudad.id;
+                            option.textContent = ciudad.nombre;
+                            
+                            // Seleccionar la ciudad si coincide con la guardada
+                            if (ciudadIdASeleccionar && ciudad.id == ciudadIdASeleccionar) {
+                                option.selected = true;
+                            }
+                            
+                            ciudadSelect.appendChild(option);
+                        });
+                        ciudadSelect.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar ciudades:', error);
+                        ciudadSelect.innerHTML = '<option value="">Error al cargar ciudades</option>';
+                    });
+            }
+        }
     </script>
 
 </body>

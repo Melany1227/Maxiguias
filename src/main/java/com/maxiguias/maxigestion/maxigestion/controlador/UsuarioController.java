@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.maxiguias.maxigestion.maxigestion.modelo.Usuario;
+import com.maxiguias.maxigestion.maxigestion.repositorio.CiudadRepository;
+import com.maxiguias.maxigestion.maxigestion.repositorio.DepartamentoRepository;
 import com.maxiguias.maxigestion.maxigestion.servicio.PerfilService;
 import com.maxiguias.maxigestion.maxigestion.servicio.TipoUsuarioService;
 import com.maxiguias.maxigestion.maxigestion.servicio.UsuarioService;
@@ -31,6 +33,12 @@ public class UsuarioController {
     @Autowired
     private TipoUsuarioService tipoUsuarioService;
 
+    @Autowired
+    private DepartamentoRepository departamentoRepository;
+
+    @Autowired
+    private CiudadRepository ciudadRepository;
+
     @GetMapping()
     public String listarUsuarios(Model model) {
         List<Usuario> usuarios = usuarioService.obtenerTodosLosUsuarios();
@@ -42,7 +50,9 @@ public class UsuarioController {
     public String mostrarFormularioCrearUsuario(Model model) {
         model.addAttribute("usuario", new Usuario());
         model.addAttribute("tiposUsuario", tipoUsuarioService.obtenerTiposUsuario()); 
-        model.addAttribute("perfiles", perfilService.obtenerPerfiles()); 
+        model.addAttribute("perfiles", perfilService.obtenerPerfiles());
+        model.addAttribute("departamentos", departamentoRepository.findAll());
+        model.addAttribute("ciudades", ciudadRepository.findAll()); 
         model.addAttribute("esEdicion", false);
         model.addAttribute("tieneContrasena", false);
         return "crear_usuario";
@@ -52,7 +62,9 @@ public class UsuarioController {
     public String crearUsuario(@ModelAttribute Usuario usuario, Model model) {
         String resultado = usuarioService.crearUsuario(usuario);
         model.addAttribute("tiposUsuario", tipoUsuarioService.obtenerTiposUsuario()); 
-        model.addAttribute("perfiles", perfilService.obtenerPerfiles()); 
+        model.addAttribute("perfiles", perfilService.obtenerPerfiles());
+        model.addAttribute("departamentos", departamentoRepository.findAll());
+        model.addAttribute("ciudades", ciudadRepository.findAll()); 
         model.addAttribute("esEdicion", false);
 
         if (!resultado.equals("Usuario guardado exitosamente.")) {
@@ -81,7 +93,9 @@ public class UsuarioController {
         }
         
         model.addAttribute("tiposUsuario", tipoUsuarioService.obtenerTiposUsuario()); 
-        model.addAttribute("perfiles", perfilService.obtenerPerfiles()); 
+        model.addAttribute("perfiles", perfilService.obtenerPerfiles());
+        model.addAttribute("departamentos", departamentoRepository.findAll());
+        model.addAttribute("ciudades", ciudadRepository.findAll()); 
         model.addAttribute("usuario", usuario);
         model.addAttribute("esEdicion", true);
         model.addAttribute("tieneContrasena", tieneContrasena);
@@ -98,6 +112,8 @@ public class UsuarioController {
             model.addAttribute("usuario", usuario);
             model.addAttribute("tiposUsuario", tipoUsuarioService.obtenerTiposUsuario());
             model.addAttribute("perfiles", perfilService.obtenerPerfiles());
+            model.addAttribute("departamentos", departamentoRepository.findAll());
+            model.addAttribute("ciudades", ciudadRepository.findAll());
             model.addAttribute("esEdicion", true);
             model.addAttribute("tieneContrasena", true); // Asumir que tiene contraseña en edición
             return "crear_usuario";
@@ -120,5 +136,6 @@ public class UsuarioController {
         redirectAttributes.addFlashAttribute("redirigirDespues", true);
         return "redirect:/usuarios";
     }
+
 
 }

@@ -6,9 +6,9 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "DETALLE_FACTURAS")
+@Table(name = "detalle_ordenes")
 @Data
-public class DetalleFactura {
+public class DetalleOrden {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,7 +17,7 @@ public class DetalleFactura {
 
     @ManyToOne
     @JoinColumn(name = "ID_FACTURA")
-    private Factura factura;
+    private Orden orden;
 
     @ManyToOne
     @JoinColumn(name = "ID_PRODUCTO")
@@ -32,4 +32,3 @@ public class DetalleFactura {
     @Column(name = "VALOR_PRODUCTO")
     private BigDecimal valor;
 }
-

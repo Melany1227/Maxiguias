@@ -14,9 +14,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.maxiguias.maxigestion.maxigestion.modelo.Producto;
+import com.maxiguias.maxigestion.maxigestion.servicio.CloudinaryService;
 import com.maxiguias.maxigestion.maxigestion.servicio.ProductoService;
 
 @Controller
@@ -24,9 +26,11 @@ import com.maxiguias.maxigestion.maxigestion.servicio.ProductoService;
 public class ProductoController {
 
     private final ProductoService productoService;
+    private final CloudinaryService cloudinaryService;
 
-    public ProductoController(ProductoService productoService) {
+    public ProductoController(ProductoService productoService, CloudinaryService cloudinaryService) {
         this.productoService = productoService;
+        this.cloudinaryService = cloudinaryService;
     }
 
     @GetMapping
@@ -55,25 +59,47 @@ public class ProductoController {
     @PostMapping("/nuevo")
     public String crearProducto(
             @ModelAttribute("producto") Producto producto,
+            @RequestParam(value = "imagenFile", required = false) MultipartFile imagenFile,
             BindingResult binding,
             Model model,
             RedirectAttributes ra) {
 
+        System.out.println("=== INICIANDO CREACIÓN DE PRODUCTO ===");
+        System.out.println("ID: " + producto.getId());
+        System.out.println("Nombre: " + producto.getNombre());
+        System.out.println("Terminados: " + (producto.getTerminados() != null ? producto.getTerminados().size() : "null"));
+        
         try {
+            // Subir imagen si se proporciona
+            if (imagenFile != null && !imagenFile.isEmpty()) {
+                System.out.println("=== SUBIENDO IMAGEN ===");
+                System.out.println("Archivo: " + imagenFile.getOriginalFilename());
+                System.out.println("Tamaño: " + imagenFile.getSize());
+                
+                String publicId = cloudinaryService.uploadImage(imagenFile);
+                System.out.println("Public ID generado: " + publicId);
+                producto.setImagen(publicId);
+            } else {
+                System.out.println("=== NO HAY ARCHIVO DE IMAGEN ===");
+            }
+            
+            System.out.println("URL final del producto: " + producto.getImagen());
             productoService.guardarProducto(producto);
             ra.addFlashAttribute("mensaje", "Producto creado exitosamente");
             return "redirect:/productos";
 
         } catch (IllegalArgumentException e) {
-            // ra.addFlashAttribute("error", "No se puede crear el producto ya existe");
+            System.out.println("=== ERROR: CÓDIGO DUPLICADO ===");
+            System.out.println("Error: " + e.getMessage());
             model.addAttribute("producto", producto);
             model.addAttribute("error", "El código ingresado ya existe");
             return "productos/nuevoProducto";
 
         } catch (Exception e) {
-            // Otros errores inesperados
-            ra.addFlashAttribute("error", "Ocurrió un error al crear el producto");
-            ra.addFlashAttribute("error", e.getMessage());
+            System.out.println("=== ERROR GENERAL ===");
+            System.out.println("Error: " + e.getMessage());
+            e.printStackTrace();
+            ra.addFlashAttribute("error", "Ocurrió un error al crear el producto: " + e.getMessage());
             return "redirect:/productos";
         }
     }
@@ -90,13 +116,32 @@ public class ProductoController {
     }
 
     @PostMapping("/{id}")
-    public String actualizarProducto(@PathVariable Long id, @ModelAttribute Producto producto,
+    public String actualizarProducto(
+            @PathVariable Long id, 
+            @ModelAttribute Producto producto,
+            @RequestParam(value = "imagenFile", required = false) MultipartFile imagenFile,
             RedirectAttributes ra) {
         try {
+            // Obtener producto existente para mantener imagen actual si no se sube nueva
+            Optional<Producto> productoExistente = productoService.obtenerProductoPorId(id);
+            
+            if (imagenFile != null && !imagenFile.isEmpty()) {
+                // Eliminar imagen anterior si existe
+                if (productoExistente.isPresent() && productoExistente.get().getImagen() != null) {
+                    cloudinaryService.deleteImage(productoExistente.get().getImagen());
+                }
+                // Subir nueva imagen
+                String publicId = cloudinaryService.uploadImage(imagenFile);
+                producto.setImagen(publicId);
+            } else if (productoExistente.isPresent()) {
+                // Mantener imagen existente
+                producto.setImagen(productoExistente.get().getImagen());
+            }
+            
             productoService.actualizarProducto(id, producto);
-            ra.addFlashAttribute("Mensaje", "Producto actualizado exitosamente");
+            ra.addFlashAttribute("mensaje", "Producto actualizado exitosamente");
         } catch (Exception e) {
-            ra.addFlashAttribute("error", "Error al actualizar el producto");
+            ra.addFlashAttribute("error", "Error al actualizar el producto: " + e.getMessage());
         }
         return "redirect:/productos";
     }
@@ -115,6 +160,7 @@ public class ProductoController {
     public String catalogo(Model model) {
         List<Producto> productos = productoService.listarProductos();
         model.addAttribute("productos", productos);
+        model.addAttribute("cloudinaryService", cloudinaryService);
         return "productos/catalogo"; // nueva vista
     }
 

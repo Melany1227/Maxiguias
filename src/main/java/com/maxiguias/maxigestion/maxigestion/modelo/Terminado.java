@@ -11,6 +11,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.ToString;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "TERMINADOS")
@@ -24,6 +26,8 @@ public class Terminado {
 
     @ManyToOne
     @JoinColumn(name = "ID_PRODUCTO", nullable = false)
+    @ToString.Exclude
+    @JsonBackReference
     private Producto producto;
 
     @Column(name = "MEDIDA_TERMINADO_PRODUCTO", nullable = false, precision = 4, scale = 2)

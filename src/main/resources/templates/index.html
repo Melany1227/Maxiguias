@@ -25,7 +25,7 @@
         <!-- Si está autenticado -->
         <div sec:authorize="isAuthenticated()">
             <p sec:authentication="name" style="color: white; margin: 10px 0;"></p>
-            <a href="/facturas" class="btn"><i class="bi bi-receipt"></i> FACTURAS</a>
+            <a href="/ordenes" class="btn"><i class="bi bi-receipt"></i> ORDENES</a>
             <a href="/productos" class="btn"><i class="bi bi-box-seam"></i> PRODUCTOS</a>
             <a href="/usuarios" class="btn"><i class="bi bi-people-fill"></i> USUARIOS</a>
             <form th:action="@{/logout}" method="post" style="display: inline;">

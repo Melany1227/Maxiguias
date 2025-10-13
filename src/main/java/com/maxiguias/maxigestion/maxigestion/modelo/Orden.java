@@ -2,11 +2,14 @@ package com.maxiguias.maxigestion.maxigestion.modelo;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -17,9 +20,9 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "FACTURAS")
+@Table(name = "ordenes")
 @Data
-public class Factura {
+public class Orden {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID_FACTURA")
@@ -36,8 +39,11 @@ public class Factura {
     @Column(name = "FIRMA_DIGITAL")
     private String firmaDigital;
 
-    @Column(name = "FECHA_VENTA")
-    private LocalDate fechaVenta;
+    @Column(name = "fecha_entrega")
+    private LocalDateTime fechaEntrega;
+
+    @Column(name = "fecha_orden", insertable = false, updatable = false, columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime fechaOrden;
 
     @Column(name = "DESCRIPCION_VENTA")
     private String descripcionVenta;
@@ -45,11 +51,11 @@ public class Factura {
     @Column(name = "TOTAL_FACTURA")
     private BigDecimal totalFactura;
 
-    @ManyToOne
-    @JoinColumn(name = "LUGAR_VENTA")
-    private Ciudad ciudad;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado", nullable = false)
+    private EstadoOrden estado = EstadoOrden.PENDIENTE;
 
-    @OneToMany(mappedBy = "factura", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<DetalleFactura> detalles;
+    @OneToMany(mappedBy = "orden", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DetalleOrden> detalles;
 
 }

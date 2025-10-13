@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes - Maxigestion</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" th:href="@{/css/reportes.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="sidebar">
+        <img src="/img/logo.png" alt="Logo MXG">
+        <a href="/" class="btn">INICIO</a>
+        <a href="#" class="btn">CATÁLOGO</a>
+        <a href="/usuarios" class="btn">USUARIOS</a>
+        <a href="/ordenes" class="btn">ORDENES</a>
+        <a href="/perfiles" class="btn">PERFILES</a>
+        <a href="/roles" class="btn">ROLES</a>
+        <a href="/reportes" class="btn active">REPORTES</a>
+    </div>
+
+    <div class="main-content">
+        <div class="reportes-container">
+            <div class="reportes-header">
+                <h1>Reportes</h1>
+                <p>Genera y descarga reportes del sistema</p>
+            </div>
+
+            <div class="reportes-grid">
+                <!-- Reporte de Clientes -->
+                <div class="reporte-card" onclick="mostrarInformeClientes()">
+                    <div class="reporte-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Informe clientes nuevos por mes</h3>
+                    <p>Visualiza y exporta información detallada de clientes naturales y jurídicos</p>
+                </div>
+
+                <!-- Reporte de Órdenes -->
+                <div class="reporte-card" onclick="mostrarInformeOrdenes()">
+                    <div class="reporte-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <h3>Informe órdenes por mes</h3>
+                    <p>Visualiza y descarga información de órdenes con PDFs por mes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Informe de Clientes -->
+    <div class="modal fade" id="informeClientesModal" tabindex="-1" aria-labelledby="informeClientesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="informeClientesModalLabel">
+                        <i class="fas fa-users"></i> Informe de Clientes
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Estadísticas -->
+                    <div class="estadisticas-grid">
+                        <div class="estadistica-card total">
+                            <h5>Total Clientes</h5>
+                            <div class="estadistica-numero" id="totalUsuarios">0</div>
+                        </div>
+                        <div class="estadistica-card natural">
+                            <h5>Clientes Naturales</h5>
+                            <div class="estadistica-numero" id="usuariosNaturales">0</div>
+                        </div>
+                        <div class="estadistica-card juridico">
+                            <h5>Clientes Jurídicos</h5>
+                            <div class="estadistica-numero" id="usuariosJuridicos">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Filtro por mes -->
+                    <div class="filter-section">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <label for="mesFilter" class="form-label">Filtrar por mes (Año <span id="anioActual"></span>):</label>
+                                <select class="form-select" id="mesFilter" onchange="actualizarEstadisticas()">
+                                    <option value="">Todos los meses</option>
+                                    <option value="1">Enero</option>
+                                    <option value="2">Febrero</option>
+                                    <option value="3">Marzo</option>
+                                    <option value="4">Abril</option>
+                                    <option value="5">Mayo</option>
+                                    <option value="6">Junio</option>
+                                    <option value="7">Julio</option>
+                                    <option value="8">Agosto</option>
+                                    <option value="9">Septiembre</option>
+                                    <option value="10">Octubre</option>
+                                    <option value="11">Noviembre</option>
+                                    <option value="12">Diciembre</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <button class="btn btn-excel" onclick="generarExcel()">
+                                    <i class="fas fa-file-excel"></i> Generar Excel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Informe de Órdenes -->
+    <div class="modal fade" id="informeOrdenesModal" tabindex="-1" aria-labelledby="informeOrdenesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="informeOrdenesModalLabel">
+                        <i class="fas fa-shopping-cart"></i> Informe de Órdenes
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Estadísticas -->
+                    <div class="estadisticas-grid">
+                        <div class="estadistica-card total">
+                            <h5>Total Órdenes</h5>
+                            <div class="estadistica-numero" id="totalOrdenes">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Filtro por mes -->
+                    <div class="filter-section">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <label for="mesFilterOrdenes" class="form-label">Filtrar por mes (Año <span id="anioActualOrdenes"></span>):</label>
+                                <select class="form-select" id="mesFilterOrdenes" onchange="actualizarEstadisticasOrdenes()">
+                                    <option value="">Todos los meses</option>
+                                    <option value="1">Enero</option>
+                                    <option value="2">Febrero</option>
+                                    <option value="3">Marzo</option>
+                                    <option value="4">Abril</option>
+                                    <option value="5">Mayo</option>
+                                    <option value="6">Junio</option>
+                                    <option value="7">Julio</option>
+                                    <option value="8">Agosto</option>
+                                    <option value="9">Septiembre</option>
+                                    <option value="10">Octubre</option>
+                                    <option value="11">Noviembre</option>
+                                    <option value="12">Diciembre</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <button class="btn btn-primary" onclick="generarZipOrdenes()">
+                                    <i class="fas fa-download"></i> Descargar ZIP con PDFs
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Inicialización al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentYear = new Date().getFullYear();
+            
+            // Mostrar año actual en ambos modales
+            const anioActualElement = document.getElementById('anioActual');
+            if (anioActualElement) anioActualElement.textContent = currentYear;
+            
+            const anioActualOrdenesElement = document.getElementById('anioActualOrdenes');
+            if (anioActualOrdenesElement) anioActualOrdenesElement.textContent = currentYear;
+        });
+
+        // ========== FUNCIONES PARA REPORTE DE CLIENTES ==========
+        function mostrarInformeClientes() {
+            // Cargar estadísticas iniciales
+            fetch('/reportes/estadisticas-clientes')
+                .then(response => {
+                    if (!response.ok) throw new Error('Error al obtener estadísticas de clientes');
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('totalUsuarios').textContent = data.total || 0;
+                    document.getElementById('usuariosNaturales').textContent = data.naturales || 0;
+                    document.getElementById('usuariosJuridicos').textContent = data.juridicos || 0;
+                })
+                .catch(error => {
+                    console.error('Error al cargar estadísticas de clientes:', error);
+                });
+            
+            // Mostrar el modal
+            const modal = new bootstrap.Modal(document.getElementById('informeClientesModal'));
+            modal.show();
+        }
+
+        function actualizarEstadisticas() {
+            const mes = document.getElementById('mesFilter').value;
+            const url = mes ? `/reportes/estadisticas-clientes?mes=${encodeURIComponent(mes)}` : '/reportes/estadisticas-clientes';
+            
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error('Error al actualizar estadísticas de clientes');
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('totalUsuarios').textContent = data.total || 0;
+                    document.getElementById('usuariosNaturales').textContent = data.naturales || 0;
+                    document.getElementById('usuariosJuridicos').textContent = data.juridicos || 0;
+                })
+                .catch(error => {
+                    console.error('Error al actualizar estadísticas de clientes:', error);
+                });
+        }
+
+        function generarExcel() {
+            const mes = document.getElementById('mesFilter').value;
+            const url = mes ? `/reportes/exportar-excel?mes=${encodeURIComponent(mes)}` : '/reportes/exportar-excel';
+            window.location.href = url;
+        }
+
+        // ========== FUNCIONES PARA REPORTE DE ÓRDENES ==========
+        function mostrarInformeOrdenes() {
+            // Cargar estadísticas iniciales
+            fetch('/reportes/estadisticas-ordenes')
+                .then(response => {
+                    if (!response.ok) throw new Error('Error al obtener estadísticas de órdenes');
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('totalOrdenes').textContent = data.total || 0;
+                })
+                .catch(error => {
+                    console.error('Error al cargar estadísticas de órdenes:', error);
+                });
+
+            // Mostrar el modal
+            const modal = new bootstrap.Modal(document.getElementById('informeOrdenesModal'));
+            modal.show();
+        }
+
+        function actualizarEstadisticasOrdenes() {
+            const mes = document.getElementById('mesFilterOrdenes').value;
+            const url = mes ? `/reportes/estadisticas-ordenes?mes=${encodeURIComponent(mes)}` : '/reportes/estadisticas-ordenes';
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error('Error al actualizar estadísticas de órdenes');
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('totalOrdenes').textContent = data.total || 0;
+                })
+                .catch(error => {
+                    console.error('Error al actualizar estadísticas de órdenes:', error);
+                });
+        }
+
+        function generarZipOrdenes() {
+            const mes = document.getElementById('mesFilterOrdenes').value;
+            const url = mes ? `/reportes/exportar-zip-ordenes?mes=${encodeURIComponent(mes)}` : '/reportes/exportar-zip-ordenes';
+            window.location.href = url;
+        }
+    </script>
+</body>
+</html>
