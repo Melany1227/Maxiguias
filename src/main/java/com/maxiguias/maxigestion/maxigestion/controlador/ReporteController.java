@@ -209,7 +209,7 @@ public class ReporteController {
                     byte[] pdfBytes = ordenService.generarOrdenPDF(orden.getId());
 
                     // Crear entrada en el ZIP
-                    String entryName = "orden_" + orden.getId() + "_" + orden.getFechaVenta() + ".pdf";
+                    String entryName = "orden_" + orden.getId() + "_" + orden.getFechaOrden() + ".pdf";
                     ZipEntry zipEntry = new ZipEntry(entryName);
                     zipOut.putNextEntry(zipEntry);
 
