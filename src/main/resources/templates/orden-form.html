@@ -134,6 +134,7 @@
                   <th>Cantidad</th>
                   <th>Valor</th>
                   <th>Descripción</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -162,6 +163,11 @@
                   </td>
                   <td>
                     <input type="text" class="form-control" name="descripcion">
+                  </td>
+                  <td>
+                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="eliminarFilaEspecifica(this)" title="Eliminar fila">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
                   </td>
                 </tr>
                 
@@ -197,6 +203,11 @@
                   </td>
                   <td>
                     <input type="text" class="form-control" name="descripcion" th:value="${detalle.descripcion}">
+                  </td>
+                  <td>
+                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="eliminarFilaEspecifica(this)" title="Eliminar fila">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
                   </td>
                 </tr>
               </tbody>
