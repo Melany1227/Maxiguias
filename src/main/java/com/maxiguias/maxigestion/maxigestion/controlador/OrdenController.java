@@ -7,6 +7,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -150,9 +154,37 @@ public class OrdenController {
     }
 
     @GetMapping
-    public String listarOrdenes(Model model) {
-        List<Orden> ordenes = ordenService.obtenerTodasLasOrdenes();
-        model.addAttribute("ordenes", ordenes);
+    public String listarOrdenes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String filtroCliente,
+            Model model) {
+        
+        // Ordenamiento por fecha de orden descendente (más recientes primero)
+        Pageable pageable = PageRequest.of(page, size, Sort.by("fechaOrden").descending());
+        Page<Orden> ordenesPage;
+        
+        // Verificar si hay filtro por cliente
+        if (filtroCliente != null && !filtroCliente.trim().isEmpty()) {
+            try {
+                // Intentar convertir a número para buscar por documento
+                Long documento = Long.parseLong(filtroCliente.trim());
+                ordenesPage = ordenService.filtrarOrdenesPorClienteDocumento(documento, pageable);
+            } catch (NumberFormatException e) {
+                // Si no es número, buscar por nombre
+                ordenesPage = ordenService.buscarOrdenesPorCliente(filtroCliente.trim(), pageable);
+            }
+        } else {
+            ordenesPage = ordenService.obtenerOrdenesPaginadas(pageable);
+        }
+        
+        model.addAttribute("ordenes", ordenesPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", ordenesPage.getTotalPages());
+        model.addAttribute("totalElements", ordenesPage.getTotalElements());
+        model.addAttribute("size", size);
+        model.addAttribute("filtroCliente", filtroCliente);
+        
         return "listar_ordenes"; 
     }
 
