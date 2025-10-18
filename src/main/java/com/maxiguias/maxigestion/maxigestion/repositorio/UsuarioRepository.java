@@ -12,6 +12,13 @@ import com.maxiguias.maxigestion.maxigestion.modelo.Usuario;
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
    List<Usuario> findByTipoUsuario_NombreIn(List<String> nombres);
+   
+   @Query("SELECT u FROM Usuario u WHERE u.tipoUsuario.nombre IN :tipos AND " +
+          "(LOWER(u.nombre) LIKE LOWER(CONCAT('%', :termino, '%')) OR " +
+          "LOWER(u.primerApellido) LIKE LOWER(CONCAT('%', :termino, '%')) OR " +
+          "LOWER(CONCAT(u.nombre, ' ', u.primerApellido)) LIKE LOWER(CONCAT('%', :termino, '%')) OR " +
+          "STR(u.documento) LIKE CONCAT('%', :termino, '%'))")
+   List<Usuario> buscarUsuariosPorTermino(@Param("tipos") List<String> tipos, @Param("termino") String termino);
 
    Optional<Usuario> findByNombreUsuario(String nombreUsuario);
 

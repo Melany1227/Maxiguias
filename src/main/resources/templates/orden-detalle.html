@@ -82,7 +82,7 @@
                         </thead>
                         <tbody>
                             <tr th:each="detalle : ${detalles}">
-                                <td th:text="${detalle.producto.nombre}"></td>
+                                <td th:text="${detalle.terminado.producto.nombre}"></td>
                                 <td th:text="${detalle.descripcion}"></td>
                                 <td th:text="${detalle.cantidad}"></td>
                                 <td th:text="'$' + ${#numbers.formatDecimal(detalle.valor, 1, 2)}"></td>
