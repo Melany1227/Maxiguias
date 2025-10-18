@@ -43,8 +43,8 @@
                     <tr th:each="orden : ${ordenes}">
                         <td th:text="${orden.id}"></td>
                         <td th:text="${orden.usuario.nombre + ' ' + orden.usuario.primerApellido}"></td>
-                        <td th:text="${#temporals.format(orden.fechaEntrega, 'dd/MM/yyyy HH:mm')}"></td>
-                        <td th:text="${orden.usuario.ciudad.nombre}"></td>
+                        <td th:text="${orden.fechaEntrega != null ? #temporals.format(orden.fechaEntrega, 'dd/MM/yyyy HH:mm') : 'Sin fecha'}"></td>
+                        <td th:text="${orden.usuario.ciudad != null ? orden.usuario.ciudad.nombre : 'Sin ciudad'}"></td>
                         <td>
                             <span th:class="${orden.estado != null ? orden.estado.cssClass : 'badge bg-secondary'}" 
                                   th:text="${orden.estado != null ? orden.estado.descripcion : 'Sin Estado'}"></span>
@@ -54,6 +54,10 @@
                         <td>
                             <a th:href="@{/ordenes/verMas/{id}(id=${orden.id})}" class="btn btn-outline-primary btn-sm me-1">
                                 <i class="fa-solid fa-eye"></i> Ver
+                            </a>
+                            <a th:if="${orden.estado == T(com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden).PENDIENTE || orden.estado == T(com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden).EN_PROCESO}" 
+                               th:href="@{/ordenes/editar/{id}(id=${orden.id})}" class="btn btn-outline-warning btn-sm me-1">
+                                <i class="fa-solid fa-edit"></i> Editar
                             </a>
                             <a th:href="@{/ordenes/pdf/{id}(id=${orden.id})}" class="btn btn-outline-danger btn-sm">
                                 <i class="fa-solid fa-file-pdf"></i> PDF
