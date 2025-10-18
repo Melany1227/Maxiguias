@@ -79,7 +79,7 @@
                 </label>
                 <input type="datetime-local" 
                        name="fechaEntrega"
-                       th:value="${editMode && orden.fechaEntrega != null} ? ${#temporals.format(orden.fechaEntrega, 'yyyy-MM-dd''T''HH:mm')} : ''"
+                       th:value="${orden?.fechaEntrega != null ? #temporals.format(orden.fechaEntrega, 'yyyy-MM-dd''T''HH:mm') : ''}"
                        class="form-control" 
                        required>
 

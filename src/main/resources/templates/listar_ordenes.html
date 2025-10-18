@@ -55,7 +55,7 @@
                             <a th:href="@{/ordenes/verMas/{id}(id=${orden.id})}" class="btn btn-outline-primary btn-sm me-1">
                                 <i class="fa-solid fa-eye"></i> Ver
                             </a>
-                            <a th:if="${orden.estado == T(com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden).PENDIENTE || orden.estado == T(com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden).EN_PROCESO}" 
+                            <a th:if="${orden.estado.name() == 'PENDIENTE' || orden.estado.name() == 'EN_PROCESO'}" 
                                th:href="@{/ordenes/editar/{id}(id=${orden.id})}" class="btn btn-outline-warning btn-sm me-1">
                                 <i class="fa-solid fa-edit"></i> Editar
                             </a>
