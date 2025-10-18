@@ -4,6 +4,8 @@ import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +47,18 @@ public class OrdenService {
 
     public List<Orden> obtenerTodasLasOrdenes() {
         return ordenRepository.findAll();
+    }
+
+    public Page<Orden> obtenerOrdenesPaginadas(Pageable pageable) {
+        return ordenRepository.findAll(pageable);
+    }
+
+    public Page<Orden> buscarOrdenesPorCliente(String termino, Pageable pageable) {
+        return ordenRepository.findByClienteTermino(termino, pageable);
+    }
+
+    public Page<Orden> filtrarOrdenesPorClienteDocumento(Long clienteDocumento, Pageable pageable) {
+        return ordenRepository.findByUsuarioDocumento(clienteDocumento, pageable);
     }
     
     public Orden obtenerOrdenPorId(Long id) {
