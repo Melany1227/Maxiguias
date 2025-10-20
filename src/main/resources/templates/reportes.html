@@ -8,17 +8,22 @@
     <link rel="stylesheet" th:href="@{/css/estilos.css}">
     <link rel="stylesheet" th:href="@{/css/reportes.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
     <div class="sidebar">
         <img src="/img/logo.png" alt="Logo MXG">
-        <a href="/" class="btn">INICIO</a>
-        <a href="#" class="btn">CATÁLOGO</a>
-        <a href="/usuarios" class="btn">USUARIOS</a>
-        <a href="/ordenes" class="btn">ORDENES</a>
-        <a href="/perfiles" class="btn">PERFILES</a>
-        <a href="/roles" class="btn">ROLES</a>
-        <a href="/reportes" class="btn active">REPORTES</a>
+        <a href="/" class="btn"><i class="bi bi-house-door-fill"></i> INICIO</a>
+        <a href="/productos/catalogo" class="btn"><i class="bi bi-journal-text"></i> CATÁLOGO</a>
+        <a href="/usuarios" class="btn"><i class="bi bi-people-fill"></i> USUARIOS</a>
+        <a href="/ordenes" class="btn"><i class="bi bi-receipt"></i> ÓRDENES</a>
+        <a href="/productos" class="btn"><i class="bi bi-box-seam"></i> PRODUCTOS</a>
+        <a href="/perfiles" class="btn"><i class="bi bi-person-badge"></i> PERFILES</a>
+        <a href="/roles" class="btn"><i class="bi bi-shield-check"></i> ROLES</a>
+        <a href="/reportes" class="btn active"><i class="bi bi-file-earmark-bar-graph"></i> REPORTES</a>
+        <form th:action="@{/logout}" method="post" style="display: inline;">
+            <button type="submit" class="btn"><i class="bi bi-box-arrow-right"></i> CERRAR SESIÓN</button>
+        </form>
     </div>
 
     <div class="main-content">
@@ -152,11 +157,11 @@
         // Inicialización al cargar la página
         document.addEventListener('DOMContentLoaded', function() {
             const currentYear = new Date().getFullYear();
-            
+
             // Mostrar año actual en ambos modales
             const anioActualElement = document.getElementById('anioActual');
             if (anioActualElement) anioActualElement.textContent = currentYear;
-            
+
             const anioActualOrdenesElement = document.getElementById('anioActualOrdenes');
             if (anioActualOrdenesElement) anioActualOrdenesElement.textContent = currentYear;
         });
