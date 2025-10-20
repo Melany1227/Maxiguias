@@ -1,13 +1,15 @@
 package com.maxiguias.maxigestion.maxigestion.servicio;
 
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
+import java.io.IOException;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.Map;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.Transformation;
+import com.cloudinary.utils.ObjectUtils;
 
 @Service
 public class CloudinaryService {
@@ -20,19 +22,20 @@ public class CloudinaryService {
     }
 
     public String uploadImage(MultipartFile file, String customName) throws IOException {
+        // Parámetros de subida
         Map<String, Object> uploadParams = ObjectUtils.asMap(
-            "folder", "maxigestion/productos",
-            "resource_type", "image",
-            "format", "jpg",
-            "transformation", ObjectUtils.asMap(
-                "width", 800,
-                "height", 600,
-                "crop", "fill",
-                "quality", "auto"
-            )
-        );
+                "folder", "MAXYGUIAS/Imagenes-Productos", // carpeta en Cloudinary
+                "resource_type", "image",
+                "format", "jpg",
+                // transformación ajustada: mantiene proporción, optimiza y reduce peso
+                "transformation", new Transformation()
+                        .width(800)
+                        .height(800)
+                        .crop("limit") // mantiene proporciones sin deformar
+                        .quality("auto")
+                        .fetchFormat("auto"));
 
-        // Si se especifica un nombre personalizado, usarlo
+        // Si se especifica un nombre personalizado
         if (customName != null && !customName.isEmpty()) {
             uploadParams.put("public_id", customName);
             uploadParams.put("overwrite", true);
@@ -41,7 +44,8 @@ public class CloudinaryService {
         Map uploadResult = cloudinary.uploader().upload(file.getBytes(), uploadParams);
         String publicId = uploadResult.get("public_id").toString();
         String version = uploadResult.get("version").toString();
-        // Guardar public_id con versión: publicId#version
+
+        // Guardar public_id con versión
         return publicId + "#" + version;
     }
 
@@ -49,33 +53,47 @@ public class CloudinaryService {
         if (publicId == null || publicId.isEmpty()) {
             return null;
         }
-        
-        // Separar public_id y versión si están guardados juntos
+
         String actualPublicId = publicId;
         String version = null;
-        
+
         if (publicId.contains("#")) {
             String[] parts = publicId.split("#");
             actualPublicId = parts[0];
             version = parts[1];
         }
-        
-        // Generar URL con versión específica
+
+        // 👇 Genera la URL optimizada también para visualización
         if (version != null) {
-            return cloudinary.url().secure(true).version(version).generate(actualPublicId);
+            return cloudinary.url()
+                    .secure(true)
+                    .version(version)
+                    .transformation(new Transformation()
+                            .width(400)
+                            .height(400)
+                            .crop("fit")
+                            .quality("auto")
+                            .fetchFormat("auto"))
+                    .generate(actualPublicId);
         } else {
-            return cloudinary.url().secure(true).generate(actualPublicId);
+            return cloudinary.url()
+                    .secure(true)
+                    .transformation(new Transformation()
+                            .width(400)
+                            .height(400)
+                            .crop("fit")
+                            .quality("auto")
+                            .fetchFormat("auto"))
+                    .generate(actualPublicId);
         }
     }
 
     public void deleteImage(String publicId) {
         try {
-            // Extraer solo el public_id sin la versión para eliminar
             String actualPublicId = publicId.contains("#") ? publicId.split("#")[0] : publicId;
             cloudinary.uploader().destroy(actualPublicId, ObjectUtils.emptyMap());
         } catch (Exception e) {
             System.err.println("Error eliminando imagen: " + e.getMessage());
         }
     }
-
 }
