@@ -390,14 +390,42 @@ LOCK TABLES `usuarios` WRITE;
 INSERT INTO `usuarios` VALUES (1011392,3200396564,'1234','MelanyS','Suarez','Rivera','Melany','Cll 36',1,1,'2025-03-16',1),(10119372,3205765537,'','','Gomez','Valencia','Wilmer','Cll 9 #52',1,2,'2025-03-16',1),(101984293,3205765537,'123456789','NicoB','Bernal','Bernal','Nicol','Cra 48 b sur',1,1,NULL,1),(1000206922,3333333,'$2a$10$sz2U/zE84BdYp4aEv7xj.O4wk3EEN/zvru8BhWcg67KXX8gqJZNse','wilmergruiz','Gómez','Ruiz','Wilmer ','Carrera 78a #52sur-76',1,1,NULL,1),(2020202020,3119876543,'2432','Textil Fast','','','Textil Fast','Carrera 45',2,3,'2025-05-16',1);
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+-- Insertar formularios del sistema
+INSERT INTO formularios (id_formulario, nombre_formulario, url, padre) VALUES 
+(1, 'Dashboard', '/', NULL),
+(2, 'Usuarios', '/usuarios', NULL),
+(3, 'Productos', '/productos', NULL),
+(4, 'Órdenes', '/ordenes', NULL),
+(5, 'Reportes', '/reportes', NULL)
+ON DUPLICATE KEY UPDATE nombre_formulario = VALUES(nombre_formulario);
 
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+-- Asignar permisos completos al ADMINISTRADOR (perfil 1)
+INSERT INTO formularios (id_formulario, nombre_formulario, url, padre) VALUES
+(1, 'Dashboard', '/', NULL),
+(2, 'Usuarios', '/usuarios', NULL),
+(3, 'Productos', '/productos', NULL),
+(4, 'Órdenes', '/ordenes', NULL),
+(5, 'Reportes', '/reportes', NULL),
+(6, 'Crear_Usuarios', '/usuarios/crear', NULL),
+(7, 'Crear_Ordenes', '/ordenes/nueva', NULL),
+(8, 'Buscar_Usuario_Ordenes', '/ordenes/buscar-usuarios', NULL),
+(9, 'Crear_Ordenes', '/ordenes/guardar', NULL),
+(10, 'Ver_Ordenes', '/ordenes/verMas', NULL);
 
--- Dump completed on 2025-10-02 11:59:51
+INSERT INTO formularios_x_perfiles (perfiles_id_perfil, formularios_id_formulario, crear, editar, visualizar, eliminar) VALUES
+(1, 1, 'S', 'S', 'S', 'S'),
+(1, 2, 'S', 'S', 'S', 'S'),
+(1, 3, 'S', 'S', 'S', 'S'),
+(1, 4, 'S', 'S', 'S', 'S'),
+(1, 5, 'S', 'S', 'S', 'S'),
+(1, 6, 'S', 'S', 'S', 'S'),
+(1, 7, 'S', 'S', 'S', 'S'),
+(1, 8, 'S', 'S', 'S', 'S'),
+(1, 9, 'S', 'S', 'S', 'S'),
+(1, 10, 'S', 'S', 'S', 'S');
+
+
+ALTER TABLE ordenes ADD COLUMN estado VARCHAR(20) DEFAULT 'PENDIENTE' NOT NULL;
+ALTER TABLE ordenes RENAME COLUMN fecha_venta TO fecha_entrega;
+ALTER TABLE ordenes MODIFY fecha_entrega DATETIME;
+ALTER TABLE ordenes ADD COLUMN fecha_orden DATETIME DEFAULT CURRENT_TIMESTAMP;
