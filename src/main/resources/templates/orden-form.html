@@ -172,7 +172,7 @@
                 <!-- Filas para modo editar -->
                 <tr th:each="detalle : ${detalles}" th:if="${editMode}">
                   <td>
-                    <select class="form-select" name="productoId" required>
+                    <select class="form-select" name="productoId" required onchange="cambiarProductoEdicion(this)">
                       <option value="">Seleccione un producto</option>
                       <option th:each="p : ${productos}" 
                               th:value="${p.id}" 
@@ -182,18 +182,21 @@
                     </select>
                   </td>
                   <td>
-                    <select name="terminadoId" class="form-select select-terminado" required>
-                      <option value="">Seleccione un terminado</option>
+                    <select name="terminadoId" class="form-select select-terminado" required 
+                            th:data-selected="${detalle.terminado.id}"
+                            th:data-producto="${detalle.terminado.producto.id}"
+                            onchange="actualizarPrecioEdicion(this.closest('tr'))">
+                      <option value="">Cargando terminados...</option>
                       <option th:value="${detalle.terminado.id}" 
                               th:text="${'Medida: ' + detalle.terminado.medidaTerminadoProducto + ' - $' + detalle.terminado.precioPublico}"
-                              selected="selected"></option>
+                              selected="selected" style="display: none;"></option>
                     </select>
                   </td>
                   <td>
                     <div class="input-group justify-content-center align-items-center">
-                      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="disminuir(this)">-</button>
-                      <input type="number" class="form-control text-center" name="cantidad" th:value="${detalle.cantidad}" min="1" required style="max-width: 70px; margin-bottom: 0px;">
-                      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="aumentar(this)">+</button>
+                      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="disminuirEdicion(this)">-</button>
+                      <input type="number" class="form-control text-center" name="cantidad" th:value="${detalle.cantidad}" min="1" required style="max-width: 70px; margin-bottom: 0px;" onchange="actualizarPrecioEdicion(this.closest('tr'))">
+                      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="aumentarEdicion(this)">+</button>
                     </div>
                   </td>
                   <td>
@@ -248,6 +251,8 @@
         }
       }
     };
+    
+    console.log("OrdenData cargado desde servidor:", ordenData);
   </script>
   <script>
     let usuarioSeleccionadoGlobal = null;
@@ -392,6 +397,151 @@
       console.log("Total calculado:", total);
     }
 
+    // Función para actualizar precio en modo edición
+    function actualizarPrecioEdicion(fila) {
+      const terminadoSelect = fila.querySelector("select[name='terminadoId']");
+      const cantidadInput = fila.querySelector("input[name='cantidad']");
+      const valorInput = fila.querySelector("input[name='valor']");
+
+      console.log("=== ACTUALIZANDO PRECIO ===");
+      console.log("Tipo cliente global:", tipoClienteGlobal);
+      console.log("Select terminado value:", terminadoSelect.value);
+      console.log("Cantidad:", cantidadInput.value);
+
+      if (!terminadoSelect.selectedOptions[0] || terminadoSelect.value === "") {
+        console.log("No hay terminado seleccionado");
+        valorInput.value = 0;
+        calcularTotal();
+        return;
+      }
+
+      const selectedOption = terminadoSelect.selectedOptions[0];
+      const publico = parseFloat(selectedOption.getAttribute("data-publico")) || 0;
+      const mayor = parseFloat(selectedOption.getAttribute("data-mayor")) || 0;
+      const encargo = parseFloat(selectedOption.getAttribute("data-encargo")) || 0;
+      const cantidad = parseInt(cantidadInput.value) || 1;
+
+      console.log("Datos del terminado:", {
+        publico: publico,
+        mayor: mayor, 
+        encargo: encargo,
+        cantidad: cantidad,
+        tipoCliente: tipoClienteGlobal
+      });
+
+      let precioFinal = 0;
+
+      // Lógica de precios más explícita
+      if (tipoClienteGlobal === "NATURAL") {
+        precioFinal = publico;
+        console.log("Cliente NATURAL - usando precio público:", precioFinal);
+      } else if (tipoClienteGlobal === "JURIDICO") {
+        if (cantidad <= 2) {
+          precioFinal = encargo;
+          console.log("Cliente JURIDICO (<=2) - usando precio por encargo:", precioFinal);
+        } else {
+          precioFinal = mayor;
+          console.log("Cliente JURIDICO (>2) - usando precio por mayor:", precioFinal);
+        }
+      } else {
+        // Default si no hay tipo de cliente definido
+        precioFinal = publico;
+        console.log("Tipo cliente desconocido - usando precio público:", precioFinal);
+      }
+
+      console.log("Precio final asignado:", precioFinal);
+      valorInput.value = precioFinal;
+      
+      calcularTotal();
+      console.log("=== FIN ACTUALIZACIÓN ===");
+    }
+
+    // Función simplificada para cargar terminados
+    function cargarTerminadosSimple(fila, productoId, terminadoSeleccionado) {
+      const terminadoSelect = fila.querySelector("select[name='terminadoId']");
+      
+      console.log("Cargando terminados para producto:", productoId);
+      
+      fetch(`/terminados/por-producto/${productoId}`)
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        })
+        .then(terminados => {
+          console.log("Terminados recibidos:", terminados);
+          
+          // Limpiar select
+          terminadoSelect.innerHTML = "<option value=''>Seleccione un terminado</option>";
+          
+          terminados.forEach(t => {
+            console.log("Procesando terminado:", t);
+            const option = document.createElement("option");
+            option.value = t.id;
+            option.textContent = `Medida: ${t.medidaTerminadoProducto || 'N/A'} - $${(t.precioPublico || 0).toLocaleString('es-CO')}`;
+            
+            // Asegurar que los precios sean números válidos
+            const precioPublico = parseFloat(t.precioPublico) || 0;
+            const precioMayor = parseFloat(t.precioPorMayor) || 0;
+            const precioEncargo = parseFloat(t.precioPorEncargo) || 0;
+            
+            option.setAttribute("data-publico", precioPublico);
+            option.setAttribute("data-mayor", precioMayor);
+            option.setAttribute("data-encargo", precioEncargo);
+            
+            console.log(`Terminado ${t.id} - Precios: público=${precioPublico}, mayor=${precioMayor}, encargo=${precioEncargo}`);
+            
+            if (terminadoSeleccionado && t.id.toString() === terminadoSeleccionado) {
+              option.selected = true;
+              console.log(`Terminado ${t.id} marcado como seleccionado`);
+            }
+            
+            terminadoSelect.appendChild(option);
+          });
+          
+          console.log("Select poblado. Total opciones:", terminadoSelect.options.length);
+          
+          // Actualizar precio después de cargar
+          if (terminadoSeleccionado) {
+            actualizarPrecioEdicion(fila);
+          }
+        })
+        .catch(err => {
+          console.error("Error cargando terminados:", err);
+          terminadoSelect.innerHTML = "<option value=''>Error al cargar</option>";
+        });
+    }
+
+    // Función para cambio de producto en edición
+    function cambiarProductoEdicion(productoSelect) {
+      const fila = productoSelect.closest('tr');
+      const productoId = productoSelect.value;
+      
+      if (productoId) {
+        cargarTerminadosSimple(fila, productoId, null);
+      } else {
+        const terminadoSelect = fila.querySelector("select[name='terminadoId']");
+        terminadoSelect.innerHTML = "<option value=''>Seleccione un terminado</option>";
+        actualizarPrecioEdicion(fila);
+      }
+    }
+
+    // Funciones específicas para modo edición
+    function aumentarEdicion(btn) {
+      const input = btn.previousElementSibling;
+      input.value = parseInt(input.value) + 1;
+      const fila = btn.closest("tr");
+      actualizarPrecioEdicion(fila);
+    }
+
+    function disminuirEdicion(btn) {
+      const input = btn.nextElementSibling;
+      if (parseInt(input.value) > 1) {
+        input.value = parseInt(input.value) - 1;
+        const fila = btn.closest("tr");
+        actualizarPrecioEdicion(fila);
+      }
+    }
+
     // Permitir buscar al presionar Enter
     document.addEventListener('DOMContentLoaded', function() {
       const buscarInput = document.getElementById('buscarUsuario');
@@ -415,6 +565,18 @@
       console.log("Modo edición activado. Tipo cliente:", tipoClienteGlobal);
       console.log("Usuario seleccionado:", usuarioSeleccionadoGlobal);
       
+      // Verificar si tenemos la información del usuario
+      if (!tipoClienteGlobal && typeof ordenData !== 'undefined' && ordenData.usuario) {
+        tipoClienteGlobal = ordenData.usuario.tipoUsuario.nombre.toUpperCase();
+        console.log("Tipo cliente establecido desde ordenData:", tipoClienteGlobal);
+      }
+      
+      // Si aún no hay tipo de cliente, usar NATURAL como default
+      if (!tipoClienteGlobal || tipoClienteGlobal === "") {
+        tipoClienteGlobal = "NATURAL";
+        console.log("Usando tipo cliente por defecto:", tipoClienteGlobal);
+      }
+      
       // Primero vamos a probar manualmente una llamada al endpoint
       console.log("Probando endpoint de terminados...");
       fetch('/terminados/por-producto/1')
@@ -429,110 +591,24 @@
           console.error("Error en endpoint de prueba:", err);
         });
       
-      // Cargar terminados para cada producto seleccionado
+      // Inicializar modo edición simplificado
       setTimeout(() => {
-        const filas = document.querySelectorAll("#tablaDetalle tbody tr");
-        console.log("Filas encontradas:", filas.length);
+        console.log("Inicializando modo edición...");
         
-        let filasProcessadas = 0;
+        const filas = document.querySelectorAll("#tablaDetalle tbody tr");
+        console.log(`Encontradas ${filas.length} filas`);
         
         filas.forEach((fila, index) => {
-          const productoSelect = fila.querySelector("select[name='productoId']");
           const terminadoSelect = fila.querySelector("select[name='terminadoId']");
-          const productoId = productoSelect.value;
+          const productoId = terminadoSelect.dataset.producto;
+          const terminadoSeleccionado = terminadoSelect.dataset.selected;
           
-          console.log(`Fila ${index}: Producto ID = ${productoId}`);
-          console.log(`Fila ${index}: Select terminado encontrado:`, terminadoSelect);
+          console.log(`Fila ${index}: producto=${productoId}, terminado=${terminadoSeleccionado}`);
           
           if (productoId) {
-            console.log(`Haciendo fetch para producto ${productoId}...`);
-            fetch(`/terminados/por-producto/${productoId}`)
-              .then(res => {
-                console.log(`Respuesta para producto ${productoId}:`, res.status);
-                if (!res.ok) {
-                  throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-                }
-                return res.json();
-              })
-              .then(data => {
-                console.log(`Terminados para producto ${productoId}:`, data);
-                console.log(`Agregando ${data.length} terminados al select`);
-                
-                // Limpiar select
-                const opcionesAnteriores = terminadoSelect.innerHTML;
-                console.log(`Opciones anteriores:`, opcionesAnteriores);
-                
-                terminadoSelect.innerHTML = "<option value=''>Seleccione un terminado</option>";
-                
-                data.forEach((t, termIndex) => {
-                  console.log(`Procesando terminado ${termIndex}:`, t);
-                  const option = document.createElement("option");
-                  option.value = t.id;
-                  
-                  let precioAMostrar = t.precioPublico || 0;
-                  if (tipoClienteGlobal === "JURIDICO") {
-                    precioAMostrar = t.precioPorEncargo || 0;
-                  }
-                  
-                  const textoOpcion = `Medida: ${t.medidaTerminadoProducto || 'N/A'} - $${precioAMostrar.toLocaleString('es-CO')}`;
-                  option.textContent = textoOpcion;
-                  option.setAttribute("data-info", `Medida: ${t.medidaTerminadoProducto}`);
-                  option.setAttribute("data-publico", t.precioPublico);
-                  option.setAttribute("data-mayor", t.precioPorMayor);
-                  option.setAttribute("data-encargo", t.precioPorEncargo);
-                  
-                  console.log(`Creando opción: ${textoOpcion}`);
-                  terminadoSelect.appendChild(option);
-                  console.log(`Opción agregada. Total opciones ahora: ${terminadoSelect.options.length}`);
-                });
-                
-                console.log(`Select final para producto ${productoId}:`, terminadoSelect.innerHTML);
-                
-                filasProcessadas++;
-                console.log(`Fila ${index} procesada. Total: ${filasProcessadas}/${filas.length}`);
-                
-                if (filasProcessadas === filas.length) {
-                  console.log("Todas las filas procesadas, calculando total");
-                  if (typeof calcularTotalOrden === 'function') {
-                    calcularTotalOrden();
-                  } else {
-                    console.error("calcularTotalOrden no está definida, usando función local");
-                    calcularTotal();
-                  }
-                }
-              })
-              .catch(err => {
-                console.error(`Error cargando terminados para producto ${productoId}:`, err);
-                filasProcessadas++;
-                if (filasProcessadas === filas.length) {
-                  if (typeof calcularTotalOrden === 'function') {
-                    calcularTotalOrden();
-                  } else {
-                    calcularTotal();
-                  }
-                }
-              });
-          } else {
-            console.log(`Fila ${index}: Sin producto seleccionado`);
-            filasProcessadas++;
-            if (filasProcessadas === filas.length) {
-              if (typeof calcularTotalOrden === 'function') {
-                calcularTotalOrden();
-              } else {
-                calcularTotal();
-              }
-            }
+            cargarTerminadosSimple(fila, productoId, terminadoSeleccionado);
           }
         });
-        
-        if (filas.length === 0) {
-          console.log("No hay filas, calculando total directamente");
-          if (typeof calcularTotalOrden === 'function') {
-            calcularTotalOrden();
-          } else {
-            calcularTotal();
-          }
-        }
       }, 500);
     }
   </script>

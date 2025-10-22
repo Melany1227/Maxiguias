@@ -87,6 +87,69 @@ function actualizarClienteInfo() {
     }
 }
 
+async function cargarTerminadosParaFila(fila, productoId, terminadoSeleccionado = null) {
+    const terminadoSelect = fila.querySelector("select[name='terminadoId']");
+    
+    try {
+        terminadoSelect.innerHTML = "<option value=''>Cargando...</option>";
+        
+        const response = await fetch(`/terminados/por-producto/${productoId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const terminados = await response.json();
+        
+        terminadoSelect.innerHTML = "<option value=''>Seleccione un terminado</option>";
+        
+        terminados.forEach(t => {
+            if (!esCombinacionDuplicada(productoId, t.id.toString(), fila)) {
+                const option = document.createElement("option");
+                option.value = t.id;
+                
+                let precioAMostrar = t.precioPublico || 0;
+                if (tipoClienteGlobal === "JURIDICO") {
+                    precioAMostrar = t.precioPorEncargo || 0;
+                }
+                
+                option.textContent = `Medida: ${t.medidaTerminadoProducto || 'N/A'} - $${precioAMostrar.toLocaleString('es-CO')}`;
+                option.setAttribute("data-info", `Medida: ${t.medidaTerminadoProducto}`);
+                option.setAttribute("data-publico", t.precioPublico);
+                option.setAttribute("data-mayor", t.precioPorMayor);
+                option.setAttribute("data-encargo", t.precioPorEncargo);
+                
+                if (terminadoSeleccionado && t.id.toString() === terminadoSeleccionado) {
+                    option.selected = true;
+                }
+                
+                terminadoSelect.appendChild(option);
+            }
+        });
+        
+        if (terminadoSeleccionado) {
+            actualizarPrecio(fila);
+        }
+        
+    } catch (error) {
+        console.error(`Error cargando terminados para producto ${productoId}:`, error);
+        terminadoSelect.innerHTML = "<option value=''>Error al cargar</option>";
+    }
+}
+
+function cargarTerminadosEdicion(productoSelect) {
+    const fila = productoSelect.closest('tr');
+    const productoId = productoSelect.value;
+    
+    if (productoId) {
+        cargarTerminadosParaFila(fila, productoId);
+        actualizarDescripcion(fila);
+    } else {
+        const terminadoSelect = fila.querySelector("select[name='terminadoId']");
+        terminadoSelect.innerHTML = "<option value=''>Seleccione un terminado</option>";
+        actualizarPrecio(fila);
+    }
+}
+
 function aumentar(btn) {
     const input = btn.previousElementSibling;
     input.value = parseInt(input.value) + 1;
