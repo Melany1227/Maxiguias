@@ -1,4 +1,6 @@
-￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼
+
+
+
 /* MENÚ CENTRALIZADO PARA TODOS LOS MODULOS */
 
 .btn-black-yellow {
@@ -333,7 +335,7 @@ td .input-group {
 
 .login-page .main-content {
     margin-left: 0; /* quita el espacio del sidebar */
-    width: 100%;
+    width: 100%; 
     display: flex;
     justify-content: center;
     align-items: center;
@@ -519,7 +521,7 @@ td .input-group {
         }
 
 
-
+    
     /* ESTILOS DE LA VISTA LISTAR PRODUCTOS */
 
      /* Fondo del contenedor blanco */
@@ -649,16 +651,4 @@ td .input-group {
 .sidebar img {
     height: 120px;   /* tamaño más grande */
     margin-bottom: 30px;
-}
-
-/* Estilos para tablas de empresas */
-.card-table {
-    background: #fff;
-    padding: 18px;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-}
-
-table th, table td {
-    vertical-align: middle !important;
 }

@@ -8,22 +8,17 @@
     <link rel="stylesheet" th:href="@{/css/estilos.css}">
     <link rel="stylesheet" th:href="@{/css/reportes.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
     <div class="sidebar">
         <img src="/img/logo.png" alt="Logo MXG">
-        <a href="/" class="btn"><i class="bi bi-house-door-fill"></i> INICIO</a>
-        <a href="/productos/catalogo" class="btn"><i class="bi bi-journal-text"></i> CATÁLOGO</a>
-        <a href="/usuarios" class="btn"><i class="bi bi-people-fill"></i> USUARIOS</a>
-        <a href="/ordenes" class="btn"><i class="bi bi-receipt"></i> ÓRDENES</a>
-        <a href="/productos" class="btn"><i class="bi bi-box-seam"></i> PRODUCTOS</a>
-        <a href="/perfiles" class="btn"><i class="bi bi-person-badge"></i> PERFILES</a>
-        <a href="/roles" class="btn"><i class="bi bi-shield-check"></i> ROLES</a>
-        <a href="/reportes" class="btn active"><i class="bi bi-file-earmark-bar-graph"></i> REPORTES</a>
-        <form th:action="@{/logout}" method="post" style="display: inline;">
-            <button type="submit" class="btn"><i class="bi bi-box-arrow-right"></i> CERRAR SESIÓN</button>
-        </form>
+        <a href="/" class="btn">INICIO</a>
+        <a href="#" class="btn">CATÁLOGO</a>
+        <a href="/usuarios" class="btn">USUARIOS</a>
+        <a href="/ordenes" class="btn">ORDENES</a>
+        <a href="/perfiles" class="btn">PERFILES</a>
+        <a href="/roles" class="btn">ROLES</a>
+        <a href="/reportes" class="btn active">REPORTES</a>
     </div>
 
     <div class="main-content">
@@ -39,8 +34,8 @@
                     <div class="reporte-icon">
                         <i class="fas fa-users"></i>
                     </div>
-                    <h3>Informe de todos los usuarios</h3>
-                    <p>Visualiza y exporta información detallada de usuarios naturales y jurídicos</p>
+                    <h3>Informe clientes nuevos por mes</h3>
+                    <p>Visualiza y exporta información detallada de clientes naturales y jurídicos</p>
                 </div>
 
                 <!-- Reporte de Órdenes -->
@@ -50,15 +45,6 @@
                     </div>
                     <h3>Informe órdenes por mes</h3>
                     <p>Visualiza y descarga información de órdenes con PDFs por mes</p>
-                </div>
-
-                <!-- Reporte de Productos Más Vendidos -->
-                <div class="reporte-card" onclick="mostrarInformeProductosVendidos()">
-                    <div class="reporte-icon">
-                        <i class="fas fa-chart-bar"></i>
-                    </div>
-                    <h3>Productos más vendidos</h3>
-                    <p>Visualiza y descarga información de productos más vendidos por mes en Excel</p>
                 </div>
             </div>
         </div>
@@ -91,16 +77,32 @@
                         </div>
                     </div>
 
-                    <!-- Botón de exportación -->
+                    <!-- Filtro por mes -->
                     <div class="filter-section">
                         <div class="row align-items-center">
-                            <div class="col-md-12 text-center">
+                            <div class="col-md-6">
+                                <label for="mesFilter" class="form-label">Filtrar por mes (Año <span id="anioActual"></span>):</label>
+                                <select class="form-select" id="mesFilter" onchange="actualizarEstadisticas()">
+                                    <option value="">Todos los meses</option>
+                                    <option value="1">Enero</option>
+                                    <option value="2">Febrero</option>
+                                    <option value="3">Marzo</option>
+                                    <option value="4">Abril</option>
+                                    <option value="5">Mayo</option>
+                                    <option value="6">Junio</option>
+                                    <option value="7">Julio</option>
+                                    <option value="8">Agosto</option>
+                                    <option value="9">Septiembre</option>
+                                    <option value="10">Octubre</option>
+                                    <option value="11">Noviembre</option>
+                                    <option value="12">Diciembre</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 text-end">
                                 <button class="btn btn-excel" onclick="generarExcel()">
-                                    <i class="fas fa-file-excel"></i> Generar Excel - Usuarios naturales y jurídicos
+                                    <i class="fas fa-file-excel"></i> Generar Excel
                                 </button>
                             </div>
-                        </div>
-                    </div>
                         </div>
                     </div>
                 </div>
@@ -160,79 +162,24 @@
         </div>
     </div>
 
-    <!-- Modal para Informe de Productos Más Vendidos -->
-    <div class="modal fade" id="informeProductosVendidosModal" tabindex="-1" aria-labelledby="informeProductosVendidosModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="informeProductosVendidosModalLabel">
-                        <i class="fas fa-chart-bar"></i> Informe de Productos Más Vendidos
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Estadísticas -->
-                    <div class="estadisticas-grid">
-                        <div class="estadistica-card total">
-                            <h5>Total Productos Vendidos</h5>
-                            <div class="estadistica-numero" id="totalProductosVendidos">0</div>
-                        </div>
-                    </div>
-
-                    <!-- Filtro por mes -->
-                    <div class="filter-section">
-                        <div class="row align-items-center">
-                            <div class="col-md-6">
-                                <label for="mesFilterProductos" class="form-label">Filtrar por mes (Año <span id="anioActualProductos"></span>):</label>
-                                <select class="form-select" id="mesFilterProductos" onchange="actualizarEstadisticasProductos()">
-                                    <option value="">Todos los meses</option>
-                                    <option value="1">Enero</option>
-                                    <option value="2">Febrero</option>
-                                    <option value="3">Marzo</option>
-                                    <option value="4">Abril</option>
-                                    <option value="5">Mayo</option>
-                                    <option value="6">Junio</option>
-                                    <option value="7">Julio</option>
-                                    <option value="8">Agosto</option>
-                                    <option value="9">Septiembre</option>
-                                    <option value="10">Octubre</option>
-                                    <option value="11">Noviembre</option>
-                                    <option value="12">Diciembre</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 text-end">
-                                <button class="btn btn-excel" onclick="generarExcelProductos()">
-                                    <i class="fas fa-file-excel"></i> Descargar Excel - Productos Más Vendidos
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Inicialización al cargar la página
         document.addEventListener('DOMContentLoaded', function() {
             const currentYear = new Date().getFullYear();
-
+            
             // Mostrar año actual en ambos modales
             const anioActualElement = document.getElementById('anioActual');
             if (anioActualElement) anioActualElement.textContent = currentYear;
-
+            
             const anioActualOrdenesElement = document.getElementById('anioActualOrdenes');
             if (anioActualOrdenesElement) anioActualOrdenesElement.textContent = currentYear;
-
-            const anioActualProductosElement = document.getElementById('anioActualProductos');
-            if (anioActualProductosElement) anioActualProductosElement.textContent = currentYear;
         });
 
         // ========== FUNCIONES PARA REPORTE DE CLIENTES ==========
         function mostrarInformeClientes() {
-            // Cargar estadísticas iniciales de usuarios naturales y jurídicos
+            // Cargar estadísticas iniciales
             fetch('/reportes/estadisticas-clientes')
                 .then(response => {
                     if (!response.ok) throw new Error('Error al obtener estadísticas de clientes');
@@ -246,15 +193,35 @@
                 .catch(error => {
                     console.error('Error al cargar estadísticas de clientes:', error);
                 });
-
+            
             // Mostrar el modal
             const modal = new bootstrap.Modal(document.getElementById('informeClientesModal'));
             modal.show();
         }
 
+        function actualizarEstadisticas() {
+            const mes = document.getElementById('mesFilter').value;
+            const url = mes ? `/reportes/estadisticas-clientes?mes=${encodeURIComponent(mes)}` : '/reportes/estadisticas-clientes';
+            
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error('Error al actualizar estadísticas de clientes');
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('totalUsuarios').textContent = data.total || 0;
+                    document.getElementById('usuariosNaturales').textContent = data.naturales || 0;
+                    document.getElementById('usuariosJuridicos').textContent = data.juridicos || 0;
+                })
+                .catch(error => {
+                    console.error('Error al actualizar estadísticas de clientes:', error);
+                });
+        }
+
         function generarExcel() {
-            // Exportar todos los usuarios sin filtro de mes
-            window.location.href = '/reportes/exportar-excel';
+            const mes = document.getElementById('mesFilter').value;
+            const url = mes ? `/reportes/exportar-excel?mes=${encodeURIComponent(mes)}` : '/reportes/exportar-excel';
+            window.location.href = url;
         }
 
         // ========== FUNCIONES PARA REPORTE DE ÓRDENES ==========
@@ -297,49 +264,6 @@
         function generarZipOrdenes() {
             const mes = document.getElementById('mesFilterOrdenes').value;
             const url = mes ? `/reportes/exportar-zip-ordenes?mes=${encodeURIComponent(mes)}` : '/reportes/exportar-zip-ordenes';
-            window.location.href = url;
-        }
-
-        // ========== FUNCIONES PARA REPORTE DE PRODUCTOS MÁS VENDIDOS ==========
-        function mostrarInformeProductosVendidos() {
-            // Cargar estadísticas iniciales
-            fetch('/reportes/estadisticas-productos-vendidos')
-                .then(response => {
-                    if (!response.ok) throw new Error('Error al obtener estadísticas de productos vendidos');
-                    return response.json();
-                })
-                .then(data => {
-                    document.getElementById('totalProductosVendidos').textContent = data.total || 0;
-                })
-                .catch(error => {
-                    console.error('Error al cargar estadísticas de productos vendidos:', error);
-                });
-
-            // Mostrar el modal
-            const modal = new bootstrap.Modal(document.getElementById('informeProductosVendidosModal'));
-            modal.show();
-        }
-
-        function actualizarEstadisticasProductos() {
-            const mes = document.getElementById('mesFilterProductos').value;
-            const url = mes ? `/reportes/estadisticas-productos-vendidos?mes=${encodeURIComponent(mes)}` : '/reportes/estadisticas-productos-vendidos';
-
-            fetch(url)
-                .then(response => {
-                    if (!response.ok) throw new Error('Error al actualizar estadísticas de productos vendidos');
-                    return response.json();
-                })
-                .then(data => {
-                    document.getElementById('totalProductosVendidos').textContent = data.total || 0;
-                })
-                .catch(error => {
-                    console.error('Error al actualizar estadísticas de productos vendidos:', error);
-                });
-        }
-
-        function generarExcelProductos() {
-            const mes = document.getElementById('mesFilterProductos').value;
-            const url = mes ? `/reportes/exportar-excel-productos-vendidos?mes=${encodeURIComponent(mes)}` : '/reportes/exportar-excel-productos-vendidos';
             window.location.href = url;
         }
     </script>
