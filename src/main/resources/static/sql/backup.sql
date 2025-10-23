@@ -1,13 +1,15 @@
+CREATE DATABASE  IF NOT EXISTS `maxigestion_db` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `maxigestion_db`;
 -- MySQL dump 10.13  Distrib 8.0.43, for Win64 (x86_64)
 --
--- Host: localhost    Database: maxigestion_db
+-- Host: 127.0.0.1    Database: maxigestion_db
 -- ------------------------------------------------------
 -- Server version	8.0.43
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8mb4 */;
+/*!50503 SET NAMES utf8 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -77,15 +79,14 @@ CREATE TABLE `detalle_ordenes` (
   `cantidad_producto` int DEFAULT NULL,
   `valor_producto` decimal(38,2) DEFAULT NULL,
   `id_factura` bigint NOT NULL,
-  `id_producto` int NOT NULL,
+  `id_terminado` int NOT NULL,
   `descripcion_producto` varchar(255) DEFAULT NULL,
-  `id_detalle_factura` bigint NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (`id_detalle_factura`),
+  PRIMARY KEY (`id_factura`,`id_terminado`),
   KEY `id_factura` (`id_factura`),
-  KEY `fk_detalle_factura_producto` (`id_producto`),
+  KEY `fk_detalle_factura_producto` (`id_terminado`),
   CONSTRAINT `detalle_ordenes_ibfk_1` FOREIGN KEY (`id_factura`) REFERENCES `ordenes` (`id_factura`),
-  CONSTRAINT `fk_detalle_factura_producto` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id_producto`)
-) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `fk_detalle_ordenes_terminado` FOREIGN KEY (`id_terminado`) REFERENCES `terminados` (`id_terminado`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -94,7 +95,6 @@ CREATE TABLE `detalle_ordenes` (
 
 LOCK TABLES `detalle_ordenes` WRITE;
 /*!40000 ALTER TABLE `detalle_ordenes` DISABLE KEYS */;
-INSERT INTO `detalle_ordenes` VALUES (5,43000.00,10,1,'Sesgador doble y sencillo - 4',25),(5,45000.00,10,1,'Sesgador doble y sencillo - 4.5',26),(7,43000.00,11,1,'Sesgador doble y sencillo - 4',27),(1,17000.00,11,1,'Sesgador doble y sencillo - 4.5',28),(4,43000.00,12,1,'Sesgador doble y sencillo - 4',29),(1,17000.00,12,1,'Sesgador doble y sencillo - 4.5',30),(9,45000.00,13,1,'Sesgador doble y sencillo - 4.5',31),(15,43000.00,13,1,'Sesgador doble y sencillo - 4',32),(4,43000.00,14,1,'Sesgador doble y sencillo - 4',33),(1,17000.00,14,1,'Sesgador doble y sencillo - 4.5',34);
 /*!40000 ALTER TABLE `detalle_ordenes` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -147,6 +147,7 @@ CREATE TABLE `formularios` (
 
 LOCK TABLES `formularios` WRITE;
 /*!40000 ALTER TABLE `formularios` DISABLE KEYS */;
+INSERT INTO `formularios` VALUES (1,'Dashboard','/',NULL),(2,'Usuarios','/usuarios',NULL),(3,'Productos','/productos',NULL),(4,'Órdenes','/ordenes',NULL),(5,'Reportes','/reportes',NULL),(6,'Crear_Usuarios','/usuarios/crear',NULL),(7,'Crear_Ordenes','/ordenes/nueva',NULL),(8,'Buscar_Usuario_Ordenes','/ordenes/buscar-usuarios',NULL),(9,'Crear_Ordenes','/ordenes/guardar',NULL),(10,'Ver_Ordenes','/ordenes/verMas',NULL),(11,'Crear_Productos','/productos/nuevo',NULL),(12,'Ver_Catalogo','/productos/catalogo',NULL);
 /*!40000 ALTER TABLE `formularios` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -178,6 +179,7 @@ CREATE TABLE `formularios_x_perfiles` (
 
 LOCK TABLES `formularios_x_perfiles` WRITE;
 /*!40000 ALTER TABLE `formularios_x_perfiles` DISABLE KEYS */;
+INSERT INTO `formularios_x_perfiles` VALUES (1,1,'S','S','S','S'),(1,2,'S','S','S','S'),(1,3,'S','S','S','S'),(1,4,'S','S','S','S'),(1,5,'S','S','S','S'),(1,6,'S','S','S','S'),(1,7,'S','S','S','S'),(1,8,'S','S','S','S'),(1,9,'S','S','S','S'),(1,10,'S','S','S','S'),(1,11,'S','S','S','S'),(1,12,'S','S','S','S');
 /*!40000 ALTER TABLE `formularios_x_perfiles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -189,7 +191,7 @@ DROP TABLE IF EXISTS `ordenes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ordenes` (
-  `fecha_venta` date DEFAULT NULL,
+  `fecha_entrega` datetime DEFAULT NULL,
   `lugar_venta` int DEFAULT NULL,
   `total_factura` decimal(38,2) DEFAULT NULL,
   `documento_usuario` bigint DEFAULT NULL,
@@ -197,6 +199,8 @@ CREATE TABLE `ordenes` (
   `descripcion_venta` varchar(255) DEFAULT NULL,
   `firma_digital` varchar(255) DEFAULT NULL,
   `id_empresa` varchar(255) DEFAULT NULL,
+  `estado` varchar(20) NOT NULL DEFAULT 'PENDIENTE',
+  `fecha_orden` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_factura`),
   KEY `FK1jppc9ai3o70qqa4eav9obpnq` (`lugar_venta`),
   KEY `FK2hr37hoth4u3h7mcxvv52prxw` (`id_empresa`),
@@ -204,7 +208,7 @@ CREATE TABLE `ordenes` (
   CONSTRAINT `FK1jppc9ai3o70qqa4eav9obpnq` FOREIGN KEY (`lugar_venta`) REFERENCES `ciudades` (`id_ciudad`),
   CONSTRAINT `FK2hr37hoth4u3h7mcxvv52prxw` FOREIGN KEY (`id_empresa`) REFERENCES `empresas` (`nit_empresa`),
   CONSTRAINT `FK86cmsmi3ki6tondwhx3fxbdhx` FOREIGN KEY (`documento_usuario`) REFERENCES `usuarios` (`documento`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -213,7 +217,7 @@ CREATE TABLE `ordenes` (
 
 LOCK TABLES `ordenes` WRITE;
 /*!40000 ALTER TABLE `ordenes` DISABLE KEYS */;
-INSERT INTO `ordenes` VALUES ('2025-06-11',1,440000.00,2020202020,10,'TEST 2',NULL,'900123456'),('2025-06-12',1,318000.00,2020202020,11,'Venta suprema',NULL,'900123456'),('2025-06-06',1,189000.00,2020202020,12,'Venta suprema',NULL,'900123456'),('2025-06-13',1,1050000.00,2020202020,13,'TEST 2',NULL,'900123456'),('2025-06-03',1,189000.00,2020202020,14,'Venta suprema',NULL,'900123456');
+INSERT INTO `ordenes` VALUES ('2025-06-11 00:00:00',1,440000.00,2020202020,10,'TEST 2',NULL,'900123456','PENDIENTE','2025-10-09 09:24:59'),('2025-06-12 00:00:00',1,318000.00,2020202020,11,'Venta suprema',NULL,'900123456','PENDIENTE','2025-10-09 09:24:59'),('2025-06-06 00:00:00',1,189000.00,2020202020,12,'Venta suprema',NULL,'900123456','PENDIENTE','2025-10-09 09:24:59'),('2025-06-13 00:00:00',1,1050000.00,2020202020,13,'TEST 2',NULL,'900123456','PENDIENTE','2025-10-09 09:24:59'),('2025-06-03 00:00:00',1,189000.00,2020202020,14,'Venta suprema',NULL,'900123456','PENDIENTE','2025-10-09 09:24:59'),('2025-10-02 00:00:00',NULL,49000.00,2020202020,15,'Probando ordenes',NULL,'900123456','PENDIENTE','2025-10-09 09:24:59');
 /*!40000 ALTER TABLE `ordenes` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -231,7 +235,7 @@ CREATE TABLE `perfiles` (
   PRIMARY KEY (`id_perfil`),
   KEY `roles_id_rol` (`roles_id_rol`),
   CONSTRAINT `perfiles_ibfk_1` FOREIGN KEY (`roles_id_rol`) REFERENCES `roles` (`id_rol`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -240,7 +244,7 @@ CREATE TABLE `perfiles` (
 
 LOCK TABLES `perfiles` WRITE;
 /*!40000 ALTER TABLE `perfiles` DISABLE KEYS */;
-INSERT INTO `perfiles` VALUES (1,'DEVELOPER',1),(2,'ALMACÉN',2);
+INSERT INTO `perfiles` VALUES (1,'DEVELOPER',1),(2,'ALMACÉN',2),(6,'ADMIN_GENERAL',1),(7,'DEVELOPER',1),(8,'ALMACEN',2);
 /*!40000 ALTER TABLE `perfiles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -281,7 +285,7 @@ CREATE TABLE `roles` (
   `id_rol` int NOT NULL AUTO_INCREMENT,
   `nombre_rol` varchar(50) NOT NULL,
   PRIMARY KEY (`id_rol`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -368,7 +372,7 @@ CREATE TABLE `usuarios` (
   `direccion` varchar(255) DEFAULT NULL,
   `perfiles_id_perfil` int NOT NULL,
   `tipo_usuario` int NOT NULL,
-  `fecha_registro` date DEFAULT NULL,
+  `fecha_registro` datetime DEFAULT CURRENT_TIMESTAMP,
   `id_ciudad` int NOT NULL,
   PRIMARY KEY (`documento`),
   UNIQUE KEY `UK3m5n1w5trapxlbo2s42ugwdmd` (`usuario`),
@@ -387,7 +391,7 @@ CREATE TABLE `usuarios` (
 
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (1011392,3200396564,'1234','MelanyS','Suarez','Rivera','Melany','Cll 36',1,1,'2025-03-16',1),(10119372,3205765537,'','','Gomez','Valencia','Wilmer','Cll 9 #52',1,2,'2025-03-16',1),(101984293,3205765537,'123456789','NicoB','Bernal','Bernal','Nicol','Cra 48 b sur',1,1,NULL,1),(1000206922,3333333,'$2a$10$sz2U/zE84BdYp4aEv7xj.O4wk3EEN/zvru8BhWcg67KXX8gqJZNse','wilmergruiz','Gómez','Ruiz','Wilmer ','Carrera 78a #52sur-76',1,1,NULL,1),(2020202020,3119876543,'2432','Textil Fast','','','Textil Fast','Carrera 45',2,3,'2025-05-16',1);
+INSERT INTO `usuarios` VALUES (1011392,3200396564,'1234','MelanyS','Suarez','Rivera','Melany','Cll 36',1,1,'2025-03-16 00:00:00',1),(10119372,3205765537,'','','Gomez','Valencia','Wilmer','Cll 9 #52',1,2,'2025-03-16 00:00:00',1),(101984293,3205765537,'123456789','NicoB','Bernal','Bernal','Nicol','Cra 48 b sur',1,1,NULL,1),(1000206922,3333333,'$2a$10$sz2U/zE84BdYp4aEv7xj.O4wk3EEN/zvru8BhWcg67KXX8gqJZNse','wilmergruiz','Gómez','Ruiz','Wilmer ','Carrera 78a #52sur-76',1,1,NULL,1),(2020202020,3119876543,'2432','Textil Fast','','','Textil Fast','Carrera 45',2,3,'2025-05-16 00:00:00',1);
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -400,4 +404,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-10-02 11:59:51
+-- Dump completed on 2025-10-22 20:35:16
