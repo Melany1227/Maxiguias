@@ -170,7 +170,7 @@
                 </tr>
                 
                 <!-- Filas para modo editar -->
-                <tr th:each="detalle : ${detalles}" th:if="${editMode}">
+                <tr th:each="detalle : ${detalles}" th:if="${editMode}" th:data-detalle-id="${detalle.terminado.id}">
                   <td>
                     <select class="form-select" name="productoId" required onchange="cambiarProductoEdicion(this)">
                       <option value="">Seleccione un producto</option>

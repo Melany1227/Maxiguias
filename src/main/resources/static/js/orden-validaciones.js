@@ -127,7 +127,8 @@ async function cargarTerminadosParaFila(fila, productoId, terminadoSeleccionado 
         });
         
         if (terminadoSeleccionado) {
-            actualizarPrecio(fila);
+            // Solo calcular total después de cargar, sin modificar el precio existente
+            setTimeout(() => calcularTotalOrden(), 100);
         }
         
     } catch (error) {
@@ -292,6 +293,7 @@ document.addEventListener("change", function (e) {
         if (productoId && terminadoId && esCombinacionDuplicada(productoId, terminadoId, fila)) {
             alert("Esta combinación de producto y terminado ya está seleccionada en otra fila.");
             e.target.selectedIndex = 0;
+            actualizarPrecio(fila);
             return;
         }
         
@@ -327,25 +329,42 @@ function actualizarPrecio(fila) {
     const cantidadInput = fila.querySelector("input[name='cantidad']");
     const valorInput = fila.querySelector("input[name='valor']");
 
-    const publico = terminadoSelect.selectedOptions[0]?.getAttribute("data-publico");
-    const mayor = terminadoSelect.selectedOptions[0]?.getAttribute("data-mayor");
-    const encargo = terminadoSelect.selectedOptions[0]?.getAttribute("data-encargo");
+    // Si no hay terminado seleccionado, solo resetear si no estamos en modo edición inicial
+    if (!terminadoSelect.value || terminadoSelect.selectedIndex === 0) {
+        // En modo edición, preservar el valor original si existe
+        const esFilaEdicion = fila.hasAttribute('data-detalle-id');
+        if (!esFilaEdicion || !valorInput.value || valorInput.value === '0') {
+            valorInput.value = 0;
+        }
+        calcularTotalOrden();
+        return;
+    }
 
-    const cantidad = parseInt(cantidadInput.value);
+    const selectedOption = terminadoSelect.selectedOptions[0];
+    const publico = selectedOption?.getAttribute("data-publico");
+    const mayor = selectedOption?.getAttribute("data-mayor");
+    const encargo = selectedOption?.getAttribute("data-encargo");
+
+    const cantidad = parseInt(cantidadInput.value) || 1;
 
     let precioFinal = 0;
 
-    if (tipoClienteGlobal === "NATURAL") {
-        precioFinal = publico;
-    } else if (tipoClienteGlobal === "JURIDICO") {
-        if (cantidad <= 2) {
-            precioFinal = encargo;
-        } else {
-            precioFinal = mayor;
+    if (publico && encargo && mayor) {
+        if (tipoClienteGlobal === "NATURAL") {
+            precioFinal = parseFloat(publico);
+        } else if (tipoClienteGlobal === "JURIDICO") {
+            if (cantidad <= 2) {
+                precioFinal = parseFloat(encargo);
+            } else {
+                precioFinal = parseFloat(mayor);
+            }
         }
     }
 
-    valorInput.value = precioFinal || 0;
+    // Solo actualizar si tenemos un precio válido o si no es modo edición inicial
+    if (precioFinal > 0) {
+        valorInput.value = precioFinal;
+    }
     calcularTotalOrden();
 }
 
@@ -376,6 +395,56 @@ document.addEventListener("input", function (e) {
     }
 });
 
+function cambiarProductoEdicion(productoSelect) {
+    const fila = productoSelect.closest('tr');
+    const productoId = productoSelect.value;
+    const terminadoSelect = fila.querySelector("select[name='terminadoId']");
+    const valorInput = fila.querySelector("input[name='valor']");
+    
+    // Resetear valor inmediatamente al cambiar producto
+    valorInput.value = 0;
+    
+    if (productoId) {
+        terminadoSelect.innerHTML = "<option value=''>Cargando terminados...</option>";
+        cargarTerminadosParaFila(fila, productoId);
+        actualizarDescripcion(fila);
+    } else {
+        terminadoSelect.innerHTML = "<option value=''>Seleccione un terminado</option>";
+    }
+    
+    calcularTotalOrden();
+}
+
+function actualizarPrecioEdicion(fila) {
+    actualizarPrecio(fila);
+}
+
+function aumentarEdicion(btn) {
+    const input = btn.previousElementSibling;
+    input.value = parseInt(input.value) + 1;
+    const fila = btn.closest("tr");
+    actualizarPrecio(fila);
+}
+
+function disminuirEdicion(btn) {
+    const input = btn.nextElementSibling;
+    if (parseInt(input.value) > 1) {
+        input.value = parseInt(input.value) - 1;
+        const fila = btn.closest("tr");
+        actualizarPrecio(fila);
+    }
+}
+
+document.addEventListener("input", function (e) {
+    if (e.target.name === "cantidad") {
+        const fila = e.target.closest("tr");
+        actualizarPrecio(fila);
+    }
+    if (e.target.name === "cantidad" || e.target.name === "valor") {
+        calcularTotalOrden();
+    }
+});
+
 document.addEventListener('DOMContentLoaded', function () {
     const fechaInput = document.querySelector('input[type="datetime-local"][name="fechaEntrega"]');
 
@@ -389,5 +458,24 @@ document.addEventListener('DOMContentLoaded', function () {
         fechaInput.max = fechaMax;
     }
     
-    calcularTotalOrden();
+    // Cargar terminados para filas en modo edición
+    const filasEdicion = document.querySelectorAll("tr[data-detalle-id]");
+    filasEdicion.forEach(fila => {
+        const terminadoSelect = fila.querySelector("select[name='terminadoId']");
+        const productoSelect = fila.querySelector("select[name='productoId']");
+        
+        if (terminadoSelect && productoSelect) {
+            const productoId = terminadoSelect.getAttribute("data-producto");
+            const terminadoId = terminadoSelect.getAttribute("data-selected");
+            
+            if (productoId) {
+                cargarTerminadosParaFila(fila, productoId, terminadoId);
+            }
+        }
+    });
+    
+    // Solo calcular total si no hay filas en modo edición
+    if (filasEdicion.length === 0) {
+        calcularTotalOrden();
+    }
 });
