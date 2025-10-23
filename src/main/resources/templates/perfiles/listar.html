@@ -64,43 +64,13 @@
                                 </a>
 
                                 <button type="button"
-                                        class="btn btn-outline-dark btn-sm"
-                                        data-bs-toggle="modal"
-                                        th:attr="data-bs-target='#modalEliminar_' + ${perfil.id}"
+                                        class="btn btn-outline-dark btn-sm btn-eliminar"
+                                        th:data-id="${perfil.id}"
+                                        th:data-nombre="${perfil.nombrePerfil}"
+                                        th:data-rol="${perfil.rol.nombreRol}"
                                         title="Eliminar">
                                     <i class="fas fa-trash"></i>
                                 </button>
-
-                                <!-- Modal de confirmación para eliminar -->
-                                <div class="modal fade modal-custom"
-                                     th:id="'modalEliminar_' + ${perfil.id}"
-                                     tabindex="-1"
-                                     aria-hidden="true"
-                                     th:attr="aria-labelledby='labelEliminar_' + ${perfil.id}">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title"
-                                                    th:id="'labelEliminar_' + ${perfil.id}">
-                                                    ¿DESEAS ELIMINAR ESTE PERFIL?
-                                                </h5>
-                                            </div>
-                                            <div class="modal-body">
-                                                <strong th:text="'Perfil: ' + ${perfil.nombrePerfil}"></strong><br>
-                                                <span th:text="'Rol: ' + ${perfil.rol.nombreRol}"></span><br><br>
-                                                <em>Esta acción no se puede deshacer.</em>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button"
-                                                        class="btn btn-cancelar"
-                                                        data-bs-dismiss="modal">CANCELAR</button>
-                                                <form th:action="@{/perfiles/{id}/eliminar(id=${perfil.id})}" method="post" style="display: inline;">
-                                                    <button type="submit" class="btn btn-confirmar">SÍ, ELIMINAR</button>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -116,6 +86,91 @@
             </div>
         </div>
 
+        <!-- SweetAlert2 -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        
+        <!-- Scripts de mensajes -->
+        <script th:if="${mensaje}">
+            Swal.fire({
+                title: '¡Éxito!',
+                text: /*[[${mensaje}]]*/ 'Operación realizada satisfactoriamente',
+                icon: 'success',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: "#b8922f"
+            })
+        </script>
+        
+        <script th:if="${error}">
+            Swal.fire({
+                title: 'Error',
+                text: /*[[${error}]]*/ 'Ocurrió un error',
+                icon: 'error',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: "#d33"
+            })
+        </script>
+        
+        <script>
+            // Event listener para botones de eliminar
+            document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('.btn-eliminar').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const id = this.getAttribute('data-id');
+                        const nombrePerfil = this.getAttribute('data-nombre');
+                        const nombreRol = this.getAttribute('data-rol');
+                        confirmarEliminar(id, nombrePerfil, nombreRol);
+                    });
+                });
+            });
+
+            // Función para confirmar eliminación de perfil
+            async function confirmarEliminar(id, nombrePerfil, nombreRol) {
+                const result = await Swal.fire({
+                    title: '¿Estás seguro?',
+                    html: `<strong>Perfil: ${nombrePerfil}</strong><br>Rol: ${nombreRol}<br><br>No podrás deshacer esta acción.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                });
+
+                if (!result.isConfirmed) {
+                    return; 
+                }
+
+                try {
+                    const response = await fetch(`/perfiles/${id}/eliminar`, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        }
+                    });
+
+                    if (response.ok) {
+                        Swal.fire(
+                            '¡Eliminado!',
+                            'El perfil ha sido eliminado con éxito.',
+                            'success'
+                        ).then(() => location.reload());
+                    } else {
+                        const errorText = await response.text();
+                        Swal.fire(
+                            'Error',
+                            `No se pudo eliminar el perfil. Código: ${response.status}`,
+                            'error'
+                        );
+                    }
+                } catch (error) {
+                    Swal.fire(
+                        'Error',
+                        'Ocurrió un problema al intentar eliminar.',
+                        'error'
+                    );
+                }
+            }
+        </script>
     </body>
 </html>

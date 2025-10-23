@@ -238,7 +238,61 @@
     </div>
   </div>
 
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script th:src="@{/js/orden-validaciones.js}"></script>
+  
+  <!-- Modal de mensajes -->
+  <div class="modal fade" id="mensajeModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content text-center p-4"
+              th:classappend="${tipoMensaje} == 'error' ? ' modal-error' : ' modal-success'">
+              <div class="modal-body">
+                  <h5 th:text="${mensajeModal}">Mensaje aquí</h5>
+                  <button type="button" id="okBtn" class="btn btn-warning mt-3" data-bs-dismiss="modal">OK</button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Scripts de mensajes -->
+  <script th:if="${mensaje}">
+      Swal.fire({
+          title: '¡Éxito!',
+          text: /*[[${mensaje}]]*/ 'Operación realizada satisfactoriamente',
+          icon: 'success',
+          confirmButtonText: 'Aceptar',
+          confirmButtonColor: "#b8922f"
+      })
+  </script>
+  
+  <script th:if="${error}">
+      Swal.fire({
+          title: 'Error',
+          text: /*[[${error}]]*/ 'Ocurrió un error',
+          icon: 'error',
+          confirmButtonText: 'Aceptar',
+          confirmButtonColor: "#d33"
+      })
+  </script>
+  
+  <script th:inline="javascript">
+      let mensaje = /*[[${mensajeModal}]]*/ null;
+      let redirigir = /*[[${redirigirDespues}]]*/ false;
+
+      if (mensaje && mensaje !== 'null' && mensaje.trim() !== '') {
+          const modalElement = document.getElementById('mensajeModal');
+          const modal = new bootstrap.Modal(modalElement);
+
+          modal.show();
+
+          document.getElementById('okBtn').addEventListener('click', function () {
+              if (redirigir) {
+                  window.location.href = '/ordenes';
+              }
+          });
+      }
+  </script>
   <script th:if="${editMode}">
     // Variables específicas para modo edición
     const ordenData = {
