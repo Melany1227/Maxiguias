@@ -35,6 +35,40 @@
                         <i class="fa-solid fa-plus"  style="padding-right: 8px;"></i> NUEVO USUARIO
                     </a>
                 </div>
+
+                <!-- Barra de búsqueda -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <form method="GET" action="/usuarios" class="d-flex gap-2 align-items-center">
+                            <div class="input-group flex-grow-1" style="max-width: 400px;">
+                                <input type="text" 
+                                       class="form-control" 
+                                       name="buscar" 
+                                       th:value="${buscar}"
+                                       placeholder="Buscar por nombre, apellido o documento..."
+                                       aria-label="Buscar usuarios">
+                                <input type="hidden" name="page" value="0">
+                                <input type="hidden" name="size" th:value="${size}">
+                            </div>
+                            
+                            <button type="submit" class="btn" style="background-color: #000; color: white; border-left: 3px solid #f3c623;">
+                                <i class="fas fa-search me-1"></i> Buscar
+                            </button>
+                            
+                            <a href="/usuarios" class="btn" style="background-color: #000; color: white; border-left: 3px solid #f3c623;" th:if="${buscar != null and buscar != ''}">
+                                <i class="fas fa-times me-1"></i> Limpiar
+                            </a>
+                        </form>
+                    </div>
+                    
+                    <!-- Mostrar criterio de búsqueda actual -->
+                    <div class="col-12 mt-2" th:if="${buscar != null and buscar != ''}">
+                        <div class="alert alert-info d-flex align-items-center py-2">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <span>Mostrando resultados para: <strong>"[[${buscar}]]"</strong></span>
+                        </div>
+                    </div>
+                </div>
                 <table class="table tabla-usuarios">
                     <thead>
                         <tr>
@@ -111,6 +145,60 @@
                     </tbody>
 
                 </table>
+
+                <!-- Información y controles de paginación -->
+                <div class="row mt-4" th:if="${totalPages > 1}">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <!-- Información de paginación -->
+                            <div class="pagination-info">
+                                <span class="badge bg-secondary fs-6 px-3 py-2">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Página [[${currentPage + 1}]] de [[${totalPages}]] 
+                                    ([[${totalElements}]] usuarios en total)
+                                </span>
+                            </div>
+                            
+                            <!-- Controles de navegación -->
+                            <nav aria-label="Navegación de páginas">
+                                <div class="pagination-controls d-flex align-items-center gap-2">
+                                    <!-- Botón Anterior -->
+                                    <a th:href="@{/usuarios(page=${currentPage - 1}, size=${size}, buscar=${buscar})}" 
+                                       th:class="${currentPage == 0} ? 'btn btn-outline-secondary disabled' : 'btn'"
+                                       style="background-color: #000; color: white; border-left: 3px solid #f3c623;"
+                                       th:if="${currentPage > 0}">
+                                        <i class="fas fa-chevron-left me-1"></i> Anterior
+                                    </a>
+                                    
+                                    <!-- Números de página en botones bonitos -->
+                                    <div class="btn-group" role="group">
+                                        <a th:each="pageNum : ${#numbers.sequence(T(java.lang.Math).max(0, currentPage - 2), T(java.lang.Math).min(totalPages - 1, currentPage + 2))}"
+                                           th:href="@{/usuarios(page=${pageNum}, size=${size}, buscar=${buscar})}"
+                                           th:class="${pageNum == currentPage} ? 'btn active-page' : 'btn page-btn'"
+                                           th:style="${pageNum == currentPage} ? 'background-color: #f3c623; color: #000; font-weight: bold; border: 2px solid #000;' : 'background-color: #000; color: white; border: 1px solid #f3c623;'"
+                                           th:text="${pageNum + 1}">1</a>
+                                    </div>
+                                    
+                                    <!-- Botón Siguiente -->
+                                    <a th:href="@{/usuarios(page=${currentPage + 1}, size=${size}, buscar=${buscar})}" 
+                                       th:class="${currentPage >= totalPages - 1} ? 'btn btn-outline-secondary disabled' : 'btn'"
+                                       style="background-color: #000; color: white; border-left: 3px solid #f3c623;"
+                                       th:if="${currentPage < totalPages - 1}">
+                                        Siguiente <i class="fas fa-chevron-right ms-1"></i>
+                                    </a>
+                                </div>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Mensaje cuando solo hay una página -->
+                <div class="text-center mt-3" th:if="${totalPages <= 1}">
+                    <span class="badge bg-light text-dark fs-6 px-3 py-2">
+                        <i class="fas fa-users me-2"></i>
+                        [[${totalElements}]] usuario(s) encontrado(s)
+                    </span>
+                </div>
             </div>
         </div>
         <div class="modal fade" id="mensajeModal" tabindex="-1" aria-hidden="true">

@@ -28,11 +28,13 @@
     <div class="form-container">
 
         <h4 class="form-title">
-          <i class="fa-solid fa-shopping-cart"></i> CREAR ORDEN
+          <i class="fa-solid fa-shopping-cart"></i> 
+          <span th:if="${editMode}">EDITAR ORDEN #[[${orden.id}]]</span>
+          <span th:unless="${editMode}">CREAR ORDEN</span>
         </h4>
 
         <!-- Paso 1: Búsqueda de Usuario -->
-        <div id="paso1" class="step-section">
+        <div id="paso1" class="step-section" th:style="${editMode} ? 'display: none;' : ''">
           <h5 class="text-primary mb-3">
             <i class="fa-solid fa-search"></i> Paso 1: Buscar Cliente
           </h5>
@@ -41,8 +43,11 @@
               <label class="form-icon-label"><i class="fa-solid fa-user"></i> Buscar Cliente</label>
               <div class="input-group">
                 <input type="text" id="buscarUsuario" class="form-control" placeholder="Ej: Juan Pérez, 12345678, Juan, Pérez...">
-                <button type="button" class="btn btn-primary" onclick="buscarUsuario()">
+                <button type="button" class="btn btn-primary" onclick="buscarUsuario()" title="Buscar usuario">
                   <i class="fa-solid fa-search"></i>
+                </button>
+                <button type="button" class="btn btn-outline-secondary" onclick="limpiarBusqueda()" title="Limpiar búsqueda">
+                  <i class="fa-solid fa-times"></i>
                 </button>
               </div>
             </div>
@@ -65,35 +70,58 @@
         </div>
 
         <!-- Paso 2: Formulario de Orden -->
-        <div id="paso2" class="step-section" style="display: none;">
-          <form th:action="@{/ordenes/guardar}" method="post" th:object="${orden}">
+        <div id="paso2" class="step-section" th:style="${editMode} ? '' : 'display: none;'">
+          <form th:action="${editMode} ? '/ordenes/actualizar/' + ${orden.id} : '/ordenes/guardar'" method="post" th:object="${orden}">
             <h5 class="text-primary mb-3">
               <i class="fa-solid fa-edit"></i> Paso 2: Detalles de la Orden
             </h5>
-
-            <input type="hidden" id="usuarioDocumento" name="usuario.documento">
-
+            
+            <input type="hidden" id="usuarioDocumento" name="usuario.documento" th:value="${editMode} ? ${orden.usuario.documento} : ''">
+            
             <div class="row">
               <div class="col-md-6">
 
                 <label class="form-icon-label">
                   <i class="fa-solid fa-calendar-day"></i> Fecha de Entrega
                 </label>
-                <input type="datetime-local" th:field="*{fechaEntrega}" class="form-control" required>
+                <input type="datetime-local" 
+                       name="fechaEntrega"
+                       th:value="${orden?.fechaEntrega != null ? #temporals.format(orden.fechaEntrega, 'yyyy-MM-dd''T''HH:mm') : ''}"
+                       class="form-control" 
+                       required>
 
-                <label class="form-icon-label">Debe a:</label>
-                <span id="empresa" th:text="${empresa.nombreEmpresa + ' - NIT: ' + empresa.nitEmpresa}"></span>
+                <label class="form-icon-label mt-3"><i class="fa-solid fa-align-left"></i> Descripción Venta</label>
+                <input type="text" class="form-control" th:field="*{descripcionVenta}" required>
+
                 <input type="hidden" name="empresa.nitEmpresa" th:value="${empresa.nitEmpresa}" />
               </div>
 
               <div class="col-md-6">
                 <div id="clienteInfo" class="p-3 border rounded bg-light">
-                  <h6><i class="fa-solid fa-user"></i> Cliente Seleccionado:</h6>
-                  <div id="datosCliente"></div>
+                  <h6><i class="fa-solid fa-user"></i> Cliente 
+                    <span th:if="${editMode}">(No se puede cambiar)</span>
+                    <span th:unless="${editMode}">Seleccionado</span>:
+                  </h6>
+                  <div id="datosCliente">
+                    <div th:if="${editMode}">
+                      <strong th:text="${orden.usuario.nombre + ' ' + orden.usuario.primerApellido}"></strong><br>
+                      <small>Documento: <span th:text="${orden.usuario.documento}"></span></small><br>
+                      <small>Tipo: <span th:text="${orden.usuario.tipoUsuario.nombre}"></span></small>
+                    </div>
+                  </div>
                 </div>
 
-                <label class="form-icon-label mt-3"><i class="fa-solid fa-align-left"></i> Descripción Venta</label>
-                <input type="text" class="form-control" th:field="*{descripcionVenta}" required>
+                <div th:if="${editMode}" class="mt-3">
+                  <label class="form-icon-label"><i class="fa-solid fa-cogs"></i> Estado</label>
+                  <select class="form-select" th:field="*{estado}" required>
+                    <option value="">Seleccionar estado...</option>
+                    <option th:each="estadoOption : ${T(com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden).values()}"
+                            th:value="${estadoOption}"
+                            th:text="${estadoOption.descripcion}"
+                            th:selected="${orden?.estado != null && estadoOption.name() == orden.estado.name()}">
+                    </option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -111,10 +139,12 @@
                   <th>Cantidad</th>
                   <th>Valor</th>
                   <th>Descripción</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
+                <!-- Fila para modo crear -->
+                <tr th:unless="${editMode}">
                   <td>
                     <select class="form-select" name="productoId">
                       <option value="">Seleccione un producto</option>
@@ -139,6 +169,51 @@
                   <td>
                     <input type="text" class="form-control" name="descripcion">
                   </td>
+                  <td>
+                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="eliminarFilaEspecifica(this)" title="Eliminar fila">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+                
+                <!-- Filas para modo editar -->
+                <tr th:each="detalle : ${detalles}" th:if="${editMode}">
+                  <td>
+                    <select class="form-select" name="productoId" required>
+                      <option value="">Seleccione un producto</option>
+                      <option th:each="p : ${productos}" 
+                              th:value="${p.id}" 
+                              th:data-nombre="${p.nombre}" 
+                              th:text="${p.nombre}"
+                              th:selected="${p.id == detalle.terminado.producto.id}"></option>
+                    </select>
+                  </td>
+                  <td>
+                    <select name="terminadoId" class="form-select select-terminado" required>
+                      <option value="">Seleccione un terminado</option>
+                      <option th:value="${detalle.terminado.id}" 
+                              th:text="${'Medida: ' + detalle.terminado.medidaTerminadoProducto + ' - $' + detalle.terminado.precioPublico}"
+                              selected="selected"></option>
+                    </select>
+                  </td>
+                  <td>
+                    <div class="input-group justify-content-center align-items-center">
+                      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="disminuir(this)">-</button>
+                      <input type="number" class="form-control text-center" name="cantidad" th:value="${detalle.cantidad}" min="1" required style="max-width: 70px; margin-bottom: 0px;">
+                      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="aumentar(this)">+</button>
+                    </div>
+                  </td>
+                  <td>
+                    <input type="number" class="form-control" name="valor" step="0.01" th:value="${detalle.valor}" required>
+                  </td>
+                  <td>
+                    <input type="text" class="form-control" name="descripcion" th:value="${detalle.descripcion}">
+                  </td>
+                  <td>
+                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="eliminarFilaEspecifica(this)" title="Eliminar fila">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -150,11 +225,16 @@
             <input type="hidden" id="inputTotalOrden" name="totalFactura">
 
             <div class="col-12 d-flex justify-content-between">
-                <button type="button" class="btn btn-secondary" onclick="volverAPaso1()">
+                <button th:if="${editMode}" type="button" class="btn btn-secondary" onclick="window.location.href='/ordenes'">
+                    <i class="fa-solid fa-arrow-left"></i> Volver a Lista
+                </button>
+                <button th:unless="${editMode}" type="button" class="btn btn-secondary" onclick="volverAPaso1()">
                     <i class="fa-solid fa-arrow-left"></i> Volver
                 </button>
                 <button type="submit" class="custom-btn">
-                    <i class="fa-solid fa-save"></i> GUARDAR ORDEN
+                    <i class="fa-solid fa-save"></i> 
+                    <span th:if="${editMode}">ACTUALIZAR ORDEN</span>
+                    <span th:unless="${editMode}">GUARDAR ORDEN</span>
                 </button>
             </div>
           </form>
@@ -163,24 +243,49 @@
   </div>
 
   <script th:src="@{/js/orden-validaciones.js}"></script>
+  <script th:if="${editMode}">
+    // Variables específicas para modo edición
+    const ordenData = {
+      usuario: {
+        nombre: /*[[${orden.usuario.nombre}]]*/ '',
+        primerApellido: /*[[${orden.usuario.primerApellido}]]*/ '',
+        documento: /*[[${orden.usuario.documento}]]*/ '',
+        tipoUsuario: {
+          nombre: /*[[${orden.usuario.tipoUsuario.nombre}]]*/ ''
+        }
+      }
+    };
+  </script>
   <script>
     let usuarioSeleccionadoGlobal = null;
+    const editMode = /*[[${editMode}]]*/ false;
 
     function buscarUsuario() {
-      const termino = document.getElementById('buscarUsuario').value;
+      const termino = document.getElementById('buscarUsuario').value.trim();
       if (termino.length < 2) {
         alert('Por favor ingrese al menos 2 caracteres para buscar');
         return;
       }
 
+      // Mostrar indicador de carga
+      const lista = document.getElementById('listaUsuarios');
+      lista.innerHTML = '<div class="list-group-item">Buscando...</div>';
+      document.getElementById('resultadosBusqueda').style.display = 'block';
+
       fetch(`/ordenes/buscar-usuarios?termino=${encodeURIComponent(termino)}`)
-        .then(response => response.json())
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          return response.json();
+        })
         .then(usuarios => {
+          console.log('Usuarios encontrados:', usuarios);
           mostrarResultados(usuarios);
         })
         .catch(error => {
           console.error('Error al buscar usuarios:', error);
-          alert('Error al buscar usuarios');
+          lista.innerHTML = '<div class="list-group-item text-danger">Error al buscar usuarios. Intente nuevamente.</div>';
         });
     }
 
@@ -189,35 +294,59 @@
       const lista = document.getElementById('listaUsuarios');
 
       lista.innerHTML = '';
-
-      if (resultados.length === 0) {
-        lista.innerHTML = '<div class="list-group-item">No se encontraron usuarios</div>';
+      
+      if (!resultados || resultados.length === 0) {
+        lista.innerHTML = '<div class="list-group-item">No se encontraron usuarios con ese criterio de búsqueda</div>';
       } else {
         resultados.forEach(usuario => {
-          const item = document.createElement('div');
-          item.className = 'list-group-item list-group-item-action';
-          item.innerHTML = `
-            <strong>${usuario.nombre} ${usuario.primerApellido}</strong><br>
-            <small>Documento: ${usuario.documento} - Tipo: ${usuario.tipoUsuario.nombre}</small>
-          `;
-          item.onclick = () => seleccionarUsuario(usuario);
-          lista.appendChild(item);
+          if (usuario && usuario.nombre && usuario.documento && usuario.tipoUsuario) {
+            const item = document.createElement('div');
+            item.className = 'list-group-item list-group-item-action';
+            item.style.cursor = 'pointer';
+            item.innerHTML = `
+              <strong>${usuario.nombre} ${usuario.primerApellido || ''}</strong><br>
+              <small>Documento: ${usuario.documento} - Tipo: ${usuario.tipoUsuario.nombre}</small>
+            `;
+            item.onclick = () => seleccionarUsuario(usuario);
+            lista.appendChild(item);
+          }
         });
+        
+        if (lista.children.length === 0) {
+          lista.innerHTML = '<div class="list-group-item">No se encontraron usuarios válidos</div>';
+        }
       }
 
       contenedor.style.display = 'block';
     }
 
     function seleccionarUsuario(usuario) {
+      if (!usuario || !usuario.documento) {
+        alert('Usuario inválido seleccionado');
+        return;
+      }
+      
       usuarioSeleccionadoGlobal = usuario;
 
       document.getElementById('infoUsuario').innerHTML = `
-        <strong>${usuario.nombre} ${usuario.primerApellido}</strong><br>
+        <strong>${usuario.nombre} ${usuario.primerApellido || ''}</strong><br>
         <small>Documento: ${usuario.documento} - Tipo: ${usuario.tipoUsuario.nombre}</small>
       `;
 
       document.getElementById('usuarioSeleccionado').style.display = 'block';
       document.getElementById('resultadosBusqueda').style.display = 'none';
+      
+      // Limpiar el campo de búsqueda
+      document.getElementById('buscarUsuario').value = '';
+      
+      console.log('Usuario seleccionado:', usuario);
+    }
+
+    function limpiarBusqueda() {
+      document.getElementById('buscarUsuario').value = '';
+      document.getElementById('resultadosBusqueda').style.display = 'none';
+      document.getElementById('usuarioSeleccionado').style.display = 'none';
+      usuarioSeleccionadoGlobal = null;
     }
 
     function continuarAPaso2() {
@@ -246,12 +375,173 @@
       document.getElementById('paso1').style.display = 'block';
     }
 
+    // Función fallback para calcular total si la principal no está disponible
+    function calcularTotal() {
+      let total = 0;
+      const filas = document.querySelectorAll("#tablaDetalle tbody tr");
+
+      filas.forEach(fila => {
+        const cantidad = parseFloat(fila.querySelector("input[name='cantidad']").value) || 0;
+        const valor = parseFloat(fila.querySelector("input[name='valor']").value) || 0;
+        total += cantidad * valor;
+      });
+
+      const totalElement = document.getElementById("totalOrden");
+      const inputTotalElement = document.getElementById("inputTotalOrden");
+      
+      if (totalElement) {
+        totalElement.textContent = total.toLocaleString("es-CO");
+      }
+      if (inputTotalElement) {
+        inputTotalElement.value = total;
+      }
+      
+      console.log("Total calculado:", total);
+    }
+
     // Permitir buscar al presionar Enter
-    document.getElementById('buscarUsuario').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        buscarUsuario();
+    document.addEventListener('DOMContentLoaded', function() {
+      const buscarInput = document.getElementById('buscarUsuario');
+      if (buscarInput) {
+        buscarInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            buscarUsuario();
+          }
+        });
       }
     });
+
+    // Poblar datos en modo edición
+    if (editMode) {
+      // Configurar el cliente global usando las variables definidas arriba
+      if (typeof ordenData !== 'undefined' && ordenData.usuario) {
+        usuarioSeleccionadoGlobal = ordenData.usuario;
+        tipoClienteGlobal = ordenData.usuario.tipoUsuario.nombre.toUpperCase();
+      }
+      
+      console.log("Modo edición activado. Tipo cliente:", tipoClienteGlobal);
+      console.log("Usuario seleccionado:", usuarioSeleccionadoGlobal);
+      
+      // Primero vamos a probar manualmente una llamada al endpoint
+      console.log("Probando endpoint de terminados...");
+      fetch('/terminados/por-producto/1')
+        .then(res => {
+          console.log("Respuesta del endpoint:", res.status, res.statusText);
+          return res.json();
+        })
+        .then(data => {
+          console.log("Datos de terminados de prueba:", data);
+        })
+        .catch(err => {
+          console.error("Error en endpoint de prueba:", err);
+        });
+      
+      // Cargar terminados para cada producto seleccionado
+      setTimeout(() => {
+        const filas = document.querySelectorAll("#tablaDetalle tbody tr");
+        console.log("Filas encontradas:", filas.length);
+        
+        let filasProcessadas = 0;
+        
+        filas.forEach((fila, index) => {
+          const productoSelect = fila.querySelector("select[name='productoId']");
+          const terminadoSelect = fila.querySelector("select[name='terminadoId']");
+          const productoId = productoSelect.value;
+          
+          console.log(`Fila ${index}: Producto ID = ${productoId}`);
+          console.log(`Fila ${index}: Select terminado encontrado:`, terminadoSelect);
+          
+          if (productoId) {
+            console.log(`Haciendo fetch para producto ${productoId}...`);
+            fetch(`/terminados/por-producto/${productoId}`)
+              .then(res => {
+                console.log(`Respuesta para producto ${productoId}:`, res.status);
+                if (!res.ok) {
+                  throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                }
+                return res.json();
+              })
+              .then(data => {
+                console.log(`Terminados para producto ${productoId}:`, data);
+                console.log(`Agregando ${data.length} terminados al select`);
+                
+                // Limpiar select
+                const opcionesAnteriores = terminadoSelect.innerHTML;
+                console.log(`Opciones anteriores:`, opcionesAnteriores);
+                
+                terminadoSelect.innerHTML = "<option value=''>Seleccione un terminado</option>";
+                
+                data.forEach((t, termIndex) => {
+                  console.log(`Procesando terminado ${termIndex}:`, t);
+                  const option = document.createElement("option");
+                  option.value = t.id;
+                  
+                  let precioAMostrar = t.precioPublico || 0;
+                  if (tipoClienteGlobal === "JURIDICO") {
+                    precioAMostrar = t.precioPorEncargo || 0;
+                  }
+                  
+                  const textoOpcion = `Medida: ${t.medidaTerminadoProducto || 'N/A'} - $${precioAMostrar.toLocaleString('es-CO')}`;
+                  option.textContent = textoOpcion;
+                  option.setAttribute("data-info", `Medida: ${t.medidaTerminadoProducto}`);
+                  option.setAttribute("data-publico", t.precioPublico);
+                  option.setAttribute("data-mayor", t.precioPorMayor);
+                  option.setAttribute("data-encargo", t.precioPorEncargo);
+                  
+                  console.log(`Creando opción: ${textoOpcion}`);
+                  terminadoSelect.appendChild(option);
+                  console.log(`Opción agregada. Total opciones ahora: ${terminadoSelect.options.length}`);
+                });
+                
+                console.log(`Select final para producto ${productoId}:`, terminadoSelect.innerHTML);
+                
+                filasProcessadas++;
+                console.log(`Fila ${index} procesada. Total: ${filasProcessadas}/${filas.length}`);
+                
+                if (filasProcessadas === filas.length) {
+                  console.log("Todas las filas procesadas, calculando total");
+                  if (typeof calcularTotalOrden === 'function') {
+                    calcularTotalOrden();
+                  } else {
+                    console.error("calcularTotalOrden no está definida, usando función local");
+                    calcularTotal();
+                  }
+                }
+              })
+              .catch(err => {
+                console.error(`Error cargando terminados para producto ${productoId}:`, err);
+                filasProcessadas++;
+                if (filasProcessadas === filas.length) {
+                  if (typeof calcularTotalOrden === 'function') {
+                    calcularTotalOrden();
+                  } else {
+                    calcularTotal();
+                  }
+                }
+              });
+          } else {
+            console.log(`Fila ${index}: Sin producto seleccionado`);
+            filasProcessadas++;
+            if (filasProcessadas === filas.length) {
+              if (typeof calcularTotalOrden === 'function') {
+                calcularTotalOrden();
+              } else {
+                calcularTotal();
+              }
+            }
+          }
+        });
+        
+        if (filas.length === 0) {
+          console.log("No hay filas, calculando total directamente");
+          if (typeof calcularTotalOrden === 'function') {
+            calcularTotalOrden();
+          } else {
+            calcularTotal();
+          }
+        }
+      }, 500);
+    }
   </script>
 </body>
 </html>

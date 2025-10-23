@@ -116,6 +116,13 @@ function agregarFila() {
             select.selectedIndex = 0;
         }
     });
+    
+    // Asegurar que el botón de eliminar funcione correctamente
+    const botonEliminar = nuevaFila.querySelector("button[onclick*='eliminarFilaEspecifica']");
+    if (botonEliminar) {
+        botonEliminar.onclick = function() { eliminarFilaEspecifica(this); };
+    }
+    
     tabla.appendChild(nuevaFila);
     actualizarOpcionesProducto(nuevaFila);
     calcularTotalOrden();
@@ -125,6 +132,28 @@ function eliminarFila() {
     const tabla = document.getElementById("tablaDetalle").querySelector("tbody");
     if (tabla.rows.length > 1) {
         tabla.deleteRow(tabla.rows.length - 1);
+        setTimeout(() => actualizarTodasLasOpcionesProducto(), 100);
+        calcularTotalOrden();
+    }
+}
+
+function eliminarFilaEspecifica(botonEliminar) {
+    const tabla = document.getElementById("tablaDetalle").querySelector("tbody");
+    
+    // No permitir eliminar si solo queda una fila
+    if (tabla.rows.length <= 1) {
+        alert("Debe mantener al menos un producto en la orden.");
+        return;
+    }
+    
+    const fila = botonEliminar.closest("tr");
+    const filaIndex = Array.from(tabla.rows).indexOf(fila);
+    
+    // Confirmar eliminación
+    if (confirm("¿Está seguro de que desea eliminar este producto de la orden?")) {
+        tabla.deleteRow(filaIndex);
+        
+        // Actualizar opciones de productos después de eliminar
         setTimeout(() => actualizarTodasLasOpcionesProducto(), 100);
         calcularTotalOrden();
     }

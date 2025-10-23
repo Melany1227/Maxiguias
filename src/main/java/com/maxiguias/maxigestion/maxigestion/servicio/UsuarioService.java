@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,14 @@ public class UsuarioService {
 
     public List<Usuario> obtenerTodosLosUsuarios() {
         return usuarioRepository.findAll();
+    }
+
+    public Page<Usuario> obtenerUsuariosPaginados(Pageable pageable) {
+        return usuarioRepository.findAll(pageable);
+    }
+
+    public Page<Usuario> buscarUsuariosPaginados(String termino, Pageable pageable) {
+        return usuarioRepository.buscarUsuariosPaginados(termino, pageable);
     }
 
     public Usuario obtenerPorId(Long id) {

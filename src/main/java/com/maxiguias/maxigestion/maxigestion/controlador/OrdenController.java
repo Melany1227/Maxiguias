@@ -7,6 +7,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.maxiguias.maxigestion.maxigestion.modelo.DetalleOrden;
+import com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden;
 import com.maxiguias.maxigestion.maxigestion.modelo.Orden;
 import com.maxiguias.maxigestion.maxigestion.modelo.Producto;
 import com.maxiguias.maxigestion.maxigestion.modelo.Terminado;
@@ -74,21 +79,49 @@ public class OrdenController {
     @GetMapping("/buscar-usuarios")
     @ResponseBody
     public List<Usuario> buscarUsuarios(@RequestParam String termino) {
-        List<Usuario> usuarios = usuarioRepository.findByTipoUsuario_NombreIn(Arrays.asList("NATURAL", "JURIDICO"));
-        
-        return usuarios.stream()
-            .filter(usuario -> {
-                String nombre = usuario.getNombre() != null ? usuario.getNombre() : "";
-                String primerApellido = usuario.getPrimerApellido() != null ? usuario.getPrimerApellido() : "";
-                String nombreCompleto = (nombre + " " + primerApellido).toLowerCase();
-                String terminoBusqueda = termino.toLowerCase();
+        try {
+            if (termino == null || termino.trim().isEmpty()) {
+                return new ArrayList<>();
+            }
+            
+            // Usar la nueva consulta optimizada
+            List<Usuario> usuarios = usuarioRepository.buscarUsuariosPorTermino(
+                Arrays.asList("NATURAL", "JURIDICO"), 
+                termino.trim()
+            );
+            
+            // Limitar resultados para mejor rendimiento
+            return usuarios.stream()
+                .limit(10)
+                .collect(Collectors.toList());
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Fallback a la implementación anterior si hay error
+            try {
+                List<Usuario> usuarios = usuarioRepository.findByTipoUsuario_NombreIn(Arrays.asList("NATURAL", "JURIDICO"));
+                String terminoBusqueda = termino.trim().toLowerCase();
                 
-                return nombreCompleto.contains(terminoBusqueda) ||
-                       nombre.toLowerCase().contains(terminoBusqueda) ||
-                       primerApellido.toLowerCase().contains(terminoBusqueda) ||
-                       usuario.getDocumento().toString().contains(termino);
-            })
-            .collect(Collectors.toList());
+                return usuarios.stream()
+                    .filter(usuario -> {
+                        if (usuario == null) return false;
+                        
+                        String nombre = usuario.getNombre() != null ? usuario.getNombre().toLowerCase() : "";
+                        String primerApellido = usuario.getPrimerApellido() != null ? usuario.getPrimerApellido().toLowerCase() : "";
+                        String nombreCompleto = (nombre + " " + primerApellido).trim();
+                        String documento = usuario.getDocumento() != null ? usuario.getDocumento().toString() : "";
+                        
+                        return nombreCompleto.contains(terminoBusqueda) ||
+                               nombre.contains(terminoBusqueda) ||
+                               primerApellido.contains(terminoBusqueda) ||
+                               documento.contains(termino.trim());
+                    })
+                    .limit(10)
+                    .collect(Collectors.toList());
+            } catch (Exception fallbackError) {
+                fallbackError.printStackTrace();
+                return new ArrayList<>();
+            }
+        }
     }
 
 
@@ -104,13 +137,13 @@ public class OrdenController {
 
         Orden ordenGuardada = ordenService.guardarOrden(orden);
 
-        for (int i = 0; i < productosId.size(); i++) {
+        for (int i = 0; i < terminadosId.size(); i++) {
             DetalleOrden detalle = new DetalleOrden();
-            Producto producto = productoRepository.findById(productosId.get(i))
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+            Terminado terminado = terminadoRepository.findById(terminadosId.get(i))
+                .orElseThrow(() -> new RuntimeException("Terminado no encontrado"));
 
             detalle.setOrden(ordenGuardada); 
-            detalle.setProducto(producto);       
+            detalle.setTerminado(terminado);       
             detalle.setCantidad(cantidades.get(i));
             detalle.setValor(valores.get(i));
             detalle.setDescripcion(descripciones.get(i));
@@ -121,9 +154,37 @@ public class OrdenController {
     }
 
     @GetMapping
-    public String listarOrdenes(Model model) {
-        List<Orden> ordenes = ordenService.obtenerTodasLasOrdenes();
-        model.addAttribute("ordenes", ordenes);
+    public String listarOrdenes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String filtroCliente,
+            Model model) {
+        
+        // Ordenamiento por fecha de orden descendente (más recientes primero)
+        Pageable pageable = PageRequest.of(page, size, Sort.by("fechaOrden").descending());
+        Page<Orden> ordenesPage;
+        
+        // Verificar si hay filtro por cliente
+        if (filtroCliente != null && !filtroCliente.trim().isEmpty()) {
+            try {
+                // Intentar convertir a número para buscar por documento
+                Long documento = Long.parseLong(filtroCliente.trim());
+                ordenesPage = ordenService.filtrarOrdenesPorClienteDocumento(documento, pageable);
+            } catch (NumberFormatException e) {
+                // Si no es número, buscar por nombre
+                ordenesPage = ordenService.buscarOrdenesPorCliente(filtroCliente.trim(), pageable);
+            }
+        } else {
+            ordenesPage = ordenService.obtenerOrdenesPaginadas(pageable);
+        }
+        
+        model.addAttribute("ordenes", ordenesPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", ordenesPage.getTotalPages());
+        model.addAttribute("totalElements", ordenesPage.getTotalElements());
+        model.addAttribute("size", size);
+        model.addAttribute("filtroCliente", filtroCliente);
+        
         return "listar_ordenes"; 
     }
 
@@ -153,6 +214,72 @@ public class OrdenController {
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping("/editar/{id}")
+    public String mostrarFormularioEdicion(@PathVariable("id") Long id, Model model) {
+        Orden orden = ordenService.obtenerOrdenPorId(id);
+        if (orden == null) {
+            return "redirect:/ordenes";
+        }
+        
+        if (orden.getEstado() != EstadoOrden.PENDIENTE && orden.getEstado() != EstadoOrden.EN_PROCESO) {
+            return "redirect:/ordenes";
+        }
+        
+        model.addAttribute("orden", orden);
+        model.addAttribute("detalles", orden.getDetalles());
+        model.addAttribute("empresa", empresaRepository.findAll().get(0)); 
+        model.addAttribute("productos", productoRepository.findAll());
+        model.addAttribute("ciudades", ciudadRepository.findAll());
+        model.addAttribute("terminados", terminadoService.obtenerTodosLosTerminados());
+        model.addAttribute("editMode", true);
+        
+        return "orden-form";
+    }
+
+    @PostMapping("/actualizar/{id}")
+    public String actualizarOrden(
+            @PathVariable("id") Long id,
+            @ModelAttribute Orden ordenActualizada,
+            @RequestParam("productoId") List<Long> productosId,
+            @RequestParam("terminadoId") List<Long> terminadosId,
+            @RequestParam("cantidad") List<Integer> cantidades,
+            @RequestParam("valor") List<BigDecimal> valores,
+            @RequestParam("descripcion") List<String> descripciones
+    ) {
+        Orden orden = ordenService.obtenerOrdenPorId(id);
+        if (orden == null) {
+            return "redirect:/ordenes";
+        }
+        
+        if (orden.getEstado() != EstadoOrden.PENDIENTE && orden.getEstado() != EstadoOrden.EN_PROCESO) {
+            return "redirect:/ordenes";
+        }
+        
+        orden.setFechaEntrega(ordenActualizada.getFechaEntrega());
+        orden.setDescripcionVenta(ordenActualizada.getDescripcionVenta());
+        orden.setTotalFactura(ordenActualizada.getTotalFactura());
+        orden.setEstado(ordenActualizada.getEstado());
+        
+        Orden ordenGuardada = ordenService.guardarOrden(orden);
+        
+        ordenService.eliminarDetallesOrden(id);
+        
+        for (int i = 0; i < terminadosId.size(); i++) {
+            DetalleOrden detalle = new DetalleOrden();
+            Terminado terminado = terminadoRepository.findById(terminadosId.get(i))
+                .orElseThrow(() -> new RuntimeException("Terminado no encontrado"));
+
+            detalle.setOrden(ordenGuardada); 
+            detalle.setTerminado(terminado);       
+            detalle.setCantidad(cantidades.get(i));
+            detalle.setValor(valores.get(i));
+            detalle.setDescripcion(descripciones.get(i));
+            ordenService.guardarDetalles(detalle);
+        }
+
+        return "redirect:/ordenes";
     }
 
 }
