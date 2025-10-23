@@ -24,16 +24,11 @@
         <!-- Si está autenticado -->
         <div sec:authorize="isAuthenticated()">
             <p sec:authentication="name" style="color: white; margin: 10px 0;"></p>
-            <a href="/" class="btn"><i class="bi bi-house-door-fill"></i> INICIO</a>
-            <a href="/productos/catalogo" class="btn"><i class="bi bi-journal-text"></i> CATÁLOGO</a>
-            <a href="/usuarios" class="btn"><i class="bi bi-people-fill"></i> USUARIOS</a>
-            <a href="/ordenes" class="btn"><i class="bi bi-receipt"></i> ÓRDENES</a>
+            <a href="/ordenes" class="btn"><i class="bi bi-receipt"></i> ORDENES</a>
             <a href="/productos" class="btn"><i class="bi bi-box-seam"></i> PRODUCTOS</a>
-            <a href="/perfiles" class="btn"><i class="bi bi-person-badge"></i> PERFILES</a>
-            <a href="/roles" class="btn"><i class="bi bi-shield-check"></i> ROLES</a>
-            <a href="/reportes" class="btn"><i class="bi bi-file-earmark-bar-graph"></i> REPORTES</a>
+            <a href="/usuarios" class="btn"><i class="bi bi-people-fill"></i> USUARIOS</a>
             <form th:action="@{/logout}" method="post" style="display: inline;">
-                <button type="submit" class="btn"><i class="bi bi-box-arrow-right"></i> CERRAR SESIÓN</button>
+            <button type="submit" class="btn"><i class="bi bi-box-arrow-right"></i>CERRAR SESIÓN</button>
             </form>
         </div>
     </div>
