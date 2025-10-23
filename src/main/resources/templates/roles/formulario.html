@@ -6,25 +6,30 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
 
     <div class="sidebar">
         <img src="/img/logo.png" alt="Logo MXG">
-        <a href="/" class="btn">INICIO</a>
-        <a href="#" class="btn">CATÁLOGO</a>
-        <a href="/usuarios" class="btn">USUARIOS</a>
-        <a href="/ordenes" class="btn">ORDENES</a>
-        <a href="/perfiles" class="btn">PERFILES</a>
-        <a href="/roles" class="btn active">ROLES</a>
-        <a href="/reportes" class="btn">REPORTES</a>
+        <a href="/" class="btn"><i class="bi bi-house-door-fill"></i> INICIO</a>
+        <a href="/productos/catalogo" class="btn"><i class="bi bi-journal-text"></i> CATÁLOGO</a>
+        <a href="/usuarios" class="btn"><i class="bi bi-people-fill"></i> USUARIOS</a>
+        <a href="/ordenes" class="btn"><i class="bi bi-receipt"></i> ÓRDENES</a>
+        <a href="/productos" class="btn"><i class="bi bi-box-seam"></i> PRODUCTOS</a>
+        <a href="/perfiles" class="btn"><i class="bi bi-person-badge"></i> PERFILES</a>
+        <a href="/roles" class="btn active"><i class="bi bi-shield-check"></i> ROLES</a>
+        <a href="/reportes" class="btn"><i class="bi bi-file-earmark-bar-graph"></i> REPORTES</a>
+        <form th:action="@{/logout}" method="post" style="display: inline;">
+            <button type="submit" class="btn"><i class="bi bi-box-arrow-right"></i> CERRAR SESIÓN</button>
+        </form>
     </div>
 
     <div class="main-content">
         <div class="form-container">
 
             <h4 class="form-title">
-                <i class="fa-solid fa-user-shield"></i> 
+                <i class="fa-solid fa-user-shield"></i>
                 <span th:text="${rol.id != null ? 'EDITAR ROL' : 'CREAR ROL'}">ROL</span>
             </h4>
 
@@ -35,19 +40,19 @@
                 </a>
             </div>
 
-            <form th:action="${rol.id != null ? '/roles/' + rol.id : '/roles'}" 
+            <form th:action="${rol.id != null ? '/roles/' + rol.id : '/roles'}"
                   th:object="${rol}" method="post" class="row g-3">
 
                 <div class="col-md-8">
                     <!-- Campo oculto para el ID en caso de edición -->
                     <input th:if="${rol.id != null}" type="hidden" th:field="*{id}">
-                    
+
                     <label class="form-icon-label">
                         <i class="fa-solid fa-user-shield"></i> Nombre del Rol *
                     </label>
-                    <input type="text" 
-                           th:field="*{nombreRol}" 
-                           class="form-control" 
+                    <input type="text"
+                           th:field="*{nombreRol}"
+                           class="form-control"
                            placeholder="Ej: ADMINISTRADOR, JURIDICO, VENDEDOR"
                            required
                            maxlength="50">
@@ -70,13 +75,13 @@
                         <i class="fa-solid fa-times"></i> CANCELAR
                     </a>
                     <button type="submit" class="custom-btn">
-                        <i class="fa-solid fa-save"></i> 
+                        <i class="fa-solid fa-save"></i>
                         <span th:text="${rol.id != null ? 'ACTUALIZAR' : 'GUARDAR'}">GUARDAR</span>
                     </button>
                 </div>
 
             </form>
-            
+
             <!-- Información adicional sobre roles existentes -->
             <div class="mt-4" th:if="${roles != null and not #lists.isEmpty(roles)}">
                 <h6><i class="fas fa-list"></i> Roles Existentes en el Sistema:</h6>
@@ -93,7 +98,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Ejemplos de nombres de roles -->
             <div class="mt-4">
                 <h6><i class="fas fa-lightbulb"></i> Ejemplos de Nombres de Roles:</h6>

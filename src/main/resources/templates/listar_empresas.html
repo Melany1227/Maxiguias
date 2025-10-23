@@ -1,25 +1,50 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
+  <meta charset="UTF-8">
   <title>Empresas</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" th:href="@{/css/estilos.css}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
-<h1>Lista de Empresas</h1>
-<table border="1">
-  <thead>
-  <tr>
-    <th>NIT</th>
-    <th>Nombre</th>
-    <th>Fecha de creación</th>
-  </tr>
-  </thead>
-  <tbody>
-  <tr th:each="empresa : ${empresas}">
-    <td th:text="${empresa.nitEmpresa}"></td>
-    <td th:text="${empresa.nombreEmpresa}"></td>
-    <td th:text="${#dates.format(empresa.fechaCreacionEmpresa, 'dd/MM/yyyy')}"></td>
-  </tr>
-  </tbody>
-</table>
+  <div class="sidebar">
+    <img src="/img/logo.png" alt="Logo MXG">
+    <a href="/" class="btn"><i class="bi bi-house-door-fill"></i> INICIO</a>
+    <a href="/productos/catalogo" class="btn"><i class="bi bi-journal-text"></i> CATÁLOGO</a>
+    <a href="/usuarios" class="btn"><i class="bi bi-people-fill"></i> USUARIOS</a>
+    <a href="/ordenes" class="btn"><i class="bi bi-receipt"></i> ÓRDENES</a>
+    <a href="/productos" class="btn"><i class="bi bi-box-seam"></i> PRODUCTOS</a>
+    <a href="/perfiles" class="btn"><i class="bi bi-person-badge"></i> PERFILES</a>
+    <a href="/roles" class="btn"><i class="bi bi-shield-check"></i> ROLES</a>
+    <a href="/reportes" class="btn"><i class="bi bi-file-earmark-bar-graph"></i> REPORTES</a>
+    <form th:action="@{/logout}" method="post" style="display: inline; width: 100%;">
+      <button type="submit" class="btn"><i class="bi bi-box-arrow-right"></i> CERRAR SESIÓN</button>
+    </form>
+  </div>
+
+  <div class="main-content">
+    <h1 class="mb-4">Lista de Empresas</h1>
+    <div class="card-table">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th>NIT</th>
+              <th>Nombre</th>
+              <th>Fecha de creación</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="empresa : ${empresas}">
+              <td th:text="${empresa.nitEmpresa}"></td>
+              <td th:text="${empresa.nombreEmpresa}"></td>
+              <td th:text="${#dates.format(empresa.fechaCreacionEmpresa, 'dd/MM/yyyy')}"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

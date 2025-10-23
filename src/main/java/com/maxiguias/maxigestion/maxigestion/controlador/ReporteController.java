@@ -223,4 +223,97 @@ public class ReporteController {
             }
         }
     }
+
+    // ========== MÉTODOS PARA REPORTE DE PRODUCTOS MÁS VENDIDOS ==========
+
+    @GetMapping("/estadisticas-productos-vendidos")
+    @ResponseBody
+    public Map<String, Long> obtenerEstadisticasProductosVendidos(@RequestParam(required = false) Integer mes) {
+        Map<String, Long> estadisticas = new HashMap<>();
+
+        if (mes != null && mes >= 1 && mes <= 12) {
+            // Si se especifica un mes, filtrar por mes del año actual
+            Integer anioActual = LocalDate.now().getYear();
+
+            // Obtener total de productos vendidos del mes especificado
+            Long totalProductosVendidos = ordenRepository.countTotalProductosVendidosByMes(mes, anioActual);
+
+            estadisticas.put("total", totalProductosVendidos != null ? totalProductosVendidos : 0L);
+        } else {
+            // Si no se especifica mes, mostrar todos los productos vendidos
+            Long totalProductosVendidos = ordenRepository.countTotalProductosVendidos();
+
+            estadisticas.put("total", totalProductosVendidos != null ? totalProductosVendidos : 0L);
+        }
+
+        return estadisticas;
+    }
+
+    @GetMapping("/exportar-excel-productos-vendidos")
+    public void exportarExcelProductosVendidos(@RequestParam(required = false) Integer mes, HttpServletResponse response) throws IOException {
+        // Configurar la respuesta HTTP
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        String fileName = "reporte_productos_vendidos_" + LocalDate.now() + ".xlsx";
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+
+        List<Object[]> productosVendidos;
+
+        if (mes != null && mes >= 1 && mes <= 12) {
+            // Si se especifica un mes, filtrar por mes del año actual
+            Integer anioActual = LocalDate.now().getYear();
+            productosVendidos = ordenRepository.findProductosMasVendidosByMes(mes, anioActual);
+        } else {
+            // Si no se especifica mes, obtener todos los productos vendidos
+            productosVendidos = ordenRepository.findProductosMasVendidos();
+        }
+
+        // Crear el archivo Excel
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Productos Más Vendidos");
+
+            // Crear estilo para el encabezado
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerFont.setColor(IndexedColors.WHITE.getIndex());
+            headerStyle.setFont(headerFont);
+            headerStyle.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            // Crear fila de encabezado
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"Posición", "Nombre del Producto", "Cantidad Vendida"};
+
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            // Llenar datos de productos
+            int rowNum = 1;
+            int posicion = 1;
+            for (Object[] productoData : productosVendidos) {
+                Row row = sheet.createRow(rowNum++);
+
+                // Posición
+                row.createCell(0).setCellValue(posicion++);
+
+                // Nombre del producto
+                row.createCell(1).setCellValue(productoData[0] != null ? productoData[0].toString() : "");
+
+                // Cantidad vendida
+                Long cantidad = productoData[1] != null ? ((Number) productoData[1]).longValue() : 0L;
+                row.createCell(2).setCellValue(cantidad);
+            }
+
+            // Ajustar el ancho de las columnas
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            // Escribir el archivo
+            workbook.write(response.getOutputStream());
+        }
+    }
 }
