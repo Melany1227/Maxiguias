@@ -150,7 +150,7 @@ public class OrdenController {
             ordenService.guardarDetalles(detalle);
         }
 
-        return "redirect:/ordenes";
+        return "redirect:/ordenes?mensaje=Orden creada satisfactoriamente";
     }
 
     @GetMapping
@@ -158,6 +158,8 @@ public class OrdenController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String filtroCliente,
+            @RequestParam(required = false) String mensaje,
+            @RequestParam(required = false) String error,
             Model model) {
         
         // Ordenamiento por fecha de orden descendente (más recientes primero)
@@ -184,6 +186,14 @@ public class OrdenController {
         model.addAttribute("totalElements", ordenesPage.getTotalElements());
         model.addAttribute("size", size);
         model.addAttribute("filtroCliente", filtroCliente);
+        
+        // Agregar mensajes de confirmación
+        if (mensaje != null) {
+            model.addAttribute("mensaje", mensaje);
+        }
+        if (error != null) {
+            model.addAttribute("error", error);
+        }
         
         return "listar_ordenes"; 
     }
@@ -279,7 +289,7 @@ public class OrdenController {
             ordenService.guardarDetalles(detalle);
         }
 
-        return "redirect:/ordenes";
+        return "redirect:/ordenes?mensaje=Orden actualizada satisfactoriamente";
     }
 
 }

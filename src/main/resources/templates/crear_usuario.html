@@ -129,33 +129,51 @@
         </div>
     </div>
 
-    <div class="modal fade" id="mensajeModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content text-center p-4" 
-                th:classappend="${tipoMensaje} == 'error' ? ' modal-error' : ' modal-success'">
-                <div class="modal-body">
-                    <h5 th:text="${mensajeModal}">Mensaje aquí</h5>
-                    <button type="button" id="okBtn" class="btn btn-warning mt-3" data-bs-dismiss="modal">OK</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Scripts de mensajes -->
+    <script th:if="${mensaje}">
+        Swal.fire({
+            title: '¡Éxito!',
+            text: /*[[${mensaje}]]*/ 'Usuario creado satisfactoriamente',
+            icon: 'success',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: "#b8922f"
+        })
+    </script>
+    
+    <script th:if="${error}">
+        Swal.fire({
+            title: 'Error',
+            text: /*[[${error}]]*/ 'Ocurrió un error',
+            icon: 'error',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: "#d33"
+        })
+    </script>
     <script th:inline="javascript">
         /*<![CDATA[*/
-        let mensaje = /*[[${mensajeModal}]]*/ null;
+        let mensajeModal = /*[[${mensajeModal}]]*/ null;
         let redirigir = /*[[${redirigirDespues}]]*/ false;
+        let tipoMensaje = /*[[${tipoMensaje}]]*/ null;
 
-        if (mensaje && mensaje !== 'null' && mensaje.trim() !== '') {
-            const modalElement = document.getElementById('mensajeModal');
-            const modal = new bootstrap.Modal(modalElement);
-
-            modal.show();
-
-            document.getElementById('okBtn').addEventListener('click', function () {
+        if (mensajeModal && mensajeModal !== 'null' && mensajeModal.trim() !== '') {
+            const icono = tipoMensaje === 'error' ? 'error' : 'success';
+            const titulo = tipoMensaje === 'error' ? 'Error' : '¡Éxito!';
+            const color = tipoMensaje === 'error' ? '#d33' : '#b8922f';
+            
+            Swal.fire({
+                title: titulo,
+                text: mensajeModal,
+                icon: icono,
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: color
+            }).then(() => {
                 if (redirigir) {
-                    window.location.href = '/usuarios'; 
+                    window.location.href = '/usuarios';
                 }
             });
         }
@@ -187,12 +205,13 @@
                 if (mensaje) {
                     event.preventDefault();
 
-                    const mensajeTexto = document.querySelector('#mensajeModal h5');
-                    mensajeTexto.textContent = mensaje;
-
-                    const modalElement = document.getElementById('mensajeModal');
-                    const modal = new bootstrap.Modal(modalElement);
-                    modal.show();
+                    Swal.fire({
+                        title: 'Error de validación',
+                        text: mensaje,
+                        icon: 'error',
+                        confirmButtonText: 'Aceptar',
+                        confirmButtonColor: '#d33'
+                    });
                 }
             });
         });
