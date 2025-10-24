@@ -38,6 +38,10 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>, PagingA
 
    boolean existsByNombreUsuario(String nombreUsuario);
 
+   boolean existsByCorreo(String correo);
+
+   Optional<Usuario> findByCorreo(String correo);
+
    // Métodos para reportes
    Long countByTipoUsuario_Id(Integer tipoUsuarioId);
 
