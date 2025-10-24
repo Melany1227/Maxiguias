@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.maxiguias.maxigestion.maxigestion.modelo.TipoUsuario;
 
 public interface TipoUsuarioRepository extends JpaRepository<TipoUsuario, Long> {
-
+    TipoUsuario findByNombre(String nombre);
 }
