@@ -85,7 +85,27 @@ public class UsuarioController {
     }
 
     @PostMapping()
-    public String crearUsuario(@ModelAttribute Usuario usuario, Model model) {
+    public String crearUsuario(@ModelAttribute Usuario usuario, 
+                              @RequestParam(required = false) String confirmarContrasena, 
+                              Model model) {
+        
+        // Validar confirmación de contraseña si se proporcionó
+        if (usuario.getContrasena() != null && !usuario.getContrasena().trim().isEmpty() &&
+            confirmarContrasena != null && !confirmarContrasena.trim().isEmpty()) {
+            if (!usuario.getContrasena().equals(confirmarContrasena)) {
+                model.addAttribute("usuario", usuario);
+                model.addAttribute("mensajeModal", "Las contraseñas no coinciden.");
+                model.addAttribute("tipoMensaje", "error");
+                model.addAttribute("tiposUsuario", tipoUsuarioService.obtenerTiposUsuario()); 
+                model.addAttribute("perfiles", perfilService.obtenerPerfiles());
+                model.addAttribute("departamentos", departamentoRepository.findAll());
+                model.addAttribute("ciudades", ciudadRepository.findAll()); 
+                model.addAttribute("esEdicion", false);
+                model.addAttribute("tieneContrasena", false);
+                return "crear_usuario";
+            }
+        }
+        
         String resultado = usuarioService.crearUsuario(usuario);
         model.addAttribute("tiposUsuario", tipoUsuarioService.obtenerTiposUsuario()); 
         model.addAttribute("perfiles", perfilService.obtenerPerfiles());
@@ -129,7 +149,27 @@ public class UsuarioController {
     }
 
     @PostMapping("/actualizar")
-    public String actualizarUsuario(@ModelAttribute Usuario usuario, Model model) {
+    public String actualizarUsuario(@ModelAttribute Usuario usuario, 
+                                   @RequestParam(required = false) String confirmarContrasena, 
+                                   Model model) {
+        
+        // Validar confirmación de contraseña si se proporcionó una nueva contraseña
+        if (usuario.getContrasena() != null && !usuario.getContrasena().trim().isEmpty() &&
+            confirmarContrasena != null && !confirmarContrasena.trim().isEmpty()) {
+            if (!usuario.getContrasena().equals(confirmarContrasena)) {
+                model.addAttribute("mensajeModal", "Las contraseñas no coinciden."); 
+                model.addAttribute("tipoMensaje", "error");
+                model.addAttribute("usuario", usuario);
+                model.addAttribute("tiposUsuario", tipoUsuarioService.obtenerTiposUsuario());
+                model.addAttribute("perfiles", perfilService.obtenerPerfiles());
+                model.addAttribute("departamentos", departamentoRepository.findAll());
+                model.addAttribute("ciudades", ciudadRepository.findAll());
+                model.addAttribute("esEdicion", true);
+                model.addAttribute("tieneContrasena", true);
+                return "crear_usuario";
+            }
+        }
+        
         String resultado = usuarioService.actualizarUsuario(usuario);
 
         if (!resultado.equals("Usuario actualizado exitosamente.")) {
@@ -153,6 +193,20 @@ public class UsuarioController {
         return "crear_usuario";
     }
 
+
+    @GetMapping("/ver/{id}")
+    public String verDetallesUsuario(@PathVariable Long id, Model model) {
+        Usuario usuario = usuarioService.obtenerPorId(id);
+        
+        if (usuario == null) {
+            model.addAttribute("mensajeModal", "Usuario no encontrado.");
+            model.addAttribute("tipoMensaje", "error");
+            return "redirect:/usuarios";
+        }
+        
+        model.addAttribute("usuario", usuario);
+        return "ver_usuario";
+    }
 
     @PostMapping("/eliminar/{id}")
     public String eliminarUsuario(RedirectAttributes redirectAttributes, @PathVariable Long id) {
