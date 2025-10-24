@@ -31,34 +31,14 @@
                     <input type="number" th:field="*{documento}" class="form-control" required>
 
                     <label class="form-icon-label">
-                        <i class="fa-solid fa-user"></i> Primer Apellido
-                    </label>
-                    <input type="text" th:field="*{primerApellido}" class="form-control">
-
-                    <label class="form-icon-label">
-                        <i class="fa-solid fa-location-dot"></i> Dirección *
-                    </label>
-                    <input type="text" th:field="*{direccion}" class="form-control" required>
-                    
-                    <label class="form-icon-label">
-                        <i class="fa-solid fa-user"></i> Nombre de Usuario
-                    </label>
-                    <input type="text" th:field="*{nombreUsuario}" class="form-control">
-
-                   <label class="form-icon-label">
-                        <i class="fa-solid fa-user"></i> Tipo de Usuario *
-                    </label>
-                    <select th:field="*{tipoUsuario}" class="form-control" required>
-                        <option value="">Seleccione</option>
-                        <option th:each="tipo : ${tiposUsuario}" th:value="${tipo.id}" th:text="${tipo.nombre}"></option>
-                    </select>
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-icon-label">
                         <i class="fa-solid fa-user"></i> Nombre *
                     </label>
                     <input type="text" th:field="*{nombre}" class="form-control" required>
+
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-user"></i> Primer Apellido
+                    </label>
+                    <input type="text" th:field="*{primerApellido}" class="form-control">
 
                     <label class="form-icon-label">
                         <i class="fa-solid fa-user"></i> Segundo Apellido
@@ -69,6 +49,63 @@
                         <i class="fa-solid fa-phone"></i> Teléfono *
                     </label>
                     <input type="number" th:field="*{telefono}" class="form-control" required>
+
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-location-dot"></i> Dirección *
+                    </label>
+                    <input type="text" th:field="*{direccion}" class="form-control" required>
+
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-envelope"></i> Correo Electrónico
+                    </label>
+                    <input type="email" th:field="*{correo}" class="form-control">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-user"></i> Nombre de Usuario
+                    </label>
+                    <input type="text" th:field="*{nombreUsuario}" class="form-control">
+
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-lock"></i> Contraseña 
+                    </label>
+                    <div class="password-input-container">
+                        <input type="password" th:field="*{contrasena}" 
+                               th:placeholder="${esEdicion and tieneContrasena} ? '••••••••' : ''" 
+                               class="form-control" id="contrasena">
+                        <button type="button" class="password-toggle" onclick="togglePasswordAdmin('contrasena')">
+                            <i class="fa-solid fa-eye" id="eye-contrasena"></i>
+                        </button>
+                    </div>
+
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-lock"></i> Confirmar Contraseña 
+                    </label>
+                    <div class="password-input-container">
+                        <input type="password" name="confirmarContrasena" 
+                               placeholder="Confirma la contraseña" 
+                               class="form-control" id="confirmarContrasena">
+                        <button type="button" class="password-toggle" onclick="togglePasswordAdmin('confirmarContrasena')">
+                            <i class="fa-solid fa-eye" id="eye-confirmarContrasena"></i>
+                        </button>
+                    </div>
+
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-user"></i> Tipo de Usuario *
+                    </label>
+                    <select th:field="*{tipoUsuario}" class="form-control" required>
+                        <option value="">Seleccione</option>
+                        <option th:each="tipo : ${tiposUsuario}" th:value="${tipo.id}" th:text="${tipo.nombre}"></option>
+                    </select>
+
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-user"></i> Perfil *
+                    </label>
+                    <select th:field="*{perfil}" class="form-control" required>
+                        <option value="">Seleccione</option>
+                        <option th:each="perfil : ${perfiles}" th:value="${perfil.id}" th:text="${perfil.nombrePerfil}"></option>
+                    </select>
 
                     <label class="form-icon-label">
                         <i class="fa-solid fa-map"></i> Departamento *
@@ -91,21 +128,6 @@
                                 th:value="${ciudad.id}" 
                                 th:text="${ciudad.nombre}">
                         </option>
-                    </select>
-
-                    <label class="form-icon-label">
-                        <i class="fa-solid fa-user"></i> Contraseña 
-                    </label>
-                    <input type="password" th:field="*{contrasena}" 
-                           th:placeholder="${esEdicion and tieneContrasena} ? '••••••••' : ''" 
-                           class="form-control">
-
-                    <label class="form-icon-label">
-                        <i class="fa-solid fa-user"></i> Perfil *
-                    </label>
-                    <select th:field="*{perfil}" class="form-control" required>
-                        <option value="">Seleccione</option>
-                        <option th:each="perfil : ${perfiles}" th:value="${perfil.id}" th:text="${perfil.nombrePerfil}"></option>
                     </select>
                 </div>
 
@@ -168,12 +190,30 @@
             });
         }
         /*]]>*/
+        // Función para alternar visibilidad de contraseñas
+        function togglePasswordAdmin(fieldId) {
+            const passwordField = document.getElementById(fieldId);
+            const eyeIcon = document.getElementById('eye-' + fieldId);
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", function () {
             const soloLetras = /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/;
 
             const nombreInput = document.querySelector('[name="nombre"]');
             const primerApellidoInput = document.querySelector('[name="primerApellido"]');
             const segundoApellidoInput = document.querySelector('[name="segundoApellido"]');
+            const contrasenaInput = document.getElementById('contrasena');
+            const confirmarContrasenaInput = document.getElementById('confirmarContrasena');
             const formulario = document.querySelector('form');
 
             function esValido(input) {
@@ -190,6 +230,9 @@
                     mensaje = 'El campo primer apellido solo permite letras y espacios.';
                 } else if (!esValido(segundoApellidoInput)) {
                     mensaje = 'El campo segundo apellido solo permite letras y espacios.';
+                } else if (contrasenaInput.value && confirmarContrasenaInput.value && 
+                          contrasenaInput.value !== confirmarContrasenaInput.value) {
+                    mensaje = 'Las contraseñas no coinciden.';
                 }
 
                 if (mensaje) {

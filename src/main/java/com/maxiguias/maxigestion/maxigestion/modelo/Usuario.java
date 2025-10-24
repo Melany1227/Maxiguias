@@ -41,6 +41,9 @@ public class Usuario {
     @Column(name = "CONTRASENA")
     private String contrasena;
 
+    @Column(name = "CORREO", length = 100)
+    private String correo;
+
     @Column(name = "FECHA_REGISTRO", insertable = false, updatable = false, columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime fechaRegistro;
 

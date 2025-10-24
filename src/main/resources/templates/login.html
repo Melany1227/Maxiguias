@@ -39,7 +39,8 @@
                 <input id="password" name="password" type="password" required />
               </div>
               <button type="submit" class="btn-login">INICIAR</button>
-              <!-- <p class="hint"><a href="#" tabindex="-1">¿Olvidaste tu contraseña?</a></p>-->
+              <p class="hint"><a th:href="@{/registro}">¿No tienes cuenta? Regístrate aquí</a></p>
+              <p class="hint"><a th:href="@{/recuperar-password}">¿Olvidaste tu contraseña?</a></p>
             </form>
           </section>
         </main>
