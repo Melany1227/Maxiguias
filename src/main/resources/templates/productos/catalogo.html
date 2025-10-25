@@ -6,13 +6,21 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/estilos.css}">
 </head>
+
+
 <body>
 
     <!-- Sidebar -->
     <div class="sidebar">
         <img src="/img/logo.png" alt="Logo MXG">
         <a href="/" class="btn"><i class="bi bi-house-door-fill"></i> INICIO</a>
-        <a href="/productos/catalogo" class="btn"><i class="bi bi-journal-text"></i> CATÁLOGO PUBLICO</a>
+           <!-- <a href="/productos/juridico" class="btn"><i class="bi bi-journal-text"></i> CATÁLOGO Juridico</a>-->
+        <a href="/productos/publico">Catálogo público</a>
+
+        <!-- Solo visible si el usuario es jurídico -->
+        <th:block th:if="${rolUsuario == 'JURIDICO'}">
+            <a href="/productos/juridico">Catálogo jurídico</a>
+        </th:block>
     </div>
 
     <!-- Contenido principal -->
@@ -68,7 +76,7 @@
                          style="max-width: 100%; height: auto; max-height: 400px; object-fit: contain; margin: 0 auto; display: block;"
                          onerror="if(this.src!='https://via.placeholder.com/600x400/cccccc/666666?text=Error'){this.src='https://via.placeholder.com/600x400/cccccc/666666?text=Error'}">
 
-                    <!-- Tabla de precios -->
+                    <!-- Tabla de precios 
                     <table class="table table-hover align-middle">
                         <thead class="table-dark">
                             <tr>
@@ -82,7 +90,37 @@
                                 <td th:text="'$' + ${t.precioPublico}"></td>
                             </tr>
                         </tbody>
-                    </table>
+                    </table>-->
+                    
+  <table class="table table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Medida</th>
+            <th th:if="${rolUsuario == 'PUBLICO'}">Precio Público</th>
+            <th th:if="${rolUsuario == 'JURIDICO'}">Precio x Mayor</th>
+            <th th:if="${rolUsuario == 'JURIDICO'}">Precio x Encargo</th>
+            <th th:if="${rolUsuario == 'JURIDICO'}">Ganancia x Mayor</th>
+            <th th:if="${rolUsuario == 'JURIDICO'}">Ganancia x Encargo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="t : ${producto.terminados}">
+            <td th:text="${t.medidaTerminadoProducto}"></td>
+
+            <!-- Vista para público -->
+            <td th:if="${rolUsuario == 'PUBLICO'}" th:text="'$' + ${t.precioPublico}"></td>
+
+            <!-- Vista para jurídico -->
+            <td th:if="${rolUsuario == 'JURIDICO'}" th:text="'$' + ${t.precioPorMayor}"></td>
+            <td th:if="${rolUsuario == 'JURIDICO'}" th:text="'$' + ${t.precioPorEncargo}"></td>
+            <td th:if="${rolUsuario == 'JURIDICO'}" th:text="${t.gananciaXMayor != null ? t.gananciaXMayor + '%' : '-'}"></td>
+            <td th:if="${rolUsuario == 'JURIDICO'}" th:text="${t.gananciaXEncargo != null ? t.gananciaXEncargo + '%' : '-'}"></td>
+        </tr>
+    </tbody>
+</table>
+
+
+
                 </div>
                     <div class="modal-footer">
                         <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>

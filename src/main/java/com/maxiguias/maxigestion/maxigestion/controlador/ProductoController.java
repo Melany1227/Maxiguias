@@ -18,8 +18,11 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.maxiguias.maxigestion.maxigestion.modelo.Producto;
+import com.maxiguias.maxigestion.maxigestion.modelo.Usuario;
 import com.maxiguias.maxigestion.maxigestion.servicio.CloudinaryService;
 import com.maxiguias.maxigestion.maxigestion.servicio.ProductoService;
+
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/productos")
@@ -67,22 +70,23 @@ public class ProductoController {
         System.out.println("=== INICIANDO CREACIÓN DE PRODUCTO ===");
         System.out.println("ID: " + producto.getId());
         System.out.println("Nombre: " + producto.getNombre());
-        System.out.println("Terminados: " + (producto.getTerminados() != null ? producto.getTerminados().size() : "null"));
-        
+        System.out.println(
+                "Terminados: " + (producto.getTerminados() != null ? producto.getTerminados().size() : "null"));
+
         try {
             // Subir imagen si se proporciona
             if (imagenFile != null && !imagenFile.isEmpty()) {
                 System.out.println("=== SUBIENDO IMAGEN ===");
                 System.out.println("Archivo: " + imagenFile.getOriginalFilename());
                 System.out.println("Tamaño: " + imagenFile.getSize());
-                
+
                 String publicId = cloudinaryService.uploadImage(imagenFile);
                 System.out.println("Public ID generado: " + publicId);
                 producto.setImagen(publicId);
             } else {
                 System.out.println("=== NO HAY ARCHIVO DE IMAGEN ===");
             }
-            
+
             System.out.println("URL final del producto: " + producto.getImagen());
             productoService.guardarProducto(producto);
             ra.addFlashAttribute("mensaje", "Producto creado exitosamente");
@@ -117,14 +121,14 @@ public class ProductoController {
 
     @PostMapping("/{id}")
     public String actualizarProducto(
-            @PathVariable Long id, 
+            @PathVariable Long id,
             @ModelAttribute Producto producto,
             @RequestParam(value = "imagenFile", required = false) MultipartFile imagenFile,
             RedirectAttributes ra) {
         try {
             // Obtener producto existente para mantener imagen actual si no se sube nueva
             Optional<Producto> productoExistente = productoService.obtenerProductoPorId(id);
-            
+
             if (imagenFile != null && !imagenFile.isEmpty()) {
                 // Eliminar imagen anterior si existe
                 if (productoExistente.isPresent() && productoExistente.get().getImagen() != null) {
@@ -137,7 +141,7 @@ public class ProductoController {
                 // Mantener imagen existente
                 producto.setImagen(productoExistente.get().getImagen());
             }
-            
+
             productoService.actualizarProducto(id, producto);
             ra.addFlashAttribute("mensaje", "Producto actualizado exitosamente");
         } catch (Exception e) {
@@ -156,12 +160,64 @@ public class ProductoController {
         }
     }
 
-    @GetMapping("/catalogo")
-    public String catalogo(Model model) {
+    // @GetMapping("/catalogo")
+    // public String catalogo(Model model, HttpSession session) {
+    // List<Producto> productos = productoService.listarProductos();
+    // model.addAttribute("productos", productos);
+    // model.addAttribute("cloudinaryService", cloudinaryService);
+
+    // String rolUsuario = "PUBLICO"; // valor por defecto
+
+    // Recuperar usuario guardado en sesión
+    // Usuario usuario = (Usuario) session.getAttribute("usuario");
+    // if (usuario != null && usuario.getPerfil() != null &&
+    // usuario.getPerfil().getRol() != null) {
+    // String nombreRol = usuario.getPerfil().getRol().getNombreRol();
+    // if ("ADMINISTRADOR".equalsIgnoreCase(nombreRol)) {
+    // rolUsuario = "ADMINISTRADOR";
+    // } else if ("JURIDICO".equalsIgnoreCase(nombreRol)) {
+    // rolUsuario = "JURIDICO";
+    // }
+    // }
+
+    // System.out.println("=== Rol del usuario detectado: " + rolUsuario);
+    // model.addAttribute("rolUsuario", rolUsuario);
+
+    // return "productos/catalogo";
+    // }
+
+    // === Catálogo público ===
+    @GetMapping("/publico")
+    public String catalogoPublico(Model model) {
         List<Producto> productos = productoService.listarProductos();
         model.addAttribute("productos", productos);
         model.addAttribute("cloudinaryService", cloudinaryService);
-        return "productos/catalogo"; // nueva vista
+        model.addAttribute("rolUsuario", "PUBLICO");
+        return "productos/catalogo";
+    }
+
+    // === Catálogo jurídico ===
+    @GetMapping("/juridico")
+    public String catalogoJuridico(Model model, HttpSession session) {
+        Usuario usuario = (Usuario) session.getAttribute("usuario");
+        String rolUsuario = "PUBLICO";
+
+        if (usuario != null && usuario.getPerfil() != null && usuario.getPerfil().getRol() != null) {
+            String nombreRol = usuario.getPerfil().getRol().getNombreRol();
+            if ("JURIDICO".equalsIgnoreCase(nombreRol)) {
+                rolUsuario = "JURIDICO";
+            }
+        }
+
+        if (!"JURIDICO".equals(rolUsuario)) {
+            return "redirect:/error/403";
+        }
+
+        List<Producto> productos = productoService.listarProductos();
+        model.addAttribute("productos", productos);
+        model.addAttribute("cloudinaryService", cloudinaryService);
+        model.addAttribute("rolUsuario", rolUsuario);
+        return "productos/catalogo";
     }
 
 }
