@@ -302,10 +302,13 @@ body {
     padding: 10px 20px;
     border-radius: 5px;
     margin-top: 20px;
+    text-decoration: none;
 }
 
 .custom-btn:hover {
     background-color: #222;
+    text-decoration: none;
+    color: white;
 }
 
 .modal-success {
@@ -792,5 +795,45 @@ td .input-group {
             object-fit: contain;
             border-radius: 10px;
             }
+
+/* Quitar subrayado de todos los enlaces que son botones */
+a.btn, 
+a.custom-btn, 
+a.btn-black-yellow,
+a[class*="btn"] {
+    text-decoration: none !important;
+}
+
+a.btn:hover, 
+a.custom-btn:hover, 
+a.btn-black-yellow:hover,
+a[class*="btn"]:hover {
+    text-decoration: none !important;
+}
+
+/* Scroll para el sidebar */
+.sidebar {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+/* Personalizar la barra de scroll del sidebar */
+.sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(208, 167, 54, 0.6);
+    border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(208, 167, 54, 0.8);
+}
 
             
