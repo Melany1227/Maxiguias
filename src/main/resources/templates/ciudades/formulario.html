@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${ciudad.id != null ? 'Editar Ciudad' : 'Crear Ciudad'}">Ciudad</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+
+    <div th:replace="menú/sidebar :: sidebar"></div>
+
+    <div class="main-content">
+        <div class="form-container">
+
+            <h4 class="form-title">
+                <i class="fa-solid fa-city"></i> 
+                <span th:text="${ciudad.id != null ? 'EDITAR CIUDAD' : 'CREAR CIUDAD'}">CIUDAD</span>
+            </h4>
+
+            <!-- Botón para volver -->
+            <div class="mb-3">
+                <a href="/ciudades" class="custom-btn">
+                    <i class="fas fa-arrow-left"></i> Volver a la lista
+                </a>
+            </div>
+
+            <form th:action="${ciudad.id != null ? '/ciudades/' + ciudad.id : '/ciudades'}" 
+                  th:object="${ciudad}" method="post" class="row g-3">
+
+                <div class="col-md-6">
+                    <!-- Campo oculto para el ID en caso de edición -->
+                    <input th:if="${ciudad.id != null}" type="hidden" th:field="*{id}">
+                    
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-city"></i> Nombre de la Ciudad *
+                    </label>
+                    <input type="text" 
+                           th:field="*{nombre}" 
+                           class="form-control" 
+                           placeholder="Ej: Medellín, Bogotá, Cali"
+                           required
+                           maxlength="100">
+                    <small class="form-text text-muted">Máximo 100 caracteres. Use la denominación oficial de la ciudad.</small>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-map"></i> Departamento *
+                    </label>
+                    <select th:field="*{departamento.id}" class="form-select" required>
+                        <option value="">Seleccione un departamento</option>
+                        <option th:each="depto : ${departamentos}" 
+                                th:value="${depto.id}" 
+                                th:text="${depto.nombre}"
+                                th:selected="${ciudad.departamento != null and ciudad.departamento.id == depto.id}">
+                        </option>
+                    </select>
+                    <small class="form-text text-muted">Seleccione el departamento al que pertenece la ciudad.</small>
+                </div>
+
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Información sobre ciudades:</strong><br>
+                        • Las ciudades deben estar asociadas a un departamento específico.<br>
+                        • Use nombres oficiales de municipios o ciudades colombianas.<br>
+                        • Si no encuentra el departamento, créelo primero en la sección de departamentos.<br>
+                        • Las ciudades son utilizadas para ubicación geográfica en el sistema.
+                    </div>
+                </div>
+
+                <div class="col-12 d-flex justify-content-end gap-2">
+                    <a href="/ciudades" class="btn btn-outline-secondary">
+                        <i class="fa-solid fa-times"></i> CANCELAR
+                    </a>
+                    <button type="submit" class="custom-btn">
+                        <i class="fa-solid fa-save"></i> 
+                        <span th:text="${ciudad.id != null ? 'ACTUALIZAR' : 'GUARDAR'}">GUARDAR</span>
+                    </button>
+                </div>
+
+            </form>
+            
+            <!-- Enlaces rápidos -->
+            <div class="mt-4">
+                <h6><i class="fas fa-link"></i> Enlaces Rápidos:</h6>
+                <div class="d-flex gap-2">
+                    <a href="/departamentos" class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-map"></i> Gestionar Departamentos
+                    </a>
+                    <a href="/departamentos/nuevo" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-plus"></i> Crear Departamento
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Ejemplos de nombres de ciudades -->
+            <div class="mt-4">
+                <h6><i class="fas fa-lightbulb"></i> Ejemplos de Ciudades por Departamento:</h6>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="alert alert-light">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <small class="text-muted">Antioquia:</small><br>
+                                    <code>Medellín</code><br>
+                                    <code>Bello</code><br>
+                                    <code>Itagüí</code><br>
+                                    <code>Envigado</code>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">Cundinamarca:</small><br>
+                                    <code>Bogotá</code><br>
+                                    <code>Soacha</code><br>
+                                    <code>Chía</code><br>
+                                    <code>Zipaquirá</code>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">Valle del Cauca:</small><br>
+                                    <code>Cali</code><br>
+                                    <code>Palmira</code><br>
+                                    <code>Buenaventura</code><br>
+                                    <code>Tulúa</code>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">Atlántico:</small><br>
+                                    <code>Barranquilla</code><br>
+                                    <code>Soledad</code><br>
+                                    <code>Malambo</code><br>
+                                    <code>Puerto Colombia</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Scripts de mensajes -->
+    <script th:if="${mensaje}">
+        Swal.fire({
+            title: '¡Éxito!',
+            text: /*[[${mensaje}]]*/ 'Ciudad guardada satisfactoriamente',
+            icon: 'success',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: "#b8922f"
+        })
+    </script>
+    
+    <script th:if="${error}">
+        Swal.fire({
+            title: 'Error',
+            text: /*[[${error}]]*/ 'Ocurrió un error',
+            icon: 'error',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: "#d33"
+        })
+    </script>
+</body>
+</html>
