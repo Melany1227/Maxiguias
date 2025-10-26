@@ -192,7 +192,7 @@ public class ProductoController {
         List<Producto> productos = productoService.listarProductos();
         model.addAttribute("productos", productos);
         model.addAttribute("cloudinaryService", cloudinaryService);
-        model.addAttribute("rolUsuario", "PUBLICO");
+        model.addAttribute("rolUsuario", "NATURAL");
         return "productos/catalogo";
     }
 
@@ -200,7 +200,7 @@ public class ProductoController {
     @GetMapping("/juridico")
     public String catalogoJuridico(Model model, HttpSession session) {
         Usuario usuario = (Usuario) session.getAttribute("usuario");
-        String rolUsuario = "PUBLICO";
+        String rolUsuario = "NATURAL";
 
         if (usuario != null && usuario.getPerfil() != null && usuario.getPerfil().getRol() != null) {
             String nombreRol = usuario.getPerfil().getRol().getNombreRol();
