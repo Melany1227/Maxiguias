@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import jakarta.servlet.http.HttpSession;
+
 import com.maxiguias.maxigestion.maxigestion.modelo.DetalleOrden;
 import com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden;
 import com.maxiguias.maxigestion.maxigestion.modelo.Orden;
@@ -65,20 +67,57 @@ public class OrdenController {
     private TerminadoRepository terminadoRepository;
 
     @GetMapping("/nueva")
-    public String mostrarFormulario(Model model) {
+    public String mostrarFormulario(Model model, HttpSession session) {
+        // Obtener usuario logueado
+        Usuario usuarioLogueado = (Usuario) session.getAttribute("usuario");
+        
         model.addAttribute("orden", new Orden());
         model.addAttribute("detalles", new ArrayList<DetalleOrden>());
         model.addAttribute("empresa", empresaRepository.findAll().get(0)); 
         model.addAttribute("productos", productoRepository.findAll());
         model.addAttribute("ciudades", ciudadRepository.findAll());
         model.addAttribute("terminados", terminadoService.obtenerTodosLosTerminados()); 
+        
+        // Determinar si el usuario es administrador o cliente jurídico
+        boolean esAdministrador = false;
+        boolean esClienteJuridico = false;
+        
+        if (usuarioLogueado != null) {
+            // Es administrador si tiene rol "ADMINISTRADOR"
+            if (usuarioLogueado.getPerfil() != null && 
+                usuarioLogueado.getPerfil().getRol() != null &&
+                "ADMINISTRADOR".equals(usuarioLogueado.getPerfil().getRol().getNombreRol())) {
+                esAdministrador = true;
+            }
+            
+            // Es cliente jurídico si su tipo de usuario es "JURIDICO"
+            if (usuarioLogueado.getTipoUsuario() != null &&
+                "JURIDICO".equals(usuarioLogueado.getTipoUsuario().getNombre())) {
+                esClienteJuridico = true;
+            }
+        }
+        
+        model.addAttribute("esAdministrador", esAdministrador);
+        model.addAttribute("esClienteJuridico", esClienteJuridico);
+        model.addAttribute("usuarioLogueado", usuarioLogueado);
+        model.addAttribute("editMode", false); // Para nueva orden, editMode es false
 
         return "orden-form";
     }
 
     @GetMapping("/buscar-usuarios")
     @ResponseBody
-    public List<Usuario> buscarUsuarios(@RequestParam String termino) {
+    public List<Usuario> buscarUsuarios(@RequestParam String termino, HttpSession session) {
+        // Verificar que el usuario logueado sea administrador
+        Usuario usuarioLogueado = (Usuario) session.getAttribute("usuario");
+        
+        if (usuarioLogueado == null || 
+            usuarioLogueado.getPerfil() == null || 
+            usuarioLogueado.getPerfil().getRol() == null ||
+            !"ADMINISTRADOR".equals(usuarioLogueado.getPerfil().getRol().getNombreRol())) {
+            // Solo los administradores pueden buscar usuarios
+            return new ArrayList<>();
+        }
         try {
             if (termino == null || termino.trim().isEmpty()) {
                 return new ArrayList<>();
@@ -132,8 +171,28 @@ public class OrdenController {
             @RequestParam("terminadoId") List<Long> terminadosId,
             @RequestParam("cantidad") List<Integer> cantidades,
             @RequestParam("valor") List<BigDecimal> valores,
-            @RequestParam("descripcion") List<String> descripciones
+            @RequestParam("descripcion") List<String> descripciones,
+            HttpSession session
     ) {
+        // Obtener usuario logueado
+        Usuario usuarioLogueado = (Usuario) session.getAttribute("usuario");
+        
+        if (usuarioLogueado == null) {
+            return "redirect:/login?error=Session expired";
+        }
+        
+        // Validación de seguridad: Si es cliente jurídico, solo puede crear órdenes para sí mismo
+        boolean esAdministrador = usuarioLogueado.getPerfil() != null && 
+                                usuarioLogueado.getPerfil().getRol() != null &&
+                                "ADMINISTRADOR".equals(usuarioLogueado.getPerfil().getRol().getNombreRol());
+        
+        boolean esClienteJuridico = usuarioLogueado.getTipoUsuario() != null &&
+                                  "JURIDICO".equals(usuarioLogueado.getTipoUsuario().getNombre());
+        
+        if (esClienteJuridico && !esAdministrador) {
+            // Si es cliente jurídico (no administrador), forzar la orden para él mismo
+            orden.setUsuario(usuarioLogueado);
+        }
 
         Orden ordenGuardada = ordenService.guardarOrden(orden);
 
@@ -227,7 +286,7 @@ public class OrdenController {
     }
 
     @GetMapping("/editar/{id}")
-    public String mostrarFormularioEdicion(@PathVariable("id") Long id, Model model) {
+    public String mostrarFormularioEdicion(@PathVariable("id") Long id, Model model, HttpSession session) {
         Orden orden = ordenService.obtenerOrdenPorId(id);
         if (orden == null) {
             return "redirect:/ordenes";
@@ -237,6 +296,28 @@ public class OrdenController {
             return "redirect:/ordenes";
         }
         
+        // Obtener usuario logueado para la lógica de permisos
+        Usuario usuarioLogueado = (Usuario) session.getAttribute("usuario");
+        
+        // Determinar si el usuario es administrador o cliente jurídico
+        boolean esAdministrador = false;
+        boolean esClienteJuridico = false;
+        
+        if (usuarioLogueado != null) {
+            // Es administrador si tiene rol "ADMINISTRADOR"
+            if (usuarioLogueado.getPerfil() != null && 
+                usuarioLogueado.getPerfil().getRol() != null &&
+                "ADMINISTRADOR".equals(usuarioLogueado.getPerfil().getRol().getNombreRol())) {
+                esAdministrador = true;
+            }
+            
+            // Es cliente jurídico si su tipo de usuario es "JURIDICO"
+            if (usuarioLogueado.getTipoUsuario() != null &&
+                "JURIDICO".equals(usuarioLogueado.getTipoUsuario().getNombre())) {
+                esClienteJuridico = true;
+            }
+        }
+        
         model.addAttribute("orden", orden);
         model.addAttribute("detalles", orden.getDetalles());
         model.addAttribute("empresa", empresaRepository.findAll().get(0)); 
@@ -244,6 +325,9 @@ public class OrdenController {
         model.addAttribute("ciudades", ciudadRepository.findAll());
         model.addAttribute("terminados", terminadoService.obtenerTodosLosTerminados());
         model.addAttribute("editMode", true);
+        model.addAttribute("esAdministrador", esAdministrador);
+        model.addAttribute("esClienteJuridico", esClienteJuridico);
+        model.addAttribute("usuarioLogueado", usuarioLogueado);
         
         return "orden-form";
     }
