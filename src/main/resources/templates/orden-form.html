@@ -86,7 +86,13 @@
             <input type="hidden" id="usuarioDocumento" name="usuario.documento" 
                    th:value="${(editMode ?: false) ? (orden.usuario?.documento ?: '') : ((esClienteJuridico ?: false) ? (usuarioLogueado?.documento ?: '') : '')}">
             
-            <div class="row">
+            <!-- Campos restringidos para órdenes facturadas -->
+            <div th:if="${esOrdenFacturada ?: false}" class="alert alert-warning">
+              <h6><i class="fa-solid fa-exclamation-triangle"></i> Orden Facturada - Edición Restringida</h6>
+              <p class="mb-0">Esta orden está facturada. Solo puede cambiar el estado a <strong>Cancelada</strong> o <strong>Finalizada</strong>.</p>
+            </div>
+            
+            <div class="row" th:unless="${esOrdenFacturada ?: false}">
               <div class="col-md-6">
 
                 <label class="form-icon-label">
@@ -135,13 +141,66 @@
               </div>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center my-3">
+            <!-- Campo de estado para órdenes facturadas (solo este campo es editable) -->
+            <div th:if="${esOrdenFacturada ?: false}" class="row">
+              <div class="col-md-6">
+                <label class="form-icon-label"><i class="fa-solid fa-cogs"></i> Estado</label>
+                <select class="form-select" th:field="*{estado}" required>
+                  <option value="">Seleccionar estado...</option>
+                  <option th:value="${T(com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden).CANCELADA}"
+                          th:text="${T(com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden).CANCELADA.descripcion}"
+                          th:selected="${orden?.estado?.name() == 'CANCELADA'}">
+                  </option>
+                  <option th:value="${T(com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden).FINALIZADA}"
+                          th:text="${T(com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden).FINALIZADA.descripcion}"
+                          th:selected="${orden?.estado?.name() == 'FINALIZADA'}">
+                  </option>
+                  <option th:value="${T(com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden).FACTURADA}"
+                          th:text="${T(com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden).FACTURADA.descripcion}"
+                          th:selected="${orden?.estado?.name() == 'FACTURADA'}">
+                  </option>
+                </select>
+
+                <!-- Campos ocultos para mantener los datos existentes de la orden facturada -->
+                <input type="hidden" name="fechaEntrega" th:value="${orden?.fechaEntrega != null ? #temporals.format(orden.fechaEntrega, 'yyyy-MM-dd''T''HH:mm') : ''}">
+                <input type="hidden" name="descripcionVenta" th:value="${orden?.descripcionVenta ?: ''}">
+                <input type="hidden" name="empresa.nitEmpresa" th:value="${empresa.nitEmpresa}">
+                
+                <!-- Campos ocultos para los detalles de la orden -->
+                <div th:each="detalle, iterStat : ${detalles}">
+                  <input type="hidden" name="productoId" th:value="${detalle.terminado.producto.id}">
+                  <input type="hidden" name="terminadoId" th:value="${detalle.terminado.id}">
+                  <input type="hidden" name="cantidad" th:value="${detalle.cantidad}">
+                  <input type="hidden" name="valor" th:value="${detalle.valor}">
+                  <input type="hidden" name="descripcion" th:value="${detalle.descripcion}">
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="p-3 border rounded bg-light">
+                  <h6><i class="fa-solid fa-info-circle"></i> Información de la Orden</h6>
+                  <div>
+                    <strong>Cliente:</strong> <span th:text="${orden.usuario.nombre + ' ' + orden.usuario.primerApellido}"></span><br>
+                    <strong>Fecha de Entrega:</strong> <span th:text="${#temporals.format(orden.fechaEntrega, 'dd/MM/yyyy HH:mm')}"></span><br>
+                    <strong>Total:</strong> $<span th:text="${orden.totalFactura}"></span><br>
+                    <strong>Estado Actual:</strong> <span th:text="${orden.estado.descripcion}" th:class="'badge bg-' + ${orden.estado.colorBootstrap}"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div th:unless="${esOrdenFacturada ?: false}" class="d-flex justify-content-between align-items-center my-3">
               <button type="button" class="btn btn-outline-danger btn-xl" onclick="eliminarFila()">-</button>
               <h5 class="m-0">Detalles de la Orden</h5>
               <button type="button" class="btn btn-outline-success btn-sm" onclick="agregarFila()">+</button>
             </div>
 
-            <table id="tablaDetalle" class="table tabla-usuarios">
+            <!-- Mostrar detalles de la orden facturada de solo lectura -->
+            <div th:if="${esOrdenFacturada ?: false}" class="my-3">
+              <h5 class="m-0"><i class="fa-solid fa-list"></i> Detalles de la Orden (Solo Lectura)</h5>
+            </div>
+
+            <table id="tablaDetalle" class="table tabla-usuarios" th:unless="${esOrdenFacturada ?: false}">
               <thead class="table-light">
                 <tr>
                   <th>Producto</th>
@@ -231,11 +290,36 @@
               </tbody>
             </table>
 
+            <!-- Tabla de solo lectura para órdenes facturadas -->
+            <table th:if="${esOrdenFacturada ?: false}" class="table tabla-usuarios">
+              <thead class="table-light">
+                <tr>
+                  <th>Producto</th>
+                  <th>Terminado</th>
+                  <th>Cantidad</th>
+                  <th>Valor Unitario</th>
+                  <th>Descripción</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="detalle : ${detalles}">
+                  <td th:text="${detalle.terminado.producto.nombre}"></td>
+                  <td th:text="${'Medida: ' + detalle.terminado.medidaTerminadoProducto}"></td>
+                  <td th:text="${detalle.cantidad}"></td>
+                  <td>$<span th:text="${detalle.valor}"></span></td>
+                  <td th:text="${detalle.descripcion}"></td>
+                  <td>$<span th:text="${detalle.cantidad * detalle.valor}"></span></td>
+                </tr>
+              </tbody>
+            </table>
+
             <div class="text-end fw-bold fs-5 mt-3">
-              TOTAL: $<span id="totalOrden">0</span>
+              TOTAL: $<span id="totalOrden" 
+                           th:text="${(editMode and orden.totalFactura != null) ? #numbers.formatDecimal(orden.totalFactura, 1, 2) : '0'}">0</span>
             </div>
 
-            <input type="hidden" id="inputTotalOrden" name="totalFactura">
+            <input type="hidden" id="inputTotalOrden" name="totalFactura" th:value="${(editMode and orden.totalFactura != null) ? orden.totalFactura : ''}">
 
             <div class="col-12 d-flex justify-content-between">
                 <button th:if="${editMode}" type="button" class="btn btn-secondary" onclick="window.location.href='/ordenes'">
@@ -733,6 +817,42 @@
         }, 600);
       }
     });
+  </script>
+
+  <!-- Script específico para órdenes facturadas -->
+  <script th:if="${esOrdenFacturada ?: false}">
+    console.log('Inicializando protección para orden facturada');
+    
+    // Ejecutar inmediatamente y después del DOM
+    function protegerTotalOrdenFacturada() {
+      // Sobrescribir la función calcularTotalOrden
+      if (typeof window.calcularTotalOrden === 'function') {
+        console.log('Sobrescribiendo calcularTotalOrden para orden facturada');
+        window.calcularTotalOrden = function() {
+          console.log('calcularTotalOrden llamado para orden facturada - no se ejecuta');
+          // No hacer nada para órdenes facturadas
+        };
+      }
+      
+      // Establecer el total desde el valor del servidor
+      const totalElement = document.getElementById('totalOrden');
+      const inputTotal = document.getElementById('inputTotalOrden');
+      
+      if (totalElement && inputTotal && inputTotal.value) {
+        const valor = parseFloat(inputTotal.value) || 0;
+        console.log('Estableciendo total para orden facturada:', valor);
+        totalElement.textContent = valor.toLocaleString('es-CO');
+      }
+    }
+    
+    // Ejecutar inmediatamente
+    protegerTotalOrdenFacturada();
+    
+    // Ejecutar después del DOM
+    document.addEventListener('DOMContentLoaded', protegerTotalOrdenFacturada);
+    
+    // Ejecutar con delay por si otros scripts sobrescriben
+    setTimeout(protegerTotalOrdenFacturada, 1000);
   </script>
 </body>
 </html>

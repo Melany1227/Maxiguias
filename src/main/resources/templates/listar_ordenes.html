@@ -83,11 +83,21 @@
                             <a th:href="@{/ordenes/verMas/{id}(id=${orden.id})}" class="btn btn-outline-primary btn-sm me-1">
                                 <i class="fa-solid fa-eye"></i> Ver
                             </a>
-                            <a th:if="${orden.estado.name() == 'PENDIENTE' || orden.estado.name() == 'EN_PROCESO'}" 
-                               th:href="@{/ordenes/editar/{id}(id=${orden.id})}" class="btn btn-outline-warning btn-sm me-1">
-                                <i class="fa-solid fa-edit"></i> Editar
+                            
+                            <!-- Botón Editar: Solo para PENDIENTE, EN_PROCESO y FACTURADA -->
+                            <a th:if="${orden.estado.name() == 'PENDIENTE' || orden.estado.name() == 'EN_PROCESO' || orden.estado.name() == 'FACTURADA'}" 
+                               th:href="@{/ordenes/editar/{id}(id=${orden.id})}" 
+                               class="btn btn-outline-warning btn-sm me-1"
+                               th:title="${orden.estado.name() == 'FACTURADA'} ? 'Solo se puede cambiar el estado' : 'Editar orden'">
+                                <i class="fa-solid fa-edit"></i> 
+                                <span th:text="${orden.estado.name() == 'FACTURADA'} ? 'Estado' : 'Editar'">Editar</span>
                             </a>
-                            <a th:href="@{/ordenes/pdf/{id}(id=${orden.id})}" class="btn btn-outline-danger btn-sm">
+                            
+                            <!-- Botón PDF: Solo para FINALIZADA y FACTURADA -->
+                            <a th:if="${orden.estado.name() == 'FINALIZADA' || orden.estado.name() == 'FACTURADA'}" 
+                               th:href="@{/ordenes/pdf/{id}(id=${orden.id})}" 
+                               class="btn btn-outline-danger btn-sm"
+                               title="Descargar PDF">
                                 <i class="fa-solid fa-file-pdf"></i> PDF
                             </a>
                         </td>

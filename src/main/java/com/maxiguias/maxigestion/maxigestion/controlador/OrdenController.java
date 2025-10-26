@@ -356,6 +356,11 @@ public class OrdenController {
                 }
             }
             
+            // Validar que la orden esté en estado FINALIZADA o FACTURADA para generar PDF
+            if (orden.getEstado() != EstadoOrden.FINALIZADA && orden.getEstado() != EstadoOrden.FACTURADA) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+            
             byte[] pdfBytes = ordenService.generarOrdenPDF(id);
             
             HttpHeaders headers = new HttpHeaders();
@@ -376,7 +381,10 @@ public class OrdenController {
             return "redirect:/ordenes?error=Orden no encontrada";
         }
         
-        if (orden.getEstado() != EstadoOrden.PENDIENTE && orden.getEstado() != EstadoOrden.EN_PROCESO) {
+        // Validar estados que permiten edición
+        if (orden.getEstado() != EstadoOrden.PENDIENTE && 
+            orden.getEstado() != EstadoOrden.EN_PROCESO && 
+            orden.getEstado() != EstadoOrden.FACTURADA) {
             return "redirect:/ordenes?error=No se puede editar una orden en este estado";
         }
         
@@ -423,6 +431,7 @@ public class OrdenController {
         model.addAttribute("esAdministrador", esAdministrador);
         model.addAttribute("esClienteJuridico", esClienteJuridico);
         model.addAttribute("usuarioLogueado", usuarioLogueado);
+        model.addAttribute("esOrdenFacturada", orden.getEstado() == EstadoOrden.FACTURADA);
         
         return "orden-form";
     }
@@ -443,7 +452,10 @@ public class OrdenController {
             return "redirect:/ordenes?error=Orden no encontrada";
         }
         
-        if (orden.getEstado() != EstadoOrden.PENDIENTE && orden.getEstado() != EstadoOrden.EN_PROCESO) {
+        // Validar estados que permiten actualización
+        if (orden.getEstado() != EstadoOrden.PENDIENTE && 
+            orden.getEstado() != EstadoOrden.EN_PROCESO && 
+            orden.getEstado() != EstadoOrden.FACTURADA) {
             return "redirect:/ordenes?error=No se puede actualizar una orden en este estado";
         }
         
@@ -469,31 +481,50 @@ public class OrdenController {
             }
         }
 
-        // Validar que la fecha de entrega sea mayor a la fecha actual
-        if (ordenActualizada.getFechaEntrega() != null && ordenActualizada.getFechaEntrega().isBefore(LocalDateTime.now())) {
-            return "redirect:/ordenes/editar/" + id + "?error=La fecha de entrega debe ser mayor a la fecha actual";
-        }
+        // Determinar si la orden está facturada (edición restringida)
+        boolean esOrdenFacturada = orden.getEstado() == EstadoOrden.FACTURADA;
         
-        orden.setFechaEntrega(ordenActualizada.getFechaEntrega());
-        orden.setDescripcionVenta(ordenActualizada.getDescripcionVenta());
-        orden.setTotalFactura(ordenActualizada.getTotalFactura());
-        orden.setEstado(ordenActualizada.getEstado());
-        
-        Orden ordenGuardada = ordenService.guardarOrden(orden);
-        
-        ordenService.eliminarDetallesOrden(id);
-        
-        for (int i = 0; i < terminadosId.size(); i++) {
-            DetalleOrden detalle = new DetalleOrden();
-            Terminado terminado = terminadoRepository.findById(terminadosId.get(i))
-                .orElseThrow(() -> new RuntimeException("Terminado no encontrado"));
+        if (esOrdenFacturada) {
+            // Para órdenes facturadas, solo se puede cambiar el estado
+            // Validar que el nuevo estado sea CANCELADA o FINALIZADA
+            if (ordenActualizada.getEstado() != EstadoOrden.CANCELADA && 
+                ordenActualizada.getEstado() != EstadoOrden.FINALIZADA) {
+                return "redirect:/ordenes/editar/" + id + "?error=Las órdenes facturadas solo pueden cambiarse a Cancelada o Finalizada";
+            }
+            
+            // Solo actualizar el estado
+            orden.setEstado(ordenActualizada.getEstado());
+            ordenService.guardarOrden(orden);
+            
+        } else {
+            // Para órdenes PENDIENTE y EN_PROCESO, edición completa
+            
+            // Validar que la fecha de entrega sea mayor a la fecha actual
+            if (ordenActualizada.getFechaEntrega() != null && ordenActualizada.getFechaEntrega().isBefore(LocalDateTime.now())) {
+                return "redirect:/ordenes/editar/" + id + "?error=La fecha de entrega debe ser mayor a la fecha actual";
+            }
+            
+            orden.setFechaEntrega(ordenActualizada.getFechaEntrega());
+            orden.setDescripcionVenta(ordenActualizada.getDescripcionVenta());
+            orden.setTotalFactura(ordenActualizada.getTotalFactura());
+            orden.setEstado(ordenActualizada.getEstado());
+            
+            Orden ordenGuardada = ordenService.guardarOrden(orden);
+            
+            ordenService.eliminarDetallesOrden(id);
+            
+            for (int i = 0; i < terminadosId.size(); i++) {
+                DetalleOrden detalle = new DetalleOrden();
+                Terminado terminado = terminadoRepository.findById(terminadosId.get(i))
+                    .orElseThrow(() -> new RuntimeException("Terminado no encontrado"));
 
-            detalle.setOrden(ordenGuardada); 
-            detalle.setTerminado(terminado);       
-            detalle.setCantidad(cantidades.get(i));
-            detalle.setValor(valores.get(i));
-            detalle.setDescripcion(descripciones.get(i));
-            ordenService.guardarDetalles(detalle);
+                detalle.setOrden(ordenGuardada); 
+                detalle.setTerminado(terminado);       
+                detalle.setCantidad(cantidades.get(i));
+                detalle.setValor(valores.get(i));
+                detalle.setDescripcion(descripciones.get(i));
+                ordenService.guardarDetalles(detalle);
+            }
         }
 
         return "redirect:/ordenes?mensaje=Orden actualizada satisfactoriamente";
