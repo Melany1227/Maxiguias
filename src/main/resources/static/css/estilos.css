@@ -92,83 +92,170 @@ body {
 /* Tarjeta de login */
 .card {
     width: 100%;
-    max-width: 600px;
-    background: #fff;
+    max-width: 1200px;
+    background: #ffffff;
     border-radius: 18px;
-    box-shadow: 0 10px 30px rgba(17,24,39,0.08);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     padding: 40px 50px;
     text-align: center;
+    border: 1px solid #e1e8ed;
+    margin: 20px 0; /* margen para permitir scroll */
 }
 
 .card h1 {
-    font-size: 32px;
-    margin-bottom: 20px;
+    font-size: 42px;
+    font-weight: 700;
+    margin-bottom: 40px;
+    color: #000000;
 }
 
 /* Campos de formulario */
 .form-group {
-    margin-bottom: 16px;
+    margin-bottom: 24px;
     text-align: left;
+    position: relative;
 }
 
 .form-group label {
     font-weight: 600;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     display: block;
-    font-size: 14px;
-    color: #495364;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 12px 14px;
     font-size: 16px;
-    border: 1px solid #d9dee7;
-    border-radius: 12px;
-    background: #eef4ff; /* leve azul */
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    color: #2c3e50;
+    letter-spacing: 0.5px;
 }
 
-.form-group input:focus {
-    border-color: #c7d2fe;
-    box-shadow: 0 0 0 4px rgba(199,210,254,0.45);
+.form-group input, .form-group select {
+    width: 100%;
+    padding: 16px 20px;
+    font-size: 16px;
+    border: 2px solid #e1e8ed;
+    border-radius: 16px;
+    background: #ffffff;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.form-group input:focus, .form-group select:focus {
+    border-color: #d0a736;
+    box-shadow: 0 0 0 6px rgba(208, 167, 54, 0.15), 0 4px 16px rgba(0, 0, 0, 0.08);
     outline: none;
+    transform: translateY(-2px);
 }
 
 /* Botón iniciar sesión */
 .btn-login {
     width: 100%;
-    padding: 14px 18px;
-    font-size: 16px;
+    padding: 18px 24px;
+    font-size: 18px;
     font-weight: 700;
-    background: #d0a736;
-    color: #1d1a10;
+    background: linear-gradient(135deg, #d0a736 0%, #b8922f 100%);
+    color: #ffffff;
     border: none;
-    border-radius: 12px;
+    border-radius: 16px;
     cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 24px rgba(208, 167, 54, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .btn-login:hover {
-    filter: brightness(0.98);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(208, 167, 54, 0.4);
+    background: linear-gradient(135deg, #b8922f 0%, #d0a736 100%);
+}
+
+.btn-login:active {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(208, 167, 54, 0.3);
+}
+
+/* Enlaces */
+.hint {
+    margin-top: 24px;
+    font-size: 16px;
+}
+
+.hint a {
+    color: #d0a736;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.hint a:hover {
+    color: #b8922f;
+    transform: translateY(-1px);
+}
+
+.hint a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background-color: #d0a736;
+    transition: width 0.3s ease;
+}
+
+.hint a:hover::after {
+    width: 100%;
+}
+
+/* Contenedor para input de contraseña con botón de visualización */
+.password-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-container input {
+    padding-right: 45px !important;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 5px;
+    z-index: 10;
+    transition: color 0.3s ease;
+}
+
+.password-toggle:hover {
+    color: #d0a736;
+}
+
+.password-toggle i {
+    font-size: 16px;
 }
 
 /* Alertas */
 .alert {
-    border-radius: 12px;
-    padding: 12px 14px;
-    margin-bottom: 16px;
-    font-size: 14px;
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    font-size: 16px;
     text-align: left;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .alert-success {
-    background: #e8f6ec;
+    background: rgba(232, 246, 236, 0.9);
     color: #205b37;
-    border: 1px solid #c7e8d1;
+    box-shadow: 0 4px 16px rgba(32, 91, 55, 0.1);
 }
 
 .alert-danger {
-    background: #fde8ea;
+    background: rgba(253, 232, 234, 0.9);
     color: #7a2530;
     border: 1px solid #f5c6cb;
 }
@@ -215,10 +302,13 @@ body {
     padding: 10px 20px;
     border-radius: 5px;
     margin-top: 20px;
+    text-decoration: none;
 }
 
 .custom-btn:hover {
     background-color: #222;
+    text-decoration: none;
+    color: white;
 }
 
 .modal-success {
@@ -338,9 +428,10 @@ td .input-group {
     width: 100%; 
     display: flex;
     justify-content: center;
-    align-items: center;
-    height: 100vh; /* centra verticalmente */
-    padding: 0;
+    align-items: flex-start; /* alinea arriba para permitir scroll */
+    min-height: 100vh; /* altura mínima */
+    padding: 20px;
+    overflow-y: auto; /* permite scroll */
 }
 
 /* Estilos especiales para login */
@@ -348,15 +439,13 @@ td .input-group {
     display: flex;
     justify-content: center;  /* centra horizontal */
     align-items: center;      /* centra vertical */
-    height: 100vh;            /* ocupa toda la pantalla */
+    min-height: 100vh;        /* altura mínima de pantalla completa */
     margin: 0;
+    background: #ffffff;
+    padding: 20px;
+    overflow-y: auto;         /* permite scroll vertical */
 }
 
-.login-page .main-content {
-    margin-left: 0;   /* elimina el espacio reservado para el sidebar */
-    width: auto;
-    padding: 0;
-}
 
 
 /* Botones/enlaces del sidebar */
@@ -706,5 +795,45 @@ td .input-group {
             object-fit: contain;
             border-radius: 10px;
             }
+
+/* Quitar subrayado de todos los enlaces que son botones */
+a.btn, 
+a.custom-btn, 
+a.btn-black-yellow,
+a[class*="btn"] {
+    text-decoration: none !important;
+}
+
+a.btn:hover, 
+a.custom-btn:hover, 
+a.btn-black-yellow:hover,
+a[class*="btn"]:hover {
+    text-decoration: none !important;
+}
+
+/* Scroll para el sidebar */
+.sidebar {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+/* Personalizar la barra de scroll del sidebar */
+.sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(208, 167, 54, 0.6);
+    border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(208, 167, 54, 0.8);
+}
 
             

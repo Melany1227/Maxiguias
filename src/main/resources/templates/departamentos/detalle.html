@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalle del Departamento</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+
+    <div th:replace="menú/sidebar :: sidebar"></div>
+
+    <div class="main-content">
+        <div class="form-container">
+
+            <h4 class="form-title">
+                <i class="fa-solid fa-map"></i> DETALLE DEL DEPARTAMENTO
+            </h4>
+
+            <!-- Botones de navegación -->
+            <div class="mb-3 d-flex gap-2">
+                <a href="/departamentos" class="custom-btn">
+                    <i class="fas fa-arrow-left"></i> Volver a la lista
+                </a>
+                <a th:href="@{/departamentos/{id}/editar(id=${departamento.id})}" class="btn btn-outline-warning">
+                    <i class="fas fa-pen"></i> Editar
+                </a>
+            </div>
+
+            <!-- Información del departamento -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Información General</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>ID:</strong></td>
+                                    <td th:text="${departamento.id}"></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Nombre:</strong></td>
+                                    <td th:text="${departamento.nombre}"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ciudades asociadas -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fas fa-city"></i> Ciudades Asociadas</h5>
+                            <span class="badge bg-info" th:text="${departamento.ciudades != null ? #lists.size(departamento.ciudades) : 0}"></span>
+                        </div>
+                        <div class="card-body">
+                            <div th:if="${departamento.ciudades != null and not #lists.isEmpty(departamento.ciudades)}">
+                                <ul class="list-group list-group-flush">
+                                    <li th:each="ciudad : ${departamento.ciudades}" class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span th:text="${ciudad.nombre}"></span>
+                                        <small class="text-muted">ID: <span th:text="${ciudad.id}"></span></small>
+                                    </li>
+                                </ul>
+                                <div class="mt-3">
+                                    <a href="/ciudades" class="btn btn-outline-info btn-sm">
+                                        <i class="fas fa-list"></i> Ver todas las ciudades
+                                    </a>
+                                </div>
+                            </div>
+                            <div th:if="${departamento.ciudades == null or #lists.isEmpty(departamento.ciudades)}" class="text-center text-muted">
+                                <i class="fas fa-info-circle"></i><br>
+                                <small>No hay ciudades asociadas a este departamento.</small><br>
+                                <a href="/ciudades/nuevo" class="btn btn-outline-primary btn-sm mt-2">
+                                    <i class="fas fa-plus"></i> Agregar ciudad
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones adicionales -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-cogs"></i> Acciones</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="btn-group" role="group">
+                                <a th:href="@{/departamentos/{id}/editar(id=${departamento.id})}" class="btn btn-outline-warning">
+                                    <i class="fas fa-pen"></i> Editar Departamento
+                                </a>
+                                <a href="/ciudades/nuevo" class="btn btn-outline-success">
+                                    <i class="fas fa-plus"></i> Agregar Ciudad
+                                </a>
+                                <button type="button" 
+                                        class="btn btn-outline-danger btn-eliminar"
+                                        th:data-id="${departamento.id}"
+                                        th:data-nombre="${departamento.nombre}">
+                                    <i class="fas fa-trash"></i> Eliminar Departamento
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Scripts de mensajes -->
+    <script th:if="${mensaje}">
+        Swal.fire({
+            title: '¡Éxito!',
+            text: /*[[${mensaje}]]*/ 'Operación realizada satisfactoriamente',
+            icon: 'success',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: "#b8922f"
+        })
+    </script>
+    
+    <script th:if="${error}">
+        Swal.fire({
+            title: 'Error',
+            text: /*[[${error}]]*/ 'Ocurrió un error',
+            icon: 'error',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: "#d33"
+        })
+    </script>
+    
+    <script>
+        // Event listener para botón de eliminar
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnEliminar = document.querySelector('.btn-eliminar');
+            if (btnEliminar) {
+                btnEliminar.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const nombre = this.getAttribute('data-nombre');
+                    confirmarEliminar(id, nombre);
+                });
+            }
+        });
+
+        // Función para confirmar eliminación de departamento
+        async function confirmarEliminar(id, nombre) {
+            const result = await Swal.fire({
+                title: '¿Estás seguro?',
+                html: `<strong>Departamento: ${nombre}</strong><br><br>No podrás deshacer esta acción.<br><br><strong>⚠️ Advertencia:</strong> Si este departamento tiene ciudades asociadas, la eliminación podría fallar.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!result.isConfirmed) {
+                return; 
+            }
+
+            try {
+                const response = await fetch(`/departamentos/${id}/eliminar`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                });
+
+                if (response.ok) {
+                    Swal.fire(
+                        '¡Eliminado!',
+                        'El departamento ha sido eliminado con éxito.',
+                        'success'
+                    ).then(() => window.location.href = '/departamentos');
+                } else {
+                    Swal.fire(
+                        'Error',
+                        `No se pudo eliminar el departamento. Código: ${response.status}`,
+                        'error'
+                    );
+                }
+            } catch (error) {
+                Swal.fire(
+                    'Error',
+                    'Ocurrió un problema al intentar eliminar.',
+                    'error'
+                );
+            }
+        }
+    </script>
+</body>
+</html>

@@ -13,16 +13,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.maxiguias.maxigestion.maxigestion.modelo.Ciudad;
+import com.maxiguias.maxigestion.maxigestion.modelo.Departamento;
 import com.maxiguias.maxigestion.maxigestion.servicio.CiudadService;
+import com.maxiguias.maxigestion.maxigestion.servicio.DepartamentoService;
 
 @Controller
 @RequestMapping("/ciudades")
 public class CiudadController {
 
     private final CiudadService ciudadService;
+    private final DepartamentoService departamentoService;
 
-    public CiudadController(CiudadService ciudadService) {
+    public CiudadController(CiudadService ciudadService, DepartamentoService departamentoService) {
         this.ciudadService = ciudadService;
+        this.departamentoService = departamentoService;
     }
 
     @GetMapping
@@ -35,11 +39,13 @@ public class CiudadController {
     @GetMapping("/nuevo")
     public String mostrarFormularioNuevo(Model model) {
         model.addAttribute("ciudad", new Ciudad());
+        List<Departamento> departamentos = departamentoService.listarDepartamentos();
+        model.addAttribute("departamentos", departamentos);
         return "ciudades/formulario";
     }
 
     @GetMapping("/{id}")
-    public String obtenerCiudadPorId(@PathVariable int id, Model model) {
+    public String obtenerCiudadPorId(@PathVariable Integer id, Model model) {
         Optional<Ciudad> ciudad = ciudadService.obtenerCiudadPorId(id);
         if (ciudad.isPresent()) {
             model.addAttribute("ciudad", ciudad.get());
@@ -50,10 +56,12 @@ public class CiudadController {
     }
 
     @GetMapping("/{id}/editar")
-    public String mostrarFormularioEditar(@PathVariable int id, Model model) {
+    public String mostrarFormularioEditar(@PathVariable Integer id, Model model) {
         Optional<Ciudad> ciudad = ciudadService.obtenerCiudadPorId(id);
         if (ciudad.isPresent()) {
             model.addAttribute("ciudad", ciudad.get());
+            List<Departamento> departamentos = departamentoService.listarDepartamentos();
+            model.addAttribute("departamentos", departamentos);
             return "ciudades/formulario";
         } else {
             return "redirect:/ciudades";
@@ -68,15 +76,15 @@ public class CiudadController {
     }
 
     @PostMapping("/{id}")
-    public String actualizarCiudad(@PathVariable Long id, @ModelAttribute Ciudad ciudad, RedirectAttributes redirectAttributes) {
-        ciudad.setId(id.intValue());
+    public String actualizarCiudad(@PathVariable Integer id, @ModelAttribute Ciudad ciudad, RedirectAttributes redirectAttributes) {
+        ciudad.setId(id);
         ciudadService.guardarCiudad(ciudad);
         redirectAttributes.addFlashAttribute("mensaje", "Ciudad actualizada exitosamente");
         return "redirect:/ciudades";
     }
 
     @PostMapping("/{id}/eliminar")
-    public String eliminarCiudad(@PathVariable int id, RedirectAttributes redirectAttributes) {
+    public String eliminarCiudad(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
         ciudadService.eliminarCiudad(id);
         redirectAttributes.addFlashAttribute("mensaje", "Ciudad eliminada exitosamente");
         return "redirect:/ciudades";

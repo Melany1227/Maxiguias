@@ -11,17 +11,7 @@
 </head>
 <body>
 
-   <div class="sidebar">
-        <img src="/img/logo.png" alt="Logo MXG">
-        <a href="/" class="btn"><i class="bi bi-house-door-fill"></i> INICIO</a>
-        <a href="#" class="btn"><i class="bi bi-journal-text"></i> CATÁLOGO</a>
-        <a href="/usuarios" class="btn"><i class="bi bi-receipt"></i> USUARIOS</a>
-        <a href="/ordenes" class="btn"><i class="bi bi-receipt"></i> ORDENES</a>
-        <a href="/productos" class="btn"><i class="bi bi-box-seam"></i> PRODUCTOS</a>
-        <a href="/perfiles" class="btn"><i class="bi bi-box-seam"></i> PERFILES</a>
-        <a href="/roles" class="btn"><i class="bi bi-box-seam"></i> ROLES</a>
-        <a href="/reportes" class="btn"><i class="bi bi-box-seam"></i> REPORTES</a>
-    </div>
+   <div th:replace="menú/sidebar :: sidebar"></div> 
 
     <div class="main-content">
         <div class="form-container">
@@ -41,34 +31,14 @@
                     <input type="number" th:field="*{documento}" class="form-control" required>
 
                     <label class="form-icon-label">
-                        <i class="fa-solid fa-user"></i> Primer Apellido
-                    </label>
-                    <input type="text" th:field="*{primerApellido}" class="form-control">
-
-                    <label class="form-icon-label">
-                        <i class="fa-solid fa-location-dot"></i> Dirección *
-                    </label>
-                    <input type="text" th:field="*{direccion}" class="form-control" required>
-                    
-                    <label class="form-icon-label">
-                        <i class="fa-solid fa-user"></i> Nombre de Usuario
-                    </label>
-                    <input type="text" th:field="*{nombreUsuario}" class="form-control">
-
-                   <label class="form-icon-label">
-                        <i class="fa-solid fa-user"></i> Tipo de Usuario *
-                    </label>
-                    <select th:field="*{tipoUsuario}" class="form-control" required>
-                        <option value="">Seleccione</option>
-                        <option th:each="tipo : ${tiposUsuario}" th:value="${tipo.id}" th:text="${tipo.nombre}"></option>
-                    </select>
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-icon-label">
                         <i class="fa-solid fa-user"></i> Nombre *
                     </label>
                     <input type="text" th:field="*{nombre}" class="form-control" required>
+
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-user"></i> Primer Apellido
+                    </label>
+                    <input type="text" th:field="*{primerApellido}" class="form-control">
 
                     <label class="form-icon-label">
                         <i class="fa-solid fa-user"></i> Segundo Apellido
@@ -79,6 +49,63 @@
                         <i class="fa-solid fa-phone"></i> Teléfono *
                     </label>
                     <input type="number" th:field="*{telefono}" class="form-control" required>
+
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-location-dot"></i> Dirección *
+                    </label>
+                    <input type="text" th:field="*{direccion}" class="form-control" required>
+
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-envelope"></i> Correo Electrónico
+                    </label>
+                    <input type="email" th:field="*{correo}" class="form-control">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-user"></i> Nombre de Usuario
+                    </label>
+                    <input type="text" th:field="*{nombreUsuario}" class="form-control">
+
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-lock"></i> Contraseña 
+                    </label>
+                    <div class="password-input-container">
+                        <input type="password" th:field="*{contrasena}" 
+                               th:placeholder="${esEdicion and tieneContrasena} ? '••••••••' : ''" 
+                               class="form-control" id="contrasena">
+                        <button type="button" class="password-toggle" onclick="togglePasswordAdmin('contrasena')">
+                            <i class="fa-solid fa-eye" id="eye-contrasena"></i>
+                        </button>
+                    </div>
+
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-lock"></i> Confirmar Contraseña 
+                    </label>
+                    <div class="password-input-container">
+                        <input type="password" name="confirmarContrasena" 
+                               placeholder="Confirma la contraseña" 
+                               class="form-control" id="confirmarContrasena">
+                        <button type="button" class="password-toggle" onclick="togglePasswordAdmin('confirmarContrasena')">
+                            <i class="fa-solid fa-eye" id="eye-confirmarContrasena"></i>
+                        </button>
+                    </div>
+
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-user"></i> Tipo de Usuario *
+                    </label>
+                    <select th:field="*{tipoUsuario}" class="form-control" required>
+                        <option value="">Seleccione</option>
+                        <option th:each="tipo : ${tiposUsuario}" th:value="${tipo.id}" th:text="${tipo.nombre}"></option>
+                    </select>
+
+                    <label class="form-icon-label">
+                        <i class="fa-solid fa-user"></i> Perfil *
+                    </label>
+                    <select th:field="*{perfil}" class="form-control" required>
+                        <option value="">Seleccione</option>
+                        <option th:each="perfil : ${perfiles}" th:value="${perfil.id}" th:text="${perfil.nombrePerfil}"></option>
+                    </select>
 
                     <label class="form-icon-label">
                         <i class="fa-solid fa-map"></i> Departamento *
@@ -102,21 +129,6 @@
                                 th:text="${ciudad.nombre}">
                         </option>
                     </select>
-
-                    <label class="form-icon-label">
-                        <i class="fa-solid fa-user"></i> Contraseña 
-                    </label>
-                    <input type="password" th:field="*{contrasena}" 
-                           th:placeholder="${esEdicion and tieneContrasena} ? '••••••••' : ''" 
-                           class="form-control">
-
-                    <label class="form-icon-label">
-                        <i class="fa-solid fa-user"></i> Perfil *
-                    </label>
-                    <select th:field="*{perfil}" class="form-control" required>
-                        <option value="">Seleccione</option>
-                        <option th:each="perfil : ${perfiles}" th:value="${perfil.id}" th:text="${perfil.nombrePerfil}"></option>
-                    </select>
                 </div>
 
                 <div class="col-12 d-flex justify-content-end">
@@ -129,43 +141,79 @@
         </div>
     </div>
 
-    <div class="modal fade" id="mensajeModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content text-center p-4" 
-                th:classappend="${tipoMensaje} == 'error' ? ' modal-error' : ' modal-success'">
-                <div class="modal-body">
-                    <h5 th:text="${mensajeModal}">Mensaje aquí</h5>
-                    <button type="button" id="okBtn" class="btn btn-warning mt-3" data-bs-dismiss="modal">OK</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Scripts de mensajes -->
+    <script th:if="${mensaje}">
+        Swal.fire({
+            title: '¡Éxito!',
+            text: /*[[${mensaje}]]*/ 'Usuario creado satisfactoriamente',
+            icon: 'success',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: "#b8922f"
+        })
+    </script>
+    
+    <script th:if="${error}">
+        Swal.fire({
+            title: 'Error',
+            text: /*[[${error}]]*/ 'Ocurrió un error',
+            icon: 'error',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: "#d33"
+        })
+    </script>
     <script th:inline="javascript">
         /*<![CDATA[*/
-        let mensaje = /*[[${mensajeModal}]]*/ null;
+        let mensajeModal = /*[[${mensajeModal}]]*/ null;
         let redirigir = /*[[${redirigirDespues}]]*/ false;
+        let tipoMensaje = /*[[${tipoMensaje}]]*/ null;
 
-        if (mensaje && mensaje !== 'null' && mensaje.trim() !== '') {
-            const modalElement = document.getElementById('mensajeModal');
-            const modal = new bootstrap.Modal(modalElement);
-
-            modal.show();
-
-            document.getElementById('okBtn').addEventListener('click', function () {
+        if (mensajeModal && mensajeModal !== 'null' && mensajeModal.trim() !== '') {
+            const icono = tipoMensaje === 'error' ? 'error' : 'success';
+            const titulo = tipoMensaje === 'error' ? 'Error' : '¡Éxito!';
+            const color = tipoMensaje === 'error' ? '#d33' : '#b8922f';
+            
+            Swal.fire({
+                title: titulo,
+                text: mensajeModal,
+                icon: icono,
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: color
+            }).then(() => {
                 if (redirigir) {
-                    window.location.href = '/usuarios'; 
+                    window.location.href = '/usuarios';
                 }
             });
         }
         /*]]>*/
+        // Función para alternar visibilidad de contraseñas
+        function togglePasswordAdmin(fieldId) {
+            const passwordField = document.getElementById(fieldId);
+            const eyeIcon = document.getElementById('eye-' + fieldId);
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", function () {
             const soloLetras = /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/;
 
             const nombreInput = document.querySelector('[name="nombre"]');
             const primerApellidoInput = document.querySelector('[name="primerApellido"]');
             const segundoApellidoInput = document.querySelector('[name="segundoApellido"]');
+            const contrasenaInput = document.getElementById('contrasena');
+            const confirmarContrasenaInput = document.getElementById('confirmarContrasena');
             const formulario = document.querySelector('form');
 
             function esValido(input) {
@@ -182,17 +230,21 @@
                     mensaje = 'El campo primer apellido solo permite letras y espacios.';
                 } else if (!esValido(segundoApellidoInput)) {
                     mensaje = 'El campo segundo apellido solo permite letras y espacios.';
+                } else if (contrasenaInput.value && confirmarContrasenaInput.value && 
+                          contrasenaInput.value !== confirmarContrasenaInput.value) {
+                    mensaje = 'Las contraseñas no coinciden.';
                 }
 
                 if (mensaje) {
                     event.preventDefault();
 
-                    const mensajeTexto = document.querySelector('#mensajeModal h5');
-                    mensajeTexto.textContent = mensaje;
-
-                    const modalElement = document.getElementById('mensajeModal');
-                    const modal = new bootstrap.Modal(modalElement);
-                    modal.show();
+                    Swal.fire({
+                        title: 'Error de validación',
+                        text: mensaje,
+                        icon: 'error',
+                        confirmButtonText: 'Aceptar',
+                        confirmButtonColor: '#d33'
+                    });
                 }
             });
         });

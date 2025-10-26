@@ -1,9 +1,11 @@
 package com.maxiguias.maxigestion.maxigestion.controlador;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.apache.poi.ss.usermodel.Cell;
@@ -27,6 +29,8 @@ import com.maxiguias.maxigestion.maxigestion.modelo.Orden;
 import com.maxiguias.maxigestion.maxigestion.modelo.Usuario;
 import com.maxiguias.maxigestion.maxigestion.repositorio.OrdenRepository;
 import com.maxiguias.maxigestion.maxigestion.repositorio.UsuarioRepository;
+import com.maxiguias.maxigestion.maxigestion.repositorio.DetalleOrdenRepository;
+import com.maxiguias.maxigestion.maxigestion.dto.ProductoVendidoDTO;
 import com.maxiguias.maxigestion.maxigestion.servicio.OrdenService;
 import jakarta.servlet.http.HttpServletResponse;
 @Controller
@@ -37,6 +41,9 @@ public class ReporteController {
 
     @Autowired
     private OrdenRepository ordenRepository;
+
+    @Autowired
+    private DetalleOrdenRepository detalleOrdenRepository;
 
     @Autowired
     private OrdenService ordenService;
@@ -223,4 +230,105 @@ public class ReporteController {
             }
         }
     }
+
+    // ========== MÉTODOS PARA REPORTE DE PRODUCTOS MÁS VENDIDOS ==========
+
+    @GetMapping("/estadisticas-productos")
+    @ResponseBody
+    public Map<String, Object> obtenerEstadisticasProductos(@RequestParam(required = false) Integer mes) {
+        Map<String, Object> estadisticas = new HashMap<>();
+
+        Long totalProductosVendidos;
+        List<Object[]> productosVendidos;
+
+        if (mes != null && mes >= 1 && mes <= 12) {
+            // Si se especifica un mes, filtrar por mes del año actual
+            Integer anioActual = LocalDate.now().getYear();
+            totalProductosVendidos = detalleOrdenRepository.countTotalProductosVendidosPorMes(mes, anioActual);
+            productosVendidos = detalleOrdenRepository.findProductosMasVendidosPorMes(mes, anioActual);
+        } else {
+            // Si no se especifica mes, mostrar todos los productos vendidos
+            totalProductosVendidos = detalleOrdenRepository.countTotalProductosVendidos();
+            productosVendidos = detalleOrdenRepository.findProductosMasVendidos();
+        }
+
+        estadisticas.put("total", totalProductosVendidos != null ? totalProductosVendidos : 0);
+        estadisticas.put("productos", convertirAProductosVendidosDTO(productosVendidos));
+
+        return estadisticas;
+    }
+
+    @GetMapping("/exportar-excel-productos")
+    public void exportarExcelProductos(@RequestParam(required = false) Integer mes, HttpServletResponse response) throws IOException {
+        // Configurar la respuesta HTTP
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        String fileName = "productos_mas_vendidos_" + LocalDate.now() + ".xlsx";
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+
+        List<Object[]> productosVendidos;
+
+        if (mes != null && mes >= 1 && mes <= 12) {
+            // Si se especifica un mes, filtrar por mes del año actual
+            Integer anioActual = LocalDate.now().getYear();
+            productosVendidos = detalleOrdenRepository.findProductosMasVendidosPorMes(mes, anioActual);
+        } else {
+            // Si no se especifica mes, obtener todos los productos vendidos
+            productosVendidos = detalleOrdenRepository.findProductosMasVendidos();
+        }
+
+        // Crear el libro de Excel
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Productos Más Vendidos");
+
+            // Crear estilo para el encabezado
+            CellStyle headerStyle = workbook.createCellStyle();
+            headerStyle.setFillForegroundColor(IndexedColors.GOLD.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+
+            // Crear fila de encabezado
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"Posición", "Producto", "Medida", "Cantidad Vendida"};
+
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            // Agregar datos de productos vendidos
+            int rowNum = 1;
+            int posicion = 1;
+            for (Object[] productoData : productosVendidos) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(posicion++);
+                row.createCell(1).setCellValue((String) productoData[0]); // nombre_guia
+                row.createCell(2).setCellValue(((BigDecimal) productoData[1]).doubleValue()); // medida
+                row.createCell(3).setCellValue(((Long) productoData[2]).intValue()); // cantidad vendida
+            }
+
+            // Ajustar el ancho de las columnas
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            // Escribir el archivo
+            workbook.write(response.getOutputStream());
+        }
+    }
+
+    // Método auxiliar para convertir resultados de consulta a DTOs
+    private List<ProductoVendidoDTO> convertirAProductosVendidosDTO(List<Object[]> resultados) {
+        List<ProductoVendidoDTO> productos = new ArrayList<>();
+        for (Object[] resultado : resultados) {
+            String nombreProducto = (String) resultado[0];
+            BigDecimal medida = (BigDecimal) resultado[1];
+            Long cantidadVendida = (Long) resultado[2];
+            productos.add(new ProductoVendidoDTO(nombreProducto, medida, cantidadVendida));
+        }
+        return productos;
+    }
 }
+

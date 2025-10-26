@@ -1,4 +1,4 @@
-let tipoClienteGlobal = "";
+// tipoClienteGlobal está definido en orden-form.html
 
 function esCombinacionDuplicada(productoId, terminadoId, filaActual) {
     const filas = document.querySelectorAll("#tablaDetalle tbody tr");
@@ -75,8 +75,8 @@ async function actualizarTodasLasOpcionesProducto() {
 }
 
 function actualizarClienteInfo() {
-    if (usuarioSeleccionadoGlobal) {
-        tipoClienteGlobal = usuarioSeleccionadoGlobal.tipoUsuario.nombre.toUpperCase();
+    if (window.usuarioSeleccionadoGlobal) {
+        window.tipoClienteGlobal = window.usuarioSeleccionadoGlobal.tipoUsuario.nombre.toUpperCase();
         
         document.querySelectorAll("#tablaDetalle tbody tr").forEach(fila => {
             actualizarPrecio(fila);
@@ -84,6 +84,70 @@ function actualizarClienteInfo() {
         });
         
         calcularTotalOrden();
+    }
+}
+
+async function cargarTerminadosParaFila(fila, productoId, terminadoSeleccionado = null) {
+    const terminadoSelect = fila.querySelector("select[name='terminadoId']");
+    
+    try {
+        terminadoSelect.innerHTML = "<option value=''>Cargando...</option>";
+        
+        const response = await fetch(`/terminados/por-producto/${productoId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const terminados = await response.json();
+        
+        terminadoSelect.innerHTML = "<option value=''>Seleccione un terminado</option>";
+        
+        terminados.forEach(t => {
+            if (!esCombinacionDuplicada(productoId, t.id.toString(), fila)) {
+                const option = document.createElement("option");
+                option.value = t.id;
+                
+                let precioAMostrar = t.precioPublico || 0;
+                if (window.tipoClienteGlobal === "JURIDICO") {
+                    precioAMostrar = t.precioPorEncargo || 0;
+                }
+                
+                option.textContent = `Medida: ${t.medidaTerminadoProducto || 'N/A'} - $${precioAMostrar.toLocaleString('es-CO')}`;
+                option.setAttribute("data-info", `Medida: ${t.medidaTerminadoProducto}`);
+                option.setAttribute("data-publico", t.precioPublico);
+                option.setAttribute("data-mayor", t.precioPorMayor);
+                option.setAttribute("data-encargo", t.precioPorEncargo);
+                
+                if (terminadoSeleccionado && t.id.toString() === terminadoSeleccionado) {
+                    option.selected = true;
+                }
+                
+                terminadoSelect.appendChild(option);
+            }
+        });
+        
+        if (terminadoSeleccionado) {
+            // Solo calcular total después de cargar, sin modificar el precio existente
+            setTimeout(() => calcularTotalOrden(), 100);
+        }
+        
+    } catch (error) {
+        console.error(`Error cargando terminados para producto ${productoId}:`, error);
+        terminadoSelect.innerHTML = "<option value=''>Error al cargar</option>";
+    }
+}
+
+function cargarTerminadosEdicion(productoSelect) {
+    const fila = productoSelect.closest('tr');
+    const productoId = productoSelect.value;
+    
+    if (productoId) {
+        cargarTerminadosParaFila(fila, productoId);
+        actualizarDescripcion(fila);
+    } else {
+        const terminadoSelect = fila.querySelector("select[name='terminadoId']");
+        terminadoSelect.innerHTML = "<option value=''>Seleccione un terminado</option>";
+        actualizarPrecio(fila);
     }
 }
 
@@ -116,6 +180,13 @@ function agregarFila() {
             select.selectedIndex = 0;
         }
     });
+    
+    // Asegurar que el botón de eliminar funcione correctamente
+    const botonEliminar = nuevaFila.querySelector("button[onclick*='eliminarFilaEspecifica']");
+    if (botonEliminar) {
+        botonEliminar.onclick = function() { eliminarFilaEspecifica(this); };
+    }
+    
     tabla.appendChild(nuevaFila);
     actualizarOpcionesProducto(nuevaFila);
     calcularTotalOrden();
@@ -125,6 +196,28 @@ function eliminarFila() {
     const tabla = document.getElementById("tablaDetalle").querySelector("tbody");
     if (tabla.rows.length > 1) {
         tabla.deleteRow(tabla.rows.length - 1);
+        setTimeout(() => actualizarTodasLasOpcionesProducto(), 100);
+        calcularTotalOrden();
+    }
+}
+
+function eliminarFilaEspecifica(botonEliminar) {
+    const tabla = document.getElementById("tablaDetalle").querySelector("tbody");
+    
+    // No permitir eliminar si solo queda una fila
+    if (tabla.rows.length <= 1) {
+        alert("Debe mantener al menos un producto en la orden.");
+        return;
+    }
+    
+    const fila = botonEliminar.closest("tr");
+    const filaIndex = Array.from(tabla.rows).indexOf(fila);
+    
+    // Confirmar eliminación
+    if (confirm("¿Está seguro de que desea eliminar este producto de la orden?")) {
+        tabla.deleteRow(filaIndex);
+        
+        // Actualizar opciones de productos después de eliminar
         setTimeout(() => actualizarTodasLasOpcionesProducto(), 100);
         calcularTotalOrden();
     }
@@ -170,7 +263,7 @@ document.addEventListener("change", function (e) {
                     option.value = t.id;
                     
                     let precioAMostrar = t.precioPublico || 0;
-                    if (tipoClienteGlobal === "JURIDICO") {
+                    if (window.tipoClienteGlobal === "JURIDICO") {
                         precioAMostrar = t.precioPorEncargo || 0;
                     }
                     
@@ -200,6 +293,7 @@ document.addEventListener("change", function (e) {
         if (productoId && terminadoId && esCombinacionDuplicada(productoId, terminadoId, fila)) {
             alert("Esta combinación de producto y terminado ya está seleccionada en otra fila.");
             e.target.selectedIndex = 0;
+            actualizarPrecio(fila);
             return;
         }
         
@@ -220,7 +314,7 @@ function actualizarTextoTerminados(fila) {
             const medidaInfo = option.getAttribute("data-info");
             
             let precioAMostrar = publico;
-            if (tipoClienteGlobal === "JURIDICO") {
+            if (window.tipoClienteGlobal === "JURIDICO") {
                 precioAMostrar = encargo;
             }
             
@@ -235,25 +329,42 @@ function actualizarPrecio(fila) {
     const cantidadInput = fila.querySelector("input[name='cantidad']");
     const valorInput = fila.querySelector("input[name='valor']");
 
-    const publico = terminadoSelect.selectedOptions[0]?.getAttribute("data-publico");
-    const mayor = terminadoSelect.selectedOptions[0]?.getAttribute("data-mayor");
-    const encargo = terminadoSelect.selectedOptions[0]?.getAttribute("data-encargo");
+    // Si no hay terminado seleccionado, solo resetear si no estamos en modo edición inicial
+    if (!terminadoSelect.value || terminadoSelect.selectedIndex === 0) {
+        // En modo edición, preservar el valor original si existe
+        const esFilaEdicion = fila.hasAttribute('data-detalle-id');
+        if (!esFilaEdicion || !valorInput.value || valorInput.value === '0') {
+            valorInput.value = 0;
+        }
+        calcularTotalOrden();
+        return;
+    }
 
-    const cantidad = parseInt(cantidadInput.value);
+    const selectedOption = terminadoSelect.selectedOptions[0];
+    const publico = selectedOption?.getAttribute("data-publico");
+    const mayor = selectedOption?.getAttribute("data-mayor");
+    const encargo = selectedOption?.getAttribute("data-encargo");
+
+    const cantidad = parseInt(cantidadInput.value) || 1;
 
     let precioFinal = 0;
 
-    if (tipoClienteGlobal === "NATURAL") {
-        precioFinal = publico;
-    } else if (tipoClienteGlobal === "JURIDICO") {
-        if (cantidad <= 2) {
-            precioFinal = encargo;
-        } else {
-            precioFinal = mayor;
+    if (publico && encargo && mayor) {
+        if (window.tipoClienteGlobal === "NATURAL") {
+            precioFinal = parseFloat(publico);
+        } else if (window.tipoClienteGlobal === "JURIDICO") {
+            if (cantidad <= 2) {
+                precioFinal = parseFloat(encargo);
+            } else {
+                precioFinal = parseFloat(mayor);
+            }
         }
     }
 
-    valorInput.value = precioFinal || 0;
+    // Solo actualizar si tenemos un precio válido o si no es modo edición inicial
+    if (precioFinal > 0) {
+        valorInput.value = precioFinal;
+    }
     calcularTotalOrden();
 }
 
@@ -284,6 +395,56 @@ document.addEventListener("input", function (e) {
     }
 });
 
+function cambiarProductoEdicion(productoSelect) {
+    const fila = productoSelect.closest('tr');
+    const productoId = productoSelect.value;
+    const terminadoSelect = fila.querySelector("select[name='terminadoId']");
+    const valorInput = fila.querySelector("input[name='valor']");
+    
+    // Resetear valor inmediatamente al cambiar producto
+    valorInput.value = 0;
+    
+    if (productoId) {
+        terminadoSelect.innerHTML = "<option value=''>Cargando terminados...</option>";
+        cargarTerminadosParaFila(fila, productoId);
+        actualizarDescripcion(fila);
+    } else {
+        terminadoSelect.innerHTML = "<option value=''>Seleccione un terminado</option>";
+    }
+    
+    calcularTotalOrden();
+}
+
+function actualizarPrecioEdicion(fila) {
+    actualizarPrecio(fila);
+}
+
+function aumentarEdicion(btn) {
+    const input = btn.previousElementSibling;
+    input.value = parseInt(input.value) + 1;
+    const fila = btn.closest("tr");
+    actualizarPrecio(fila);
+}
+
+function disminuirEdicion(btn) {
+    const input = btn.nextElementSibling;
+    if (parseInt(input.value) > 1) {
+        input.value = parseInt(input.value) - 1;
+        const fila = btn.closest("tr");
+        actualizarPrecio(fila);
+    }
+}
+
+document.addEventListener("input", function (e) {
+    if (e.target.name === "cantidad") {
+        const fila = e.target.closest("tr");
+        actualizarPrecio(fila);
+    }
+    if (e.target.name === "cantidad" || e.target.name === "valor") {
+        calcularTotalOrden();
+    }
+});
+
 document.addEventListener('DOMContentLoaded', function () {
     const fechaInput = document.querySelector('input[type="datetime-local"][name="fechaEntrega"]');
 
@@ -297,5 +458,28 @@ document.addEventListener('DOMContentLoaded', function () {
         fechaInput.max = fechaMax;
     }
     
-    calcularTotalOrden();
+    // Cargar terminados para filas en modo edición
+    const filasEdicion = document.querySelectorAll("tr[data-detalle-id]");
+    filasEdicion.forEach(fila => {
+        const terminadoSelect = fila.querySelector("select[name='terminadoId']");
+        const productoSelect = fila.querySelector("select[name='productoId']");
+        
+        if (terminadoSelect && productoSelect) {
+            const productoId = terminadoSelect.getAttribute("data-producto");
+            const terminadoId = terminadoSelect.getAttribute("data-selected");
+            
+            if (productoId) {
+                cargarTerminadosParaFila(fila, productoId, terminadoId);
+            }
+        }
+    });
+    
+    // Solo calcular total si no hay filas en modo edición
+    if (filasEdicion.length === 0) {
+        calcularTotalOrden();
+    }
 });
+
+// ========== FUNCIONES DE BÚSQUEDA DE USUARIOS ==========
+// Las funciones de búsqueda están implementadas directamente en orden-form.html
+// para evitar conflictos de carga de scripts

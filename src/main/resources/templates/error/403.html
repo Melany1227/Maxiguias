@@ -12,26 +12,7 @@
 
 <body>
     <!-- Sidebar -->
-    <div class="sidebar">
-        <img src="/img/logo.png" alt="Logo MXG">
-
-        <!-- Si NO está autenticado -->
-        <div sec:authorize="!isAuthenticated()">
-            <a href="/login" class="btn"><i class="bi bi-box-arrow-in-right"></i> INGRESAR</a>
-            <a href="/productos/catalogo" class="btn"><i class="bi bi-journal-text"></i> CATÁLOGO</a>
-        </div>
-
-        <!-- Si está autenticado -->
-        <div sec:authorize="isAuthenticated()">
-            <p sec:authentication="name" style="color: white; margin: 10px 0;"></p>
-            <a href="/ordenes" class="btn"><i class="bi bi-receipt"></i> ORDENES</a>
-            <a href="/productos" class="btn"><i class="bi bi-box-seam"></i> PRODUCTOS</a>
-            <a href="/usuarios" class="btn"><i class="bi bi-people-fill"></i> USUARIOS</a>
-            <form th:action="@{/logout}" method="post" style="display: inline;">
-            <button type="submit" class="btn"><i class="bi bi-box-arrow-right"></i>CERRAR SESIÓN</button>
-            </form>
-        </div>
-    </div>
+    <div th:replace="menú/sidebar :: sidebar"></div> 
 
     <!-- Contenido -->
     <div class="main-content">
