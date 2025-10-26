@@ -33,4 +33,13 @@ public interface OrdenRepository extends JpaRepository<Orden, Long>, PagingAndSo
            "STR(o.usuario.documento) LIKE CONCAT('%', :termino, '%')")
     Page<Orden> findByClienteTermino(@Param("termino") String termino, Pageable pageable);
 
+    // Métodos para filtrar órdenes por usuario específico (para usuarios jurídicos)
+    Page<Orden> findByUsuario_Documento(Long documento, Pageable pageable);
+
+    // Método para buscar por cliente y usuario específico
+    @Query("SELECT o FROM Orden o WHERE o.usuario.documento = :usuarioDocumento AND " +
+           "(LOWER(CONCAT(o.usuario.nombre, ' ', o.usuario.primerApellido)) LIKE LOWER(CONCAT('%', :termino, '%')) OR " +
+           "STR(o.usuario.documento) LIKE CONCAT('%', :termino, '%'))")
+    Page<Orden> findByClienteTerminoAndUsuario(@Param("termino") String termino, @Param("usuarioDocumento") Long usuarioDocumento, Pageable pageable);
+
 }

@@ -93,10 +93,12 @@
                   <i class="fa-solid fa-calendar-day"></i> Fecha de Entrega
                 </label>
                 <input type="datetime-local" 
+                       id="fechaEntrega"
                        name="fechaEntrega"
                        th:value="${orden?.fechaEntrega != null ? #temporals.format(orden.fechaEntrega, 'yyyy-MM-dd''T''HH:mm') : ''}"
                        class="form-control" 
-                       required>
+                       required
+                       onchange="validarFechaEntrega(this)">
 
                 <label class="form-icon-label mt-3"><i class="fa-solid fa-align-left"></i> Descripción Venta</label>
                 <input type="text" class="form-control" th:field="*{descripcionVenta}" required>
@@ -532,6 +534,26 @@
         infoClienteJuridicoDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
+
+    // Función para validar fecha de entrega (definición temprana para hacerla global)
+    function validarFechaEntrega(input) {
+      const fechaSeleccionada = new Date(input.value);
+      const fechaActual = new Date();
+      
+      if (fechaSeleccionada <= fechaActual) {
+        Swal.fire({
+          title: 'Fecha Inválida',
+          text: 'La fecha de entrega debe ser mayor a la fecha actual',
+          icon: 'warning',
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: "#d33"
+        });
+        input.value = '';
+        input.focus();
+        return false;
+      }
+      return true;
+    }
     
     // Hacer funciones accesibles globalmente
     window.buscarUsuario = buscarUsuario;
@@ -542,6 +564,7 @@
     window.volverAPaso1 = volverAPaso1;
     window.continuarAPaso2ParaJuridico = continuarAPaso2ParaJuridico;
     window.volverAInfoJuridico = volverAInfoJuridico;
+    window.validarFechaEntrega = validarFechaEntrega;
     
     // Agregar event listener para Enter
     document.addEventListener('DOMContentLoaded', function() {
@@ -644,8 +667,37 @@
   <script>
     const editMode = /*[[${editMode}]]*/ false;
 
+
+    // Agregar validación antes del submit del formulario
+    function validarFormularioAntesDePrincipal(event) {
+      const fechaInput = document.getElementById('fechaEntrega');
+      if (fechaInput && fechaInput.value) {
+        if (!validarFechaEntrega(fechaInput)) {
+          event.preventDefault();
+          return false;
+        }
+      }
+      return true;
+    }
+
     // Inicialización específica de la página
     document.addEventListener('DOMContentLoaded', function() {
+      
+      // Agregar validación al formulario principal
+      const formulario = document.querySelector('form[action*="/ordenes/"]');
+      if (formulario) {
+        formulario.addEventListener('submit', validarFormularioAntesDePrincipal);
+      }
+
+      // Establecer fecha mínima como la fecha actual
+      const fechaInput = document.getElementById('fechaEntrega');
+      if (fechaInput) {
+        const ahora = new Date();
+        // Ajustar por zona horaria local
+        ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
+        const fechaMinima = ahora.toISOString().slice(0, 16); // Formato YYYY-MM-DDTHH:MM
+        fechaInput.setAttribute('min', fechaMinima);
+      }
       
       // Si es cliente jurídico, establecer el tipo globalmente
       if (typeof esClienteJuridico !== 'undefined' && esClienteJuridico) {

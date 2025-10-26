@@ -60,6 +60,14 @@ public class OrdenService {
     public Page<Orden> filtrarOrdenesPorClienteDocumento(Long clienteDocumento, Pageable pageable) {
         return ordenRepository.findByUsuarioDocumento(clienteDocumento, pageable);
     }
+
+    public Page<Orden> obtenerOrdenesPorUsuario(Long usuarioDocumento, Pageable pageable) {
+        return ordenRepository.findByUsuario_Documento(usuarioDocumento, pageable);
+    }
+
+    public Page<Orden> buscarOrdenesPorClienteYUsuario(String termino, Long usuarioDocumento, Pageable pageable) {
+        return ordenRepository.findByClienteTerminoAndUsuario(termino, usuarioDocumento, pageable);
+    }
     
     public Orden obtenerOrdenPorId(Long id) {
         return ordenRepository.findById(id).orElse(null);
