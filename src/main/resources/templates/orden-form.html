@@ -20,10 +20,10 @@
           <span th:unless="${editMode}">CREAR ORDEN</span>
         </h4>
 
-        <!-- Paso 1: Búsqueda de Usuario -->
-        <div id="paso1" class="step-section" th:style="${editMode} ? 'display: none;' : ''">
+        <!-- Paso 1: Búsqueda de Usuario (Solo para Administradores) -->
+        <div id="paso1" class="step-section" th:if="${(esAdministrador ?: false) && !(editMode ?: false)}">
           <h5 class="text-primary mb-3">
-            <i class="fa-solid fa-search"></i> Paso 1: Buscar Cliente
+            <i class="fa-solid fa-search"></i> Buscar Cliente
           </h5>
           <div class="row">
             <div class="col-md-8">
@@ -56,26 +56,55 @@
           </div>
         </div>
 
+        <!-- Información para Cliente Jurídico -->
+        <div id="infoClienteJuridico" class="step-section" th:if="${(esClienteJuridico ?: false) && !(editMode ?: false)}">
+          <h5 class="text-success mb-3">
+            <i class="fa-solid fa-user-check"></i> Cliente Identificado
+          </h5>
+          <div class="alert alert-info">
+            <h6 class="mb-2">
+              <i class="fa-solid fa-building"></i> Información del Cliente:
+            </h6>
+            <div>
+              <strong>Documento:</strong> <span th:text="${usuarioLogueado?.documento ?: 'N/A'}"></span><br>
+              <strong>Nombre:</strong> <span th:text="${usuarioLogueado?.nombre ?: 'N/A'}"></span><br>
+            </div>
+            <button type="button" class="btn btn-success mt-3" onclick="continuarAPaso2ParaJuridico()">
+              Crear Mi Orden <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
         <!-- Paso 2: Formulario de Orden -->
-        <div id="paso2" class="step-section" th:style="${editMode} ? '' : 'display: none;'">
+        <div id="paso2" class="step-section" th:style="${(editMode ?: false)} ? '' : 'display: none;'">
           <form th:action="${editMode} ? '/ordenes/actualizar/' + ${orden.id} : '/ordenes/guardar'" method="post" th:object="${orden}">
             <h5 class="text-primary mb-3">
-              <i class="fa-solid fa-edit"></i> Paso 2: Detalles de la Orden
+              <i class="fa-solid fa-edit"></i> Detalles de la Orden
             </h5>
             
-            <input type="hidden" id="usuarioDocumento" name="usuario.documento" th:value="${editMode} ? ${orden.usuario.documento} : ''">
+            <!-- Campo oculto para asociar usuario -->
+            <input type="hidden" id="usuarioDocumento" name="usuario.documento" 
+                   th:value="${(editMode ?: false) ? (orden.usuario?.documento ?: '') : ((esClienteJuridico ?: false) ? (usuarioLogueado?.documento ?: '') : '')}">
             
-            <div class="row">
+            <!-- Campos restringidos para órdenes facturadas -->
+            <div th:if="${esOrdenFacturada ?: false}" class="alert alert-warning">
+              <h6><i class="fa-solid fa-exclamation-triangle"></i> Orden Facturada - Edición Restringida</h6>
+              <p class="mb-0">Esta orden está facturada. Solo puede cambiar el estado a <strong>Cancelada</strong> o <strong>Finalizada</strong>.</p>
+            </div>
+            
+            <div class="row" th:unless="${esOrdenFacturada ?: false}">
               <div class="col-md-6">
 
                 <label class="form-icon-label">
                   <i class="fa-solid fa-calendar-day"></i> Fecha de Entrega
                 </label>
                 <input type="datetime-local" 
+                       id="fechaEntrega"
                        name="fechaEntrega"
                        th:value="${orden?.fechaEntrega != null ? #temporals.format(orden.fechaEntrega, 'yyyy-MM-dd''T''HH:mm') : ''}"
                        class="form-control" 
-                       required>
+                       required
+                       onchange="validarFechaEntrega(this)">
 
                 <label class="form-icon-label mt-3"><i class="fa-solid fa-align-left"></i> Descripción Venta</label>
                 <input type="text" class="form-control" th:field="*{descripcionVenta}" required>
@@ -112,13 +141,66 @@
               </div>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center my-3">
+            <!-- Campo de estado para órdenes facturadas (solo este campo es editable) -->
+            <div th:if="${esOrdenFacturada ?: false}" class="row">
+              <div class="col-md-6">
+                <label class="form-icon-label"><i class="fa-solid fa-cogs"></i> Estado</label>
+                <select class="form-select" th:field="*{estado}" required>
+                  <option value="">Seleccionar estado...</option>
+                  <option th:value="${T(com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden).CANCELADA}"
+                          th:text="${T(com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden).CANCELADA.descripcion}"
+                          th:selected="${orden?.estado?.name() == 'CANCELADA'}">
+                  </option>
+                  <option th:value="${T(com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden).FINALIZADA}"
+                          th:text="${T(com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden).FINALIZADA.descripcion}"
+                          th:selected="${orden?.estado?.name() == 'FINALIZADA'}">
+                  </option>
+                  <option th:value="${T(com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden).FACTURADA}"
+                          th:text="${T(com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden).FACTURADA.descripcion}"
+                          th:selected="${orden?.estado?.name() == 'FACTURADA'}">
+                  </option>
+                </select>
+
+                <!-- Campos ocultos para mantener los datos existentes de la orden facturada -->
+                <input type="hidden" name="fechaEntrega" th:value="${orden?.fechaEntrega != null ? #temporals.format(orden.fechaEntrega, 'yyyy-MM-dd''T''HH:mm') : ''}">
+                <input type="hidden" name="descripcionVenta" th:value="${orden?.descripcionVenta ?: ''}">
+                <input type="hidden" name="empresa.nitEmpresa" th:value="${empresa.nitEmpresa}">
+                
+                <!-- Campos ocultos para los detalles de la orden -->
+                <div th:each="detalle, iterStat : ${detalles}">
+                  <input type="hidden" name="productoId" th:value="${detalle.terminado.producto.id}">
+                  <input type="hidden" name="terminadoId" th:value="${detalle.terminado.id}">
+                  <input type="hidden" name="cantidad" th:value="${detalle.cantidad}">
+                  <input type="hidden" name="valor" th:value="${detalle.valor}">
+                  <input type="hidden" name="descripcion" th:value="${detalle.descripcion}">
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="p-3 border rounded bg-light">
+                  <h6><i class="fa-solid fa-info-circle"></i> Información de la Orden</h6>
+                  <div>
+                    <strong>Cliente:</strong> <span th:text="${orden.usuario.nombre + ' ' + orden.usuario.primerApellido}"></span><br>
+                    <strong>Fecha de Entrega:</strong> <span th:text="${#temporals.format(orden.fechaEntrega, 'dd/MM/yyyy HH:mm')}"></span><br>
+                    <strong>Total:</strong> $<span th:text="${orden.totalFactura}"></span><br>
+                    <strong>Estado Actual:</strong> <span th:text="${orden.estado.descripcion}" th:class="'badge bg-' + ${orden.estado.colorBootstrap}"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div th:unless="${esOrdenFacturada ?: false}" class="d-flex justify-content-between align-items-center my-3">
               <button type="button" class="btn btn-outline-danger btn-xl" onclick="eliminarFila()">-</button>
               <h5 class="m-0">Detalles de la Orden</h5>
               <button type="button" class="btn btn-outline-success btn-sm" onclick="agregarFila()">+</button>
             </div>
 
-            <table id="tablaDetalle" class="table tabla-usuarios">
+            <!-- Mostrar detalles de la orden facturada de solo lectura -->
+            <div th:if="${esOrdenFacturada ?: false}" class="my-3">
+              <h5 class="m-0"><i class="fa-solid fa-list"></i> Detalles de la Orden (Solo Lectura)</h5>
+            </div>
+
+            <table id="tablaDetalle" class="table tabla-usuarios" th:unless="${esOrdenFacturada ?: false}">
               <thead class="table-light">
                 <tr>
                   <th>Producto</th>
@@ -208,17 +290,43 @@
               </tbody>
             </table>
 
+            <!-- Tabla de solo lectura para órdenes facturadas -->
+            <table th:if="${esOrdenFacturada ?: false}" class="table tabla-usuarios">
+              <thead class="table-light">
+                <tr>
+                  <th>Producto</th>
+                  <th>Terminado</th>
+                  <th>Cantidad</th>
+                  <th>Valor Unitario</th>
+                  <th>Descripción</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="detalle : ${detalles}">
+                  <td th:text="${detalle.terminado.producto.nombre}"></td>
+                  <td th:text="${'Medida: ' + detalle.terminado.medidaTerminadoProducto}"></td>
+                  <td th:text="${detalle.cantidad}"></td>
+                  <td>$<span th:text="${detalle.valor}"></span></td>
+                  <td th:text="${detalle.descripcion}"></td>
+                  <td>$<span th:text="${detalle.cantidad * detalle.valor}"></span></td>
+                </tr>
+              </tbody>
+            </table>
+
             <div class="text-end fw-bold fs-5 mt-3">
-              TOTAL: $<span id="totalOrden">0</span>
+              TOTAL: $<span id="totalOrden" 
+                           th:text="${(editMode and orden.totalFactura != null) ? #numbers.formatDecimal(orden.totalFactura, 1, 2) : '0'}">0</span>
             </div>
 
-            <input type="hidden" id="inputTotalOrden" name="totalFactura">
+            <input type="hidden" id="inputTotalOrden" name="totalFactura" th:value="${(editMode and orden.totalFactura != null) ? orden.totalFactura : ''}">
 
             <div class="col-12 d-flex justify-content-between">
                 <button th:if="${editMode}" type="button" class="btn btn-secondary" onclick="window.location.href='/ordenes'">
                     <i class="fa-solid fa-arrow-left"></i> Volver a Lista
                 </button>
-                <button th:unless="${editMode}" type="button" class="btn btn-secondary" onclick="volverAPaso1()">
+                <button th:unless="${editMode}" type="button" class="btn btn-secondary" 
+                        onclick="volverAPaso1()">
                     <i class="fa-solid fa-arrow-left"></i> Volver
                 </button>
                 <button type="submit" class="custom-btn">
@@ -235,6 +343,343 @@
   <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script th:src="@{/js/orden-validaciones.js}"></script>
+  
+  <!-- Funciones de búsqueda implementadas directamente -->
+  <script>
+    console.log('🚀 Cargando funciones de búsqueda inline...');
+    
+    // Variables globales - disponibles para todos los scripts
+    window.usuarioSeleccionadoGlobal = null;
+    window.tipoClienteGlobal = "";
+    
+    // Función de búsqueda principal
+    async function buscarUsuario() {
+      console.log('🔍 Ejecutando búsqueda de usuario');
+      
+      const input = document.getElementById('buscarUsuario');
+      if (!input) {
+        console.error('❌ Input de búsqueda no encontrado');
+        alert('Error: Input de búsqueda no encontrado');
+        return;
+      }
+      
+      const termino = input.value.trim();
+      console.log('📝 Término de búsqueda:', termino);
+      
+      if (termino.length < 2) {
+        alert('Ingrese al menos 2 caracteres para buscar');
+        return;
+      }
+      
+      try {
+        // Mostrar indicador de carga
+        const lista = document.getElementById('listaUsuarios');
+        const resultados = document.getElementById('resultadosBusqueda');
+        
+        if (lista) {
+          lista.innerHTML = '<div class="list-group-item">🔄 Buscando...</div>';
+        }
+        if (resultados) {
+          resultados.style.display = 'block';
+        }
+        
+        const response = await fetch(`/ordenes/buscar-usuarios?termino=${encodeURIComponent(termino)}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const usuarios = await response.json();
+        console.log('✅ Encontrados', usuarios.length, 'usuarios');
+        
+        mostrarResultadosBusqueda(usuarios);
+        
+      } catch (error) {
+        console.error('❌ Error en búsqueda:', error);
+        const lista = document.getElementById('listaUsuarios');
+        if (lista) {
+          lista.innerHTML = '<div class="list-group-item text-danger">❌ Error al buscar usuarios. Intente nuevamente.</div>';
+        }
+        alert('Error en búsqueda: ' + error.message);
+      }
+    }
+    
+    function mostrarResultadosBusqueda(usuarios) {
+      console.log('📋 Mostrando resultados para', usuarios ? usuarios.length : 0, 'usuarios');
+      
+      const resultadosDiv = document.getElementById('resultadosBusqueda');
+      const listaUsuarios = document.getElementById('listaUsuarios');
+      
+      console.log('🔍 Elementos DOM:', {
+        resultadosDiv: !!resultadosDiv,
+        listaUsuarios: !!listaUsuarios
+      });
+      
+      if (!listaUsuarios || !resultadosDiv) {
+        console.error('❌ Elementos DOM no encontrados');
+        alert('Error: No se encontraron elementos para mostrar resultados');
+        return;
+      }
+      
+      if (!usuarios || usuarios.length === 0) {
+        console.log('⚠️ No hay usuarios para mostrar');
+        listaUsuarios.innerHTML = '<div class="alert alert-warning">⚠️ No se encontraron usuarios</div>';
+        resultadosDiv.style.display = 'block';
+        console.log('✅ Mostrando mensaje de no resultados');
+        return;
+      }
+      
+      console.log('👥 Procesando', usuarios.length, 'usuarios...');
+      let html = '';
+      usuarios.forEach((usuario, index) => {
+        console.log(`👤 Usuario ${index + 1}:`, usuario.nombre, usuario.documento);
+        if (usuario && usuario.nombre && usuario.documento && usuario.tipoUsuario) {
+          html += `
+            <button type="button" class="list-group-item list-group-item-action" 
+                    onclick="seleccionarUsuario('${usuario.documento}', '${usuario.nombre}', '${usuario.email || ''}', '${usuario.telefono || ''}', '${usuario.tipoUsuario.nombre}', '${usuario.primerApellido || ''}')">
+              <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">${usuario.nombre} ${usuario.primerApellido || ''}</h6>
+                <small class="text-muted">${usuario.tipoUsuario.nombre}</small>
+              </div>
+              <p class="mb-1">Documento: ${usuario.documento}</p>
+            </button>
+          `;
+        } else {
+          console.warn('❌ Usuario inválido:', usuario);
+        }
+      });
+      
+      console.log('📝 HTML generado, longitud:', html.length);
+      listaUsuarios.innerHTML = html;
+      resultadosDiv.style.display = 'block';
+      
+      // Verificar que se aplicó correctamente
+      console.log('✅ Display aplicado:', resultadosDiv.style.display);
+      console.log('✅ Contenido insertado:', listaUsuarios.children.length, 'elementos');
+    }
+    
+    function seleccionarUsuario(documento, nombre, email, telefono, tipoUsuario, primerApellido) {
+      console.log('✅ Usuario seleccionado:', nombre);
+      
+      window.usuarioSeleccionadoGlobal = {
+        documento: documento,
+        nombre: nombre,
+        email: email,
+        telefono: telefono,
+        primerApellido: primerApellido || '',
+        tipoUsuario: { nombre: tipoUsuario }
+      };
+      
+      // Actualizar información del usuario seleccionado
+      const infoUsuarioDiv = document.getElementById('infoUsuario');
+      const usuarioDocumentoInput = document.getElementById('usuarioDocumento');
+      const usuarioSeleccionadoDiv = document.getElementById('usuarioSeleccionado');
+      
+      if (infoUsuarioDiv) {
+        infoUsuarioDiv.innerHTML = `
+          <div class="alert alert-success">
+            <strong>Cliente:</strong> ${nombre} ${primerApellido || ''}<br>
+            <strong>Documento:</strong> ${documento}<br>
+            <strong>Tipo:</strong> ${tipoUsuario}
+          </div>
+        `;
+      }
+      
+      if (usuarioDocumentoInput) {
+        usuarioDocumentoInput.value = documento;
+      }
+      
+      if (usuarioSeleccionadoDiv) {
+        usuarioSeleccionadoDiv.style.display = 'block';
+      }
+      
+      // Solo limpiar la búsqueda, no la selección
+      limpiarSoloBusqueda();
+      
+      // Actualizar tipo de cliente global
+      window.tipoClienteGlobal = tipoUsuario.toUpperCase();
+      
+      console.log('✅ Usuario guardado en variable global:', window.usuarioSeleccionadoGlobal);
+    }
+    
+    function limpiarSoloBusqueda() {
+      console.log('🧹 Limpiando solo la búsqueda (manteniendo selección)');
+      
+      const buscarInput = document.getElementById('buscarUsuario');
+      const resultadosDiv = document.getElementById('resultadosBusqueda');
+      const listaUsuarios = document.getElementById('listaUsuarios');
+      
+      if (buscarInput) buscarInput.value = '';
+      if (resultadosDiv) resultadosDiv.style.display = 'none';
+      if (listaUsuarios) listaUsuarios.innerHTML = '';
+    }
+    
+    function limpiarBusqueda() {
+      console.log('🧹 Limpiando búsqueda completa (incluyendo selección)');
+      
+      const buscarInput = document.getElementById('buscarUsuario');
+      const resultadosDiv = document.getElementById('resultadosBusqueda');
+      const listaUsuarios = document.getElementById('listaUsuarios');
+      const usuarioSeleccionadoDiv = document.getElementById('usuarioSeleccionado');
+      const infoUsuarioDiv = document.getElementById('infoUsuario');
+      const usuarioDocumentoInput = document.getElementById('usuarioDocumento');
+      
+      if (buscarInput) buscarInput.value = '';
+      if (resultadosDiv) resultadosDiv.style.display = 'none';
+      if (listaUsuarios) listaUsuarios.innerHTML = '';
+      if (usuarioSeleccionadoDiv) usuarioSeleccionadoDiv.style.display = 'none';
+      if (infoUsuarioDiv) infoUsuarioDiv.innerHTML = '';
+      if (usuarioDocumentoInput) usuarioDocumentoInput.value = '';
+      
+      window.usuarioSeleccionadoGlobal = null;
+      window.tipoClienteGlobal = "";
+    }
+    
+    function continuarAPaso2() {
+      
+      if (!window.usuarioSeleccionadoGlobal) {
+        alert('Por favor seleccione un cliente');
+        return;
+      }
+      
+      // Llenar información del cliente en el paso 2
+      const usuarioDocumentoInput = document.getElementById('usuarioDocumento');
+      const datosClienteDiv = document.getElementById('datosCliente');
+      const paso1Div = document.getElementById('paso1');
+      const paso2Div = document.getElementById('paso2');
+      
+      if (usuarioDocumentoInput) {
+        usuarioDocumentoInput.value = window.usuarioSeleccionadoGlobal.documento;
+      }
+      
+      if (datosClienteDiv) {
+        datosClienteDiv.innerHTML = `
+          <div class="alert alert-success">
+            <strong>${window.usuarioSeleccionadoGlobal.nombre} ${window.usuarioSeleccionadoGlobal.primerApellido}</strong><br>
+            <small>Documento: ${window.usuarioSeleccionadoGlobal.documento}</small><br>
+            <small>Tipo: ${window.usuarioSeleccionadoGlobal.tipoUsuario.nombre}</small>
+          </div>
+        `;
+      }
+
+      if (paso1Div) paso1Div.style.display = 'none';
+      if (paso2Div) paso2Div.style.display = 'block';
+      
+      // Scroll suave al paso 2
+      if (paso2Div) {
+        paso2Div.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      
+      // Actualizar información del cliente para cálculos de precios
+      if (typeof actualizarClienteInfo === 'function') {
+        actualizarClienteInfo();
+      }
+    }
+    
+    function volverAPaso1() {
+      // Determinar a dónde volver basado en el tipo de usuario
+      if (typeof esAdministrador !== 'undefined' && esAdministrador) {
+        const paso1Div = document.getElementById('paso1');
+        const paso2Div = document.getElementById('paso2');
+        
+        if (paso2Div) paso2Div.style.display = 'none';
+        if (paso1Div) paso1Div.style.display = 'block';
+        
+        if (paso1Div) {
+          paso1Div.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } else if (typeof esClienteJuridico !== 'undefined' && esClienteJuridico) {
+        volverAInfoJuridico();
+      } else {
+        window.location.href = '/ordenes';
+      }
+    }
+    
+    function continuarAPaso2ParaJuridico() {
+      const infoClienteJuridicoDiv = document.getElementById('infoClienteJuridico');
+      const paso2Div = document.getElementById('paso2');
+      
+      if (infoClienteJuridicoDiv) infoClienteJuridicoDiv.style.display = 'none';
+      if (paso2Div) paso2Div.style.display = 'block';
+      
+      if (paso2Div) {
+        paso2Div.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+    
+    function volverAInfoJuridico() {
+      const paso2Div = document.getElementById('paso2');
+      const infoClienteJuridicoDiv = document.getElementById('infoClienteJuridico');
+      
+      if (paso2Div) paso2Div.style.display = 'none';
+      if (infoClienteJuridicoDiv) infoClienteJuridicoDiv.style.display = 'block';
+      
+      if (infoClienteJuridicoDiv) {
+        infoClienteJuridicoDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    // Función para validar fecha de entrega (definición temprana para hacerla global)
+    function validarFechaEntrega(input) {
+      const fechaSeleccionada = new Date(input.value);
+      const fechaActual = new Date();
+      
+      if (fechaSeleccionada <= fechaActual) {
+        Swal.fire({
+          title: 'Fecha Inválida',
+          text: 'La fecha de entrega debe ser mayor a la fecha actual',
+          icon: 'warning',
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: "#d33"
+        });
+        input.value = '';
+        input.focus();
+        return false;
+      }
+      return true;
+    }
+    
+    // Hacer funciones accesibles globalmente
+    window.buscarUsuario = buscarUsuario;
+    window.limpiarBusqueda = limpiarBusqueda;
+    window.limpiarSoloBusqueda = limpiarSoloBusqueda;
+    window.seleccionarUsuario = seleccionarUsuario;
+    window.continuarAPaso2 = continuarAPaso2;
+    window.volverAPaso1 = volverAPaso1;
+    window.continuarAPaso2ParaJuridico = continuarAPaso2ParaJuridico;
+    window.volverAInfoJuridico = volverAInfoJuridico;
+    window.validarFechaEntrega = validarFechaEntrega;
+    
+    // Agregar event listener para Enter
+    document.addEventListener('DOMContentLoaded', function() {
+      const inputBuscar = document.getElementById('buscarUsuario');
+      if (inputBuscar) {
+        inputBuscar.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            buscarUsuario();
+          }
+        });
+      }
+      
+      // Si es cliente jurídico, configurar tipo global
+      if (typeof esClienteJuridico !== 'undefined' && esClienteJuridico) {
+        window.tipoClienteGlobal = "JURIDICO";
+        window.usuarioSeleccionadoGlobal = {
+          tipoUsuario: { nombre: "JURIDICO" }
+        };
+      }
+      
+      console.log('✅ Búsqueda de usuarios inicializada');
+    });
+    
+    console.log('✅ Script de búsqueda cargado completamente');
+  </script>
+  
+  <!-- Variables para JavaScript -->
+  <script th:inline="javascript">
+    const esClienteJuridico = /*[[${esClienteJuridico ?: false}]]*/ false;
+    const esAdministrador = /*[[${esAdministrador ?: false}]]*/ false;
+  </script>
   
   <!-- Modal de mensajes -->
   <div class="modal fade" id="mensajeModal" tabindex="-1" aria-hidden="true">
@@ -302,363 +747,112 @@
     
     console.log("OrdenData cargado desde servidor:", ordenData);
   </script>
+  <!-- Script de inicialización específico para la página -->
   <script>
-    let usuarioSeleccionadoGlobal = null;
     const editMode = /*[[${editMode}]]*/ false;
 
-    function buscarUsuario() {
-      const termino = document.getElementById('buscarUsuario').value.trim();
-      if (termino.length < 2) {
-        alert('Por favor ingrese al menos 2 caracteres para buscar');
-        return;
-      }
 
-      // Mostrar indicador de carga
-      const lista = document.getElementById('listaUsuarios');
-      lista.innerHTML = '<div class="list-group-item">Buscando...</div>';
-      document.getElementById('resultadosBusqueda').style.display = 'block';
-
-      fetch(`/ordenes/buscar-usuarios?termino=${encodeURIComponent(termino)}`)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-          return response.json();
-        })
-        .then(usuarios => {
-          console.log('Usuarios encontrados:', usuarios);
-          mostrarResultados(usuarios);
-        })
-        .catch(error => {
-          console.error('Error al buscar usuarios:', error);
-          lista.innerHTML = '<div class="list-group-item text-danger">Error al buscar usuarios. Intente nuevamente.</div>';
-        });
-    }
-
-    function mostrarResultados(resultados) {
-      const contenedor = document.getElementById('resultadosBusqueda');
-      const lista = document.getElementById('listaUsuarios');
-      
-      lista.innerHTML = '';
-      
-      if (!resultados || resultados.length === 0) {
-        lista.innerHTML = '<div class="list-group-item">No se encontraron usuarios con ese criterio de búsqueda</div>';
-      } else {
-        resultados.forEach(usuario => {
-          if (usuario && usuario.nombre && usuario.documento && usuario.tipoUsuario) {
-            const item = document.createElement('div');
-            item.className = 'list-group-item list-group-item-action';
-            item.style.cursor = 'pointer';
-            item.innerHTML = `
-              <strong>${usuario.nombre} ${usuario.primerApellido || ''}</strong><br>
-              <small>Documento: ${usuario.documento} - Tipo: ${usuario.tipoUsuario.nombre}</small>
-            `;
-            item.onclick = () => seleccionarUsuario(usuario);
-            lista.appendChild(item);
-          }
-        });
-        
-        if (lista.children.length === 0) {
-          lista.innerHTML = '<div class="list-group-item">No se encontraron usuarios válidos</div>';
+    // Agregar validación antes del submit del formulario
+    function validarFormularioAntesDePrincipal(event) {
+      const fechaInput = document.getElementById('fechaEntrega');
+      if (fechaInput && fechaInput.value) {
+        if (!validarFechaEntrega(fechaInput)) {
+          event.preventDefault();
+          return false;
         }
       }
-      
-      contenedor.style.display = 'block';
+      return true;
     }
 
-    function seleccionarUsuario(usuario) {
-      if (!usuario || !usuario.documento) {
-        alert('Usuario inválido seleccionado');
-        return;
-      }
-      
-      usuarioSeleccionadoGlobal = usuario;
-      
-      document.getElementById('infoUsuario').innerHTML = `
-        <strong>${usuario.nombre} ${usuario.primerApellido || ''}</strong><br>
-        <small>Documento: ${usuario.documento} - Tipo: ${usuario.tipoUsuario.nombre}</small>
-      `;
-      
-      document.getElementById('usuarioSeleccionado').style.display = 'block';
-      document.getElementById('resultadosBusqueda').style.display = 'none';
-      
-      // Limpiar el campo de búsqueda
-      document.getElementById('buscarUsuario').value = '';
-      
-      console.log('Usuario seleccionado:', usuario);
-    }
-
-    function limpiarBusqueda() {
-      document.getElementById('buscarUsuario').value = '';
-      document.getElementById('resultadosBusqueda').style.display = 'none';
-      document.getElementById('usuarioSeleccionado').style.display = 'none';
-      usuarioSeleccionadoGlobal = null;
-    }
-
-    function continuarAPaso2() {
-      if (!usuarioSeleccionadoGlobal) {
-        alert('Por favor seleccione un usuario');
-        return;
-      }
-
-      document.getElementById('usuarioDocumento').value = usuarioSeleccionadoGlobal.documento;
-      
-      document.getElementById('datosCliente').innerHTML = `
-        <strong>${usuarioSeleccionadoGlobal.nombre} ${usuarioSeleccionadoGlobal.primerApellido}</strong><br>
-        <small>Documento: ${usuarioSeleccionadoGlobal.documento}</small><br>
-        <small>Tipo: ${usuarioSeleccionadoGlobal.tipoUsuario.nombre}</small>
-      `;
-
-      document.getElementById('paso1').style.display = 'none';
-      document.getElementById('paso2').style.display = 'block';
-      
-      // Actualizar información del cliente para cálculos de precios
-      actualizarClienteInfo();
-    }
-
-    function volverAPaso1() {
-      document.getElementById('paso2').style.display = 'none';
-      document.getElementById('paso1').style.display = 'block';
-    }
-
-    // Función fallback para calcular total si la principal no está disponible
-    function calcularTotal() {
-      let total = 0;
-      const filas = document.querySelectorAll("#tablaDetalle tbody tr");
-
-      filas.forEach(fila => {
-        const cantidad = parseFloat(fila.querySelector("input[name='cantidad']").value) || 0;
-        const valor = parseFloat(fila.querySelector("input[name='valor']").value) || 0;
-        total += cantidad * valor;
-      });
-
-      const totalElement = document.getElementById("totalOrden");
-      const inputTotalElement = document.getElementById("inputTotalOrden");
-      
-      if (totalElement) {
-        totalElement.textContent = total.toLocaleString("es-CO");
-      }
-      if (inputTotalElement) {
-        inputTotalElement.value = total;
-      }
-      
-      console.log("Total calculado:", total);
-    }
-
-    // Función para actualizar precio en modo edición
-    function actualizarPrecioEdicion(fila) {
-      const terminadoSelect = fila.querySelector("select[name='terminadoId']");
-      const cantidadInput = fila.querySelector("input[name='cantidad']");
-      const valorInput = fila.querySelector("input[name='valor']");
-
-      console.log("=== ACTUALIZANDO PRECIO ===");
-      console.log("Tipo cliente global:", tipoClienteGlobal);
-      console.log("Select terminado value:", terminadoSelect.value);
-      console.log("Cantidad:", cantidadInput.value);
-
-      if (!terminadoSelect.selectedOptions[0] || terminadoSelect.value === "") {
-        console.log("No hay terminado seleccionado");
-        valorInput.value = 0;
-        calcularTotal();
-        return;
-      }
-
-      const selectedOption = terminadoSelect.selectedOptions[0];
-      const publico = parseFloat(selectedOption.getAttribute("data-publico")) || 0;
-      const mayor = parseFloat(selectedOption.getAttribute("data-mayor")) || 0;
-      const encargo = parseFloat(selectedOption.getAttribute("data-encargo")) || 0;
-      const cantidad = parseInt(cantidadInput.value) || 1;
-
-      console.log("Datos del terminado:", {
-        publico: publico,
-        mayor: mayor, 
-        encargo: encargo,
-        cantidad: cantidad,
-        tipoCliente: tipoClienteGlobal
-      });
-
-      let precioFinal = 0;
-
-      // Lógica de precios más explícita
-      if (tipoClienteGlobal === "NATURAL") {
-        precioFinal = publico;
-        console.log("Cliente NATURAL - usando precio público:", precioFinal);
-      } else if (tipoClienteGlobal === "JURIDICO") {
-        if (cantidad <= 2) {
-          precioFinal = encargo;
-          console.log("Cliente JURIDICO (<=2) - usando precio por encargo:", precioFinal);
-        } else {
-          precioFinal = mayor;
-          console.log("Cliente JURIDICO (>2) - usando precio por mayor:", precioFinal);
-        }
-      } else {
-        // Default si no hay tipo de cliente definido
-        precioFinal = publico;
-        console.log("Tipo cliente desconocido - usando precio público:", precioFinal);
-      }
-
-      console.log("Precio final asignado:", precioFinal);
-      valorInput.value = precioFinal;
-      
-      calcularTotal();
-      console.log("=== FIN ACTUALIZACIÓN ===");
-    }
-
-    // Función simplificada para cargar terminados
-    function cargarTerminadosSimple(fila, productoId, terminadoSeleccionado) {
-      const terminadoSelect = fila.querySelector("select[name='terminadoId']");
-      
-      console.log("Cargando terminados para producto:", productoId);
-      
-      fetch(`/terminados/por-producto/${productoId}`)
-        .then(res => {
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          return res.json();
-        })
-        .then(terminados => {
-          console.log("Terminados recibidos:", terminados);
-          
-          // Limpiar select
-          terminadoSelect.innerHTML = "<option value=''>Seleccione un terminado</option>";
-          
-          terminados.forEach(t => {
-            console.log("Procesando terminado:", t);
-            const option = document.createElement("option");
-            option.value = t.id;
-            option.textContent = `Medida: ${t.medidaTerminadoProducto || 'N/A'} - $${(t.precioPublico || 0).toLocaleString('es-CO')}`;
-            
-            // Asegurar que los precios sean números válidos
-            const precioPublico = parseFloat(t.precioPublico) || 0;
-            const precioMayor = parseFloat(t.precioPorMayor) || 0;
-            const precioEncargo = parseFloat(t.precioPorEncargo) || 0;
-            
-            option.setAttribute("data-publico", precioPublico);
-            option.setAttribute("data-mayor", precioMayor);
-            option.setAttribute("data-encargo", precioEncargo);
-            
-            console.log(`Terminado ${t.id} - Precios: público=${precioPublico}, mayor=${precioMayor}, encargo=${precioEncargo}`);
-            
-            if (terminadoSeleccionado && t.id.toString() === terminadoSeleccionado) {
-              option.selected = true;
-              console.log(`Terminado ${t.id} marcado como seleccionado`);
-            }
-            
-            terminadoSelect.appendChild(option);
-          });
-          
-          console.log("Select poblado. Total opciones:", terminadoSelect.options.length);
-          
-          // Actualizar precio después de cargar
-          if (terminadoSeleccionado) {
-            actualizarPrecioEdicion(fila);
-          }
-        })
-        .catch(err => {
-          console.error("Error cargando terminados:", err);
-          terminadoSelect.innerHTML = "<option value=''>Error al cargar</option>";
-        });
-    }
-
-    // Función para cambio de producto en edición
-    function cambiarProductoEdicion(productoSelect) {
-      const fila = productoSelect.closest('tr');
-      const productoId = productoSelect.value;
-      
-      if (productoId) {
-        cargarTerminadosSimple(fila, productoId, null);
-      } else {
-        const terminadoSelect = fila.querySelector("select[name='terminadoId']");
-        terminadoSelect.innerHTML = "<option value=''>Seleccione un terminado</option>";
-        actualizarPrecioEdicion(fila);
-      }
-    }
-
-    // Funciones específicas para modo edición
-    function aumentarEdicion(btn) {
-      const input = btn.previousElementSibling;
-      input.value = parseInt(input.value) + 1;
-      const fila = btn.closest("tr");
-      actualizarPrecioEdicion(fila);
-    }
-
-    function disminuirEdicion(btn) {
-      const input = btn.nextElementSibling;
-      if (parseInt(input.value) > 1) {
-        input.value = parseInt(input.value) - 1;
-        const fila = btn.closest("tr");
-        actualizarPrecioEdicion(fila);
-      }
-    }
-
-    // Permitir buscar al presionar Enter
+    // Inicialización específica de la página
     document.addEventListener('DOMContentLoaded', function() {
-      const buscarInput = document.getElementById('buscarUsuario');
-      if (buscarInput) {
-        buscarInput.addEventListener('keypress', function(e) {
-          if (e.key === 'Enter') {
-            buscarUsuario();
+      
+      // Agregar validación al formulario principal
+      const formulario = document.querySelector('form[action*="/ordenes/"]');
+      if (formulario) {
+        formulario.addEventListener('submit', validarFormularioAntesDePrincipal);
+      }
+
+      // Establecer fecha mínima como la fecha actual
+      const fechaInput = document.getElementById('fechaEntrega');
+      if (fechaInput) {
+        const ahora = new Date();
+        // Ajustar por zona horaria local
+        ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
+        const fechaMinima = ahora.toISOString().slice(0, 16); // Formato YYYY-MM-DDTHH:MM
+        fechaInput.setAttribute('min', fechaMinima);
+      }
+      
+      // Si es cliente jurídico, establecer el tipo globalmente
+      if (typeof esClienteJuridico !== 'undefined' && esClienteJuridico) {
+        window.tipoClienteGlobal = "JURIDICO";
+        window.usuarioSeleccionadoGlobal = {
+          tipoUsuario: { nombre: "JURIDICO" }
+        };
+      }
+      
+      // Inicializar modo edición
+      if (editMode) {
+        setTimeout(() => {
+          if (typeof ordenData !== 'undefined' && ordenData.usuario) {
+            if (typeof window.usuarioSeleccionadoGlobal !== 'undefined') {
+              window.usuarioSeleccionadoGlobal = ordenData.usuario;
+            }
+            if (typeof window.tipoClienteGlobal !== 'undefined') {
+              window.tipoClienteGlobal = ordenData.usuario.tipoUsuario.nombre.toUpperCase();
+            }
           }
-        });
+          
+          // Cargar terminados para modo edición
+          const filas = document.querySelectorAll("#tablaDetalle tbody tr");
+          filas.forEach((fila) => {
+            const terminadoSelect = fila.querySelector("select[name='terminadoId']");
+            const productoId = terminadoSelect?.dataset?.producto;
+            const terminadoSeleccionado = terminadoSelect?.dataset?.selected;
+            
+            if (productoId && typeof cargarTerminadosParaFila === 'function') {
+              cargarTerminadosParaFila(fila, productoId, terminadoSeleccionado);
+            }
+          });
+        }, 600);
       }
     });
+  </script>
 
-    // Poblar datos en modo edición
-    if (editMode) {
-      // Configurar el cliente global usando las variables definidas arriba
-      if (typeof ordenData !== 'undefined' && ordenData.usuario) {
-        usuarioSeleccionadoGlobal = ordenData.usuario;
-        tipoClienteGlobal = ordenData.usuario.tipoUsuario.nombre.toUpperCase();
+  <!-- Script específico para órdenes facturadas -->
+  <script th:if="${esOrdenFacturada ?: false}">
+    console.log('Inicializando protección para orden facturada');
+    
+    // Ejecutar inmediatamente y después del DOM
+    function protegerTotalOrdenFacturada() {
+      // Sobrescribir la función calcularTotalOrden
+      if (typeof window.calcularTotalOrden === 'function') {
+        console.log('Sobrescribiendo calcularTotalOrden para orden facturada');
+        window.calcularTotalOrden = function() {
+          console.log('calcularTotalOrden llamado para orden facturada - no se ejecuta');
+          // No hacer nada para órdenes facturadas
+        };
       }
       
-      console.log("Modo edición activado. Tipo cliente:", tipoClienteGlobal);
-      console.log("Usuario seleccionado:", usuarioSeleccionadoGlobal);
+      // Establecer el total desde el valor del servidor
+      const totalElement = document.getElementById('totalOrden');
+      const inputTotal = document.getElementById('inputTotalOrden');
       
-      // Verificar si tenemos la información del usuario
-      if (!tipoClienteGlobal && typeof ordenData !== 'undefined' && ordenData.usuario) {
-        tipoClienteGlobal = ordenData.usuario.tipoUsuario.nombre.toUpperCase();
-        console.log("Tipo cliente establecido desde ordenData:", tipoClienteGlobal);
+      if (totalElement && inputTotal && inputTotal.value) {
+        const valor = parseFloat(inputTotal.value) || 0;
+        console.log('Estableciendo total para orden facturada:', valor);
+        totalElement.textContent = valor.toLocaleString('es-CO');
       }
-      
-      // Si aún no hay tipo de cliente, usar NATURAL como default
-      if (!tipoClienteGlobal || tipoClienteGlobal === "") {
-        tipoClienteGlobal = "NATURAL";
-        console.log("Usando tipo cliente por defecto:", tipoClienteGlobal);
-      }
-      
-      // Primero vamos a probar manualmente una llamada al endpoint
-      console.log("Probando endpoint de terminados...");
-      fetch('/terminados/por-producto/1')
-        .then(res => {
-          console.log("Respuesta del endpoint:", res.status, res.statusText);
-          return res.json();
-        })
-        .then(data => {
-          console.log("Datos de terminados de prueba:", data);
-        })
-        .catch(err => {
-          console.error("Error en endpoint de prueba:", err);
-        });
-      
-      // Inicializar modo edición simplificado
-      setTimeout(() => {
-        console.log("Inicializando modo edición...");
-        
-        const filas = document.querySelectorAll("#tablaDetalle tbody tr");
-        console.log(`Encontradas ${filas.length} filas`);
-        
-        filas.forEach((fila, index) => {
-          const terminadoSelect = fila.querySelector("select[name='terminadoId']");
-          const productoId = terminadoSelect.dataset.producto;
-          const terminadoSeleccionado = terminadoSelect.dataset.selected;
-          
-          console.log(`Fila ${index}: producto=${productoId}, terminado=${terminadoSeleccionado}`);
-          
-          if (productoId) {
-            cargarTerminadosSimple(fila, productoId, terminadoSeleccionado);
-          }
-        });
-      }, 500);
     }
+    
+    // Ejecutar inmediatamente
+    protegerTotalOrdenFacturada();
+    
+    // Ejecutar después del DOM
+    document.addEventListener('DOMContentLoaded', protegerTotalOrdenFacturada);
+    
+    // Ejecutar con delay por si otros scripts sobrescriben
+    setTimeout(protegerTotalOrdenFacturada, 1000);
   </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-let tipoClienteGlobal = "";
+// tipoClienteGlobal está definido en orden-form.html
 
 function esCombinacionDuplicada(productoId, terminadoId, filaActual) {
     const filas = document.querySelectorAll("#tablaDetalle tbody tr");
@@ -75,8 +75,8 @@ async function actualizarTodasLasOpcionesProducto() {
 }
 
 function actualizarClienteInfo() {
-    if (usuarioSeleccionadoGlobal) {
-        tipoClienteGlobal = usuarioSeleccionadoGlobal.tipoUsuario.nombre.toUpperCase();
+    if (window.usuarioSeleccionadoGlobal) {
+        window.tipoClienteGlobal = window.usuarioSeleccionadoGlobal.tipoUsuario.nombre.toUpperCase();
         
         document.querySelectorAll("#tablaDetalle tbody tr").forEach(fila => {
             actualizarPrecio(fila);
@@ -108,7 +108,7 @@ async function cargarTerminadosParaFila(fila, productoId, terminadoSeleccionado 
                 option.value = t.id;
                 
                 let precioAMostrar = t.precioPublico || 0;
-                if (tipoClienteGlobal === "JURIDICO") {
+                if (window.tipoClienteGlobal === "JURIDICO") {
                     precioAMostrar = t.precioPorEncargo || 0;
                 }
                 
@@ -263,7 +263,7 @@ document.addEventListener("change", function (e) {
                     option.value = t.id;
                     
                     let precioAMostrar = t.precioPublico || 0;
-                    if (tipoClienteGlobal === "JURIDICO") {
+                    if (window.tipoClienteGlobal === "JURIDICO") {
                         precioAMostrar = t.precioPorEncargo || 0;
                     }
                     
@@ -314,7 +314,7 @@ function actualizarTextoTerminados(fila) {
             const medidaInfo = option.getAttribute("data-info");
             
             let precioAMostrar = publico;
-            if (tipoClienteGlobal === "JURIDICO") {
+            if (window.tipoClienteGlobal === "JURIDICO") {
                 precioAMostrar = encargo;
             }
             
@@ -350,9 +350,9 @@ function actualizarPrecio(fila) {
     let precioFinal = 0;
 
     if (publico && encargo && mayor) {
-        if (tipoClienteGlobal === "NATURAL") {
+        if (window.tipoClienteGlobal === "NATURAL") {
             precioFinal = parseFloat(publico);
-        } else if (tipoClienteGlobal === "JURIDICO") {
+        } else if (window.tipoClienteGlobal === "JURIDICO") {
             if (cantidad <= 2) {
                 precioFinal = parseFloat(encargo);
             } else {
@@ -479,3 +479,7 @@ document.addEventListener('DOMContentLoaded', function () {
         calcularTotalOrden();
     }
 });
+
+// ========== FUNCIONES DE BÚSQUEDA DE USUARIOS ==========
+// Las funciones de búsqueda están implementadas directamente en orden-form.html
+// para evitar conflictos de carga de scripts
