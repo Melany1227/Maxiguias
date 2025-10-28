@@ -63,7 +63,7 @@ public class CloudinaryService {
             version = parts[1];
         }
 
-        // 👇 Genera la URL optimizada también para visualización
+        // Genera la URL optimizada también para visualización
         if (version != null) {
             return cloudinary.url()
                     .secure(true)
