@@ -168,7 +168,7 @@ public class ProductoController {
 
     // String rolUsuario = "PUBLICO"; // valor por defecto
 
-    // Recuperar usuario guardado en sesión
+    // // Recuperar usuario guardado en sesión
     // Usuario usuario = (Usuario) session.getAttribute("usuario");
     // if (usuario != null && usuario.getPerfil() != null &&
     // usuario.getPerfil().getRol() != null) {

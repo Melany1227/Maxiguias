@@ -47,6 +47,15 @@
                     <h3>Informe productos más vendidos</h3>
                     <p>Visualiza y exporta productos más vendidos con sus medidas por mes</p>
                 </div>
+
+                <!-- Reporte de Catálogo de Productos -->
+                <div class="reporte-card" onclick="mostrarInformeCatalogo()">
+                    <div class="reporte-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <h3>Catálogo de productos</h3>
+                    <p>Exporta catálogos de productos para usuarios naturales y jurídicos</p>
+                </div>
             </div>
         </div>
     </div>
@@ -217,6 +226,45 @@
                         <h6>Top 10 Productos Más Vendidos:</h6>
                         <div class="productos-lista" id="productosLista">
                             <!-- Se llenará dinámicamente con JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Catálogo de Productos -->
+    <div class="modal fade" id="informeCatalogoModal" tabindex="-1" aria-labelledby="informeCatalogoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="informeCatalogoModalLabel">
+                        <i class="fas fa-book"></i> Catálogo de Productos
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Descripción -->
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Catálogo de Productos:</strong> Exporta el catálogo completo de productos con precios para usuarios naturales y jurídicos.
+                    </div>
+
+                    <!-- Botones de exportación -->
+                    <div class="export-buttons-section">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <button class="btn btn-excel w-100" onclick="exportarCatalogoNaturales()">
+                                    <i class="fas fa-file-excel me-2"></i>
+                                    Exportar Catálogo Usuarios Naturales
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button class="btn btn-excel w-100" onclick="exportarCatalogoJuridicos()">
+                                    <i class="fas fa-file-excel me-2"></i>
+                                    Exportar Catálogo Usuarios Jurídicos
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -405,6 +453,22 @@
             }
 
             container.innerHTML = html;
+        }
+
+        // ========== FUNCIONES PARA REPORTE DE CATÁLOGO DE PRODUCTOS ==========
+
+        function mostrarInformeCatalogo() {
+            // Mostrar el modal
+            const modal = new bootstrap.Modal(document.getElementById('informeCatalogoModal'));
+            modal.show();
+        }
+
+        function exportarCatalogoNaturales() {
+            window.open('/reportes/exportar-catalogo-naturales', '_blank');
+        }
+
+        function exportarCatalogoJuridicos() {
+            window.open('/reportes/exportar-catalogo-juridicos', '_blank');
         }
     </script>
 </body>

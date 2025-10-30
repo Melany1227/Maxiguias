@@ -28,11 +28,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.maxiguias.maxigestion.maxigestion.modelo.Orden;
 import com.maxiguias.maxigestion.maxigestion.modelo.Usuario;
 import com.maxiguias.maxigestion.maxigestion.repositorio.OrdenRepository;
-import com.maxiguias.maxigestion.maxigestion.repositorio.UsuarioRepository;
-import com.maxiguias.maxigestion.maxigestion.repositorio.DetalleOrdenRepository;
-import com.maxiguias.maxigestion.maxigestion.dto.ProductoVendidoDTO;
 import com.maxiguias.maxigestion.maxigestion.servicio.OrdenService;
 import jakarta.servlet.http.HttpServletResponse;
+import com.maxiguias.maxigestion.maxigestion.repositorio.UsuarioRepository;
+import com.maxiguias.maxigestion.maxigestion.repositorio.DetalleOrdenRepository;
+import com.maxiguias.maxigestion.maxigestion.repositorio.ProductoRepository;
+import com.maxiguias.maxigestion.maxigestion.repositorio.TerminadoRepository;
+import com.maxiguias.maxigestion.maxigestion.dto.ProductoVendidoDTO;
+import com.maxiguias.maxigestion.maxigestion.modelo.Terminado;
 @Controller
 @RequestMapping("/reportes")
 public class ReporteController {
@@ -47,6 +50,12 @@ public class ReporteController {
 
     @Autowired
     private OrdenService ordenService;
+
+    @Autowired
+    private ProductoRepository productoRepository;
+
+    @Autowired
+    private TerminadoRepository terminadoRepository;
 
     @GetMapping
     public String listarReportes(Model model) {
@@ -329,6 +338,111 @@ public class ReporteController {
             productos.add(new ProductoVendidoDTO(nombreProducto, medida, cantidadVendida));
         }
         return productos;
+    }
+
+    // ========== MÉTODOS PARA REPORTE DE CATÁLOGO DE PRODUCTOS ==========
+
+    @GetMapping("/exportar-catalogo-naturales")
+    public void exportarCatalogoNaturales(HttpServletResponse response) throws IOException {
+        // Configurar la respuesta HTTP
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        String fileName = "catalogo_usuarios_naturales_" + LocalDate.now() + ".xlsx";
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+
+        // Obtener todos los terminados con sus productos
+        List<Terminado> terminados = terminadoRepository.findAll();
+
+        // Crear el libro de Excel
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Catálogo Usuarios Naturales");
+
+            // Crear estilo para el encabezado
+            CellStyle headerStyle = workbook.createCellStyle();
+            headerStyle.setFillForegroundColor(IndexedColors.GOLD.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+
+            // Crear fila de encabezado
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"Nombre del Producto", "Medida del Producto", "Precio Público"};
+
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            // Agregar datos de productos
+            int rowNum = 1;
+            for (Terminado terminado : terminados) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(terminado.getProducto().getNombre());
+                row.createCell(1).setCellValue(terminado.getMedidaTerminadoProducto().doubleValue());
+                row.createCell(2).setCellValue(terminado.getPrecioPublico());
+            }
+
+            // Ajustar el ancho de las columnas
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            // Escribir el archivo
+            workbook.write(response.getOutputStream());
+        }
+    }
+
+    @GetMapping("/exportar-catalogo-juridicos")
+    public void exportarCatalogoJuridicos(HttpServletResponse response) throws IOException {
+        // Configurar la respuesta HTTP
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        String fileName = "catalogo_usuarios_juridicos_" + LocalDate.now() + ".xlsx";
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+
+        // Obtener todos los terminados con sus productos
+        List<Terminado> terminados = terminadoRepository.findAll();
+
+        // Crear el libro de Excel
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Catálogo Usuarios Jurídicos");
+
+            // Crear estilo para el encabezado
+            CellStyle headerStyle = workbook.createCellStyle();
+            headerStyle.setFillForegroundColor(IndexedColors.GOLD.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+
+            // Crear fila de encabezado
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"Nombre del Producto", "Medida del Producto", "Precio por Mayor", "Precio por Encargo"};
+
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            // Agregar datos de productos
+            int rowNum = 1;
+            for (Terminado terminado : terminados) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(terminado.getProducto().getNombre());
+                row.createCell(1).setCellValue(terminado.getMedidaTerminadoProducto().doubleValue());
+                row.createCell(2).setCellValue(terminado.getPrecioPorMayor());
+                row.createCell(3).setCellValue(terminado.getPrecioPorEncargo());
+            }
+
+            // Ajustar el ancho de las columnas
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            // Escribir el archivo
+            workbook.write(response.getOutputStream());
+        }
     }
 }
 
