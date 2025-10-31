@@ -3,6 +3,7 @@ package com.maxiguias.maxigestion.maxigestion.controlador;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,14 +20,19 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.maxiguias.maxigestion.maxigestion.modelo.Producto;
 import com.maxiguias.maxigestion.maxigestion.modelo.Usuario;
+import com.maxiguias.maxigestion.maxigestion.servicio.AutorizacionService;
 import com.maxiguias.maxigestion.maxigestion.servicio.CloudinaryService;
 import com.maxiguias.maxigestion.maxigestion.servicio.ProductoService;
 
 import jakarta.servlet.http.HttpSession;
 
 @Controller
+
 @RequestMapping("/productos")
 public class ProductoController {
+
+    @Autowired
+    private AutorizacionService AutorizacionService;
 
     private final ProductoService productoService;
     private final CloudinaryService cloudinaryService;
@@ -187,6 +193,40 @@ public class ProductoController {
     // }
 
     // === Catálogo público ===
+    // @GetMapping("/publico")
+    // public String catalogoPublico(Model model) {
+    // List<Producto> productos = productoService.listarProductos();
+    // model.addAttribute("productos", productos);
+    // model.addAttribute("cloudinaryService", cloudinaryService);
+    // model.addAttribute("rolUsuario", "NATURAL");
+    // return "productos/catalogo";
+    // }
+
+    // === Catálogo jurídico ===
+    // @GetMapping("/juridico")
+    // public String catalogoJuridico(Model model, HttpSession session) {
+    // Usuario usuario = (Usuario) session.getAttribute("usuario");
+    // String rolUsuario = "NATURAL";
+
+    // if (usuario != null && usuario.getPerfil() != null &&
+    // usuario.getPerfil().getRol() != null) {
+    // String nombreRol = usuario.getPerfil().getRol().getNombreRol();
+    // if ("JURIDICO".equalsIgnoreCase(nombreRol)) {
+    // rolUsuario = "JURIDICO";
+    // }
+    // }
+
+    // if (!"JURIDICO".equals(rolUsuario)) {
+    // return "redirect:/error/403";
+    // }
+    //
+    // List<Producto> productos = productoService.listarProductos();
+    // model.addAttribute("productos", productos);
+    // model.addAttribute("cloudinaryService", cloudinaryService);
+    // model.addAttribute("rolUsuario", rolUsuario);
+    // return "productos/catalogo";
+    // }
+
     @GetMapping("/publico")
     public String catalogoPublico(Model model) {
         List<Producto> productos = productoService.listarProductos();
@@ -200,23 +240,23 @@ public class ProductoController {
     @GetMapping("/juridico")
     public String catalogoJuridico(Model model, HttpSession session) {
         Usuario usuario = (Usuario) session.getAttribute("usuario");
-        String rolUsuario = "NATURAL";
 
-        if (usuario != null && usuario.getPerfil() != null && usuario.getPerfil().getRol() != null) {
-            String nombreRol = usuario.getPerfil().getRol().getNombreRol();
-            if ("JURIDICO".equalsIgnoreCase(nombreRol)) {
-                rolUsuario = "JURIDICO";
-            }
+        if (usuario == null) {
+            return "redirect:/login";
         }
 
-        if (!"JURIDICO".equals(rolUsuario)) {
+        // Verificar permiso utilizando tu servicio centralizado
+        boolean tienePermiso = AutorizacionService.tienePermiso(usuario, "/productos/juridico", "VISUALIZAR");
+
+        if (!tienePermiso) {
             return "redirect:/error/403";
         }
 
         List<Producto> productos = productoService.listarProductos();
         model.addAttribute("productos", productos);
         model.addAttribute("cloudinaryService", cloudinaryService);
-        model.addAttribute("rolUsuario", rolUsuario);
+        model.addAttribute("rolUsuario", usuario.getPerfil().getRol().getNombreRol());
+
         return "productos/catalogo";
     }
 

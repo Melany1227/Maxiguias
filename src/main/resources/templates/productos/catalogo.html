@@ -71,11 +71,11 @@
                         <thead class="table-dark">
                             <tr>
                                 <th>Medida</th>
-                                <th th:if="${rolUsuario == 'NATURAL'}">Precio Público</th>
-                                <th th:if="${rolUsuario == 'JURIDICO'}">Precio x Mayor</th>
-                                <th th:if="${rolUsuario == 'JURIDICO'}">Precio x Encargo</th>
-                                <th th:if="${rolUsuario == 'JURIDICO'}">Ganancia x Mayor</th>
-                                <th th:if="${rolUsuario == 'JURIDICO'}">Ganancia x Encargo</th>
+                                <th th:if="${rolUsuario == 'NATURAL' or rolUsuario == 'ADMINISTRADOR'}">Precio Público</th>
+                                <th th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}">Precio x Mayor</th>
+                                <th th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}">Precio x Encargo</th>
+                                <th th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}">Ganancia x Mayor</th>
+                                <th th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}">Ganancia x Encargo</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -83,15 +83,16 @@
                                 <td th:text="${t.medidaTerminadoProducto}"></td>
 
                                 <!-- Vista para público -->
-                                <td th:if="${rolUsuario == 'NATURAL'}" th:text="'$' + ${t.precioPublico}"></td>
+                                <td th:if="${rolUsuario == 'NATURAL' or rolUsuario == 'ADMINISTRADOR'}" th:text="'$' + ${t.precioPublico}"></td>
 
-                                <!-- Vista para jurídico -->
-                                <td th:if="${rolUsuario == 'JURIDICO'}" th:text="'$' + ${t.precioPorMayor}"></td>
-                                <td th:if="${rolUsuario == 'JURIDICO'}" th:text="'$' + ${t.precioPorEncargo}"></td>
-                                <td th:if="${rolUsuario == 'JURIDICO'}" th:text="${t.gananciaXMayor != null ? t.gananciaXMayor + '%' : '-'}"></td>
-                                <td th:if="${rolUsuario == 'JURIDICO'}" th:text="${t.gananciaXEncargo != null ? t.gananciaXEncargo + '%' : '-'}"></td>
+                                <!-- Vista para jurídico y administrador -->
+                                <td th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}" th:text="'$' + ${t.precioPorMayor}"></td>
+                                <td th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}" th:text="'$' + ${t.precioPorEncargo}"></td>
+                                <td th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}" th:text="${t.gananciaXMayor != null ? t.gananciaXMayor + '%' : '-'}"></td>
+                                <td th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}" th:text="${t.gananciaXEncargo != null ? t.gananciaXEncargo + '%' : '-'}"></td>
                             </tr>
                         </tbody>
+                        
                     </table>
                 </div>
                     <div class="modal-footer">
