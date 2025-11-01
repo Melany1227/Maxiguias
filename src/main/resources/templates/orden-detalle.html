@@ -15,7 +15,11 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2><i class="fa-solid fa-shopping-cart"></i> DETALLE DE ORDEN #<span th:text="${orden.id}"></span></h2>
             <div>
-                <a th:href="@{/ordenes/pdf/{id}(id=${orden.id})}" class="btn btn-danger me-2">
+                <!-- Botón PDF: Solo para FINALIZADA y FACTURADA -->
+                <a th:if="${orden.estado.name() == 'FINALIZADA' || orden.estado.name() == 'FACTURADA'}" 
+                   th:href="@{/ordenes/pdf/{id}(id=${orden.id})}" 
+                   class="btn btn-danger me-2"
+                   title="Descargar PDF">
                     <i class="fa-solid fa-file-pdf"></i> Descargar PDF
                 </a>
                 <a th:href="@{/ordenes}" class="btn btn-secondary">
