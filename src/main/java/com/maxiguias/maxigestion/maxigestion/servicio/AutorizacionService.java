@@ -21,7 +21,8 @@ public class AutorizacionService {
             return false;
         }
 
-        System.out.println("DEBUG - Buscando permisos para URL: " + url + ", Perfil ID: " + usuario.getPerfil().getId());
+        System.out
+                .println("DEBUG - Buscando permisos para URL: " + url + ", Perfil ID: " + usuario.getPerfil().getId());
 
         // Primero intentar coincidencia exacta
         Optional<FormularioXPerfil> permisoOpt = formularioXPerfilRepository
@@ -30,7 +31,8 @@ public class AutorizacionService {
         // Si no encuentra exacta, buscar por prefijo (para URLs dinámicas)
         if (permisoOpt.isEmpty()) {
             System.out.println("DEBUG - No encontró coincidencia exacta, buscando por prefijo...");
-            List<FormularioXPerfil> permisos = formularioXPerfilRepository.findByPerfilIdAndUrlStartsWith(usuario.getPerfil().getId(), url);
+            List<FormularioXPerfil> permisos = formularioXPerfilRepository
+                    .findByPerfilIdAndUrlStartsWith(usuario.getPerfil().getId(), url);
             if (!permisos.isEmpty()) {
                 permisoOpt = Optional.of(permisos.get(0)); // Tomar el más específico (ordenado por longitud DESC)
             }
@@ -42,8 +44,8 @@ public class AutorizacionService {
         }
 
         FormularioXPerfil permiso = permisoOpt.get();
-        System.out.println("DEBUG - Permiso encontrado para formulario: " + permiso.getFormulario().getUrl() + 
-                          ", verificando acción: " + accion);
+        System.out.println("DEBUG - Permiso encontrado para formulario: " + permiso.getFormulario().getUrl() +
+                ", verificando acción: " + accion);
         return verificarAccion(permiso, accion);
     }
 

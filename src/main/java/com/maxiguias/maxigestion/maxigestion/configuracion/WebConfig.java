@@ -18,17 +18,18 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(permisoInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns(
-                    "/css/**", 
-                    "/js/**", 
-                    "/img/**", 
-                    "/login", 
-                    "/registro",
-                    "/recuperar-password",
-                    "/cambiar-password",
-                    "/auth/**",
-                    "/api/**",
-                    "/error/**",
-                    "/"
+                        "/css/**",
+                        "/js/**",
+                        "/img/**",
+                        "/login",
+                        "/registro",
+                        "/recuperar-password",
+                        "/cambiar-password",
+                        "/auth/**",
+                        "/api/**",
+                        "/error/**",
+                        "/",
+                        "/productos/publico" // agregado
                 );
     }
 }

@@ -155,3 +155,20 @@ ALTER TABLE detalle_ordenes
 -- Cambio en el tipo de dato de fecha_registro en usuarios
 ALTER TABLE usuarios MODIFY COLUMN fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP;
 
+
+
+-- Formularios del catálogo web
+INSERT INTO formularios (id_formulario, nombre_formulario, url, padre)
+VALUES 
+(11, 'Catalogo', '/productos/publico', NULL),
+(12, 'Catalogo', '/productos/juridico', NULL);
+
+-- Acceso a formularios por perfil
+INSERT INTO formularios_x_perfiles (perfiles_id_perfil, formularios_id_formulario, crear, editar, visualizar, eliminar)
+VALUES (2, 12, 'N', 'N', 'S', 'N');
+
+-- Rol publico 
+INSERT INTO roles (nombre_rol) VALUES ('NATURAL');
+
+-- Nuevo Perfil
+INSERT INTO perfiles (nombre_perfil, roles_id_rol) VALUES ('PUBLICO',3);
