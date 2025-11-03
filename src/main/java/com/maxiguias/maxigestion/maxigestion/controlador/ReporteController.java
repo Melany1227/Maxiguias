@@ -1,7 +1,10 @@
 package com.maxiguias.maxigestion.maxigestion.controlador;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +21,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,6 +29,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden;
 import com.maxiguias.maxigestion.maxigestion.modelo.Orden;
 import com.maxiguias.maxigestion.maxigestion.modelo.Usuario;
 import com.maxiguias.maxigestion.maxigestion.repositorio.OrdenRepository;
@@ -36,6 +42,7 @@ import com.maxiguias.maxigestion.maxigestion.repositorio.ProductoRepository;
 import com.maxiguias.maxigestion.maxigestion.repositorio.TerminadoRepository;
 import com.maxiguias.maxigestion.maxigestion.dto.ProductoVendidoDTO;
 import com.maxiguias.maxigestion.maxigestion.modelo.Terminado;
+
 @Controller
 @RequestMapping("/reportes")
 public class ReporteController {
@@ -66,110 +73,136 @@ public class ReporteController {
     public String listarReportesConBarra(Model model) {
         return "reportes";
     }
+
     @GetMapping("/estadisticas-clientes")
     @ResponseBody
-    public Map<String, Long> obtenerEstadisticasClientes(@RequestParam(required = false) Integer mes) {
-        Map<String, Long> estadisticas = new HashMap<>();
-        
-        if (mes != null && mes >= 1 && mes <= 12) {
-            // Si se especifica un mes, filtrar por mes del año actual
-            Integer anioActual = LocalDate.now().getYear();
-            
-            // Obtener usuarios naturales del mes especificado
-            Long usuariosNaturales = usuarioRepository.countByTipoUsuarioAndMes(2, mes, anioActual);
-            
-            // Obtener usuarios jurídicos del mes especificado
-            Long usuariosJuridicos = usuarioRepository.countByTipoUsuarioAndMes(3, mes, anioActual);
-            
-            // Total de usuarios del mes
-            Long totalUsuarios = usuariosNaturales + usuariosJuridicos;
-            
-            estadisticas.put("total", totalUsuarios);
-            estadisticas.put("naturales", usuariosNaturales);
-            estadisticas.put("juridicos", usuariosJuridicos);
+    public Map<String, Object> obtenerEstadisticas(
+            @RequestParam(required = false) String fechaInicio,
+            @RequestParam(required = false) String fechaFin) {
+
+        Map<String, Object> estadisticas = new HashMap<>();
+
+        if (fechaInicio != null && fechaFin != null) {
+            LocalDateTime inicio = LocalDate.parse(fechaInicio).atStartOfDay();
+            LocalDateTime fin = LocalDate.parse(fechaFin).atTime(23, 59, 59);
+
+            Long naturales = usuarioRepository.countNaturalesByFechaRegistroBetween(inicio, fin);
+            Long juridicos = usuarioRepository.countJuridicosByFechaRegistroBetween(inicio, fin);
+
+            naturales = naturales != null ? naturales : 0;
+            juridicos = juridicos != null ? juridicos : 0;
+
+            estadisticas.put("naturales", naturales);
+            estadisticas.put("juridicos", juridicos);
+            estadisticas.put("total", naturales + juridicos);
+
         } else {
-            // Si no se especifica mes, mostrar todos los usuarios
-            Long usuariosNaturales = usuarioRepository.countByTipoUsuario_Id(2);
-            Long usuariosJuridicos = usuarioRepository.countByTipoUsuario_Id(3);
-            Long totalUsuarios = usuariosNaturales + usuariosJuridicos;
-            
-            estadisticas.put("total", totalUsuarios);
-            estadisticas.put("naturales", usuariosNaturales);
-            estadisticas.put("juridicos", usuariosJuridicos);
+            Long naturales = usuarioRepository.countByTipoUsuario_Id(2);
+            Long juridicos = usuarioRepository.countByTipoUsuario_Id(3);
+
+            naturales = naturales != null ? naturales : 0;
+            juridicos = juridicos != null ? juridicos : 0;
+
+            estadisticas.put("naturales", naturales);
+            estadisticas.put("juridicos", juridicos);
+            estadisticas.put("total", naturales + juridicos);
         }
-        
+
         return estadisticas;
     }
+
     @GetMapping("/exportar-excel")
-    public void exportarExcel(@RequestParam(required = false) Integer mes, HttpServletResponse response) throws IOException {
-        // Configurar la respuesta HTTP
+    public void exportarExcelClientes(
+            @RequestParam(required = false) String fechaInicio,
+            @RequestParam(required = false) String fechaFin,
+            HttpServletResponse response) throws IOException {
+
+        // Configurar respuesta
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         String fileName = "reporte_clientes_" + LocalDate.now() + ".xlsx";
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+
         List<Usuario> usuariosNaturales;
         List<Usuario> usuariosJuridicos;
-        
-        if (mes != null && mes >= 1 && mes <= 12) {
-            // Si se especifica un mes, filtrar por mes del año actual
-            Integer anioActual = LocalDate.now().getYear();
-            usuariosNaturales = usuarioRepository.findByTipoUsuarioAndMes(2, mes, anioActual);
-            usuariosJuridicos = usuarioRepository.findByTipoUsuarioAndMes(3, mes, anioActual);
+
+        // Si hay rango de fechas, filtramos por fechas
+        if (fechaInicio != null && fechaFin != null) {
+            LocalDateTime inicio = LocalDate.parse(fechaInicio).atStartOfDay();
+            LocalDateTime fin = LocalDate.parse(fechaFin).atTime(23, 59, 59);
+
+            usuariosNaturales = usuarioRepository.findNaturalesByFechaRegistroBetween(inicio, fin);
+            usuariosJuridicos = usuarioRepository.findJuridicosByFechaRegistroBetween(inicio, fin);
+
         } else {
-            // Si no se especifica mes, obtener todos los usuarios
+            // Si no hay rango → traer todos
             usuariosNaturales = usuarioRepository.findByTipoUsuario_Id(2);
             usuariosJuridicos = usuarioRepository.findByTipoUsuario_Id(3);
         }
-        // Crear el libro de Excel
+
+        // Crear Excel
         try (Workbook workbook = new XSSFWorkbook()) {
+
             Sheet sheet = workbook.createSheet("Clientes");
-            // Crear estilo para el encabezado
+
+            // Estilo encabezado
             CellStyle headerStyle = workbook.createCellStyle();
             headerStyle.setFillForegroundColor(IndexedColors.GOLD.getIndex());
             headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
             Font headerFont = workbook.createFont();
             headerFont.setBold(true);
             headerStyle.setFont(headerFont);
-            // Crear fila de encabezado
+
+            // Encabezados
+            String[] headers = {
+                    "Documento", "Nombre", "Primer Apellido", "Segundo Apellido",
+                    "Dirección", "Teléfono", "Perfil", "Ciudad", "Fecha Registro"
+            };
+
             Row headerRow = sheet.createRow(0);
-            String[] headers = {"Documento", "Nombre", "Primer Apellido", "Segundo Apellido", "Dirección", "Teléfono", "Perfil", "Ciudad", "Fecha Registro"};
-            
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(headers[i]);
                 cell.setCellStyle(headerStyle);
             }
+
             int rowNum = 1;
-            // Agregar usuarios naturales
+
+            // Agregar Usuarios Naturales
             for (Usuario usuario : usuariosNaturales) {
                 Row row = sheet.createRow(rowNum++);
                 row.createCell(0).setCellValue(usuario.getDocumento());
                 row.createCell(1).setCellValue(usuario.getNombre());
                 row.createCell(2).setCellValue(usuario.getPrimerApellido() != null ? usuario.getPrimerApellido() : "");
-                row.createCell(3).setCellValue(usuario.getSegundoApellido() != null ? usuario.getSegundoApellido() : "");
+                row.createCell(3)
+                        .setCellValue(usuario.getSegundoApellido() != null ? usuario.getSegundoApellido() : "");
                 row.createCell(4).setCellValue(usuario.getDireccion() != null ? usuario.getDireccion() : "");
                 row.createCell(5).setCellValue(usuario.getTelefono() != null ? usuario.getTelefono().toString() : "");
                 row.createCell(6).setCellValue("Natural");
                 row.createCell(7).setCellValue(usuario.getCiudad() != null ? usuario.getCiudad().getNombre() : "");
-                row.createCell(8).setCellValue(usuario.getFechaRegistro() != null ? usuario.getFechaRegistro().toString() : "");
+                row.createCell(8)
+                        .setCellValue(usuario.getFechaRegistro() != null ? usuario.getFechaRegistro().toString() : "");
             }
-            // Agregar usuarios jurídicos
+
+            // Agregar Usuarios Jurídicos
             for (Usuario usuario : usuariosJuridicos) {
                 Row row = sheet.createRow(rowNum++);
                 row.createCell(0).setCellValue(usuario.getDocumento());
                 row.createCell(1).setCellValue(usuario.getNombre());
-                row.createCell(2).setCellValue(""); // Los jurídicos no tienen primer apellido
-                row.createCell(3).setCellValue(""); // Los jurídicos no tienen segundo apellido
+                row.createCell(2).setCellValue(""); // No aplica
+                row.createCell(3).setCellValue(""); // No aplica
                 row.createCell(4).setCellValue(usuario.getDireccion() != null ? usuario.getDireccion() : "");
                 row.createCell(5).setCellValue(usuario.getTelefono() != null ? usuario.getTelefono().toString() : "");
                 row.createCell(6).setCellValue("Jurídico");
                 row.createCell(7).setCellValue(usuario.getCiudad() != null ? usuario.getCiudad().getNombre() : "");
-                row.createCell(8).setCellValue(usuario.getFechaRegistro() != null ? usuario.getFechaRegistro().toString() : "");
+                row.createCell(8)
+                        .setCellValue(usuario.getFechaRegistro() != null ? usuario.getFechaRegistro().toString() : "");
             }
-            // Ajustar el ancho de las columnas
+
+            // Auto ajustar columnas
             for (int i = 0; i < headers.length; i++) {
                 sheet.autoSizeColumn(i);
             }
-            // Escribir el archivo
+
             workbook.write(response.getOutputStream());
         }
     }
@@ -178,85 +211,154 @@ public class ReporteController {
 
     @GetMapping("/estadisticas-ordenes")
     @ResponseBody
-    public Map<String, Long> obtenerEstadisticasOrdenes(@RequestParam(required = false) Integer mes) {
+    public Map<String, Long> obtenerEstadisticasOrdenes(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
         Map<String, Long> estadisticas = new HashMap<>();
 
-        if (mes != null && mes >= 1 && mes <= 12) {
-            // Si se especifica un mes, filtrar por mes del año actual
-            Integer anioActual = LocalDate.now().getYear();
-
-            // Obtener órdenes del mes especificado
-            Long totalOrdenes = ordenRepository.countByMes(mes, anioActual);
-
+        if (fechaInicio != null && fechaFin != null) {
+            Long totalOrdenes = ordenRepository.countByFechaOrdenBetween(fechaInicio.atStartOfDay(),
+                    fechaFin.atTime(23, 59, 59));
             estadisticas.put("total", totalOrdenes);
         } else {
-            // Si no se especifica mes, mostrar todas las órdenes
-            Long totalOrdenes = ordenRepository.count();
-
-            estadisticas.put("total", totalOrdenes);
+            estadisticas.put("total", ordenRepository.count());
         }
 
         return estadisticas;
     }
 
     @GetMapping("/exportar-zip-ordenes")
-    public void exportarZipOrdenes(@RequestParam(required = false) Integer mes, HttpServletResponse response) throws IOException {
-        // Configurar la respuesta HTTP
-        response.setContentType("application/zip");
-        String fileName = "ordenes_" + LocalDate.now() + ".zip";
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+    public void exportarZipOrdenes(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin,
+            HttpServletResponse response) throws IOException {
 
-        List<Orden> ordenes;
+        List<Orden> ordenes = (fechaInicio != null && fechaFin != null)
+                ? ordenRepository.findByFechaOrdenBetween(fechaInicio.atStartOfDay(), fechaFin.atTime(23, 59, 59))
+                : ordenRepository.findAll();
 
-        if (mes != null && mes >= 1 && mes <= 12) {
-            // Si se especifica un mes, filtrar por mes del año actual
-            Integer anioActual = LocalDate.now().getYear();
-            ordenes = ordenRepository.findByMes(mes, anioActual);
-        } else {
-            // Si no se especifica mes, obtener todas las órdenes
-            ordenes = ordenRepository.findAll();
+        // Validación si no se encuentran registros
+        if (ordenes.isEmpty()) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND,
+                    "No se encontraron órdenes para la fecha seleccionada.");
+            return;
         }
 
-        // Crear el archivo ZIP
+        // Configurar la respuesta HTTP para exportar ZIP
+        response.setContentType("application/zip");
+        String fileName = "ordenes_" + fechaInicio + ".zip";
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+
+        // Generar ZIP con los PDFs
         try (ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream())) {
             for (Orden orden : ordenes) {
                 try {
-                    // Generar PDF para cada orden
                     byte[] pdfBytes = ordenService.generarOrdenPDF(orden.getId());
-
-                    // Crear entrada en el ZIP
-                    String entryName = "orden_" + orden.getId() + "_" + orden.getFechaOrden() + ".pdf";
-                    ZipEntry zipEntry = new ZipEntry(entryName);
-                    zipOut.putNextEntry(zipEntry);
-
-                    // Escribir el PDF al ZIP
+                    String entryName = "orden_" + orden.getId() + ".pdf";
+                    zipOut.putNextEntry(new ZipEntry(entryName));
                     zipOut.write(pdfBytes);
                     zipOut.closeEntry();
                 } catch (Exception e) {
-                    // Si hay error con una orden específica, continuar con las demás
                     System.err.println("Error generando PDF para orden " + orden.getId() + ": " + e.getMessage());
                 }
             }
         }
     }
 
+    // ========== MÉTODOS PARA REPORTE DE VENTAS AL MES ===========
+
+@GetMapping("/estadisticas-ventas")
+@ResponseBody
+public Map<String, Object> obtenerEstadisticasVentas(
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
+
+    Map<String, Object> response = new HashMap<>();
+
+    EstadoOrden facturada = EstadoOrden.FACTURADA;
+    EstadoOrden finalizada = EstadoOrden.FINALIZADA;
+
+    Long total;
+
+    if (fechaInicio != null && fechaFin != null) {
+        // 🔸 Convertir LocalDate a LocalDateTime para cubrir todo el rango
+        LocalDateTime inicio = fechaInicio.atStartOfDay();
+        LocalDateTime fin = fechaFin.atTime(LocalTime.MAX); // hasta 23:59:59
+        total = ordenRepository.contarPorEstadoYRangoFechas(facturada, finalizada, inicio, fin);
+    } else {
+        total = ordenRepository.contarPorEstado(facturada, finalizada);
+    }
+
+    response.put("total", total);
+    return response;
+}
+
+
+
+    @GetMapping("/exportar-zip-ventas")
+    public void exportarZipVentas(
+            @RequestParam(required = false) String fechaInicio,
+            @RequestParam(required = false) String fechaFin,
+            HttpServletResponse response) throws IOException {
+
+        // Configurar respuesta ZIP
+        response.setContentType("application/zip");
+        String fileName = "ventas_mes_" + LocalDate.now() + ".zip";
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+
+        List<Orden> ordenes;
+
+        if (fechaInicio != null && fechaFin != null) {
+            LocalDateTime inicio = LocalDate.parse(fechaInicio).atStartOfDay();
+            LocalDateTime fin = LocalDate.parse(fechaFin).atTime(23, 59, 59);
+            ordenes = ordenRepository.findVentasDelMes(inicio, fin);
+        } else {
+            // Si no se envían fechas, traer todo lo facturado y finalizado
+            ordenes = ordenRepository.findAll().stream()
+                    .filter(o -> {
+                        EstadoOrden estado = o.getEstado();
+                        return estado == EstadoOrden.FACTURADA || estado == EstadoOrden.FINALIZADA;
+                    })
+                    .toList();
+
+        }
+
+        // Crear ZIP
+        try (ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream())) {
+            for (Orden orden : ordenes) {
+                try {
+                    byte[] pdfBytes = ordenService.generarOrdenPDF(orden.getId());
+                    String entryName = "orden_" + orden.getId() + "_" + orden.getFechaOrden() + ".pdf";
+                    ZipEntry zipEntry = new ZipEntry(entryName);
+                    zipOut.putNextEntry(zipEntry);
+                    zipOut.write(pdfBytes);
+                    zipOut.closeEntry();
+                } catch (Exception e) {
+                    System.err.println("Error generando PDF para orden " + orden.getId() + ": " + e.getMessage());
+                }
+            }
+        }
+    }
     // ========== MÉTODOS PARA REPORTE DE PRODUCTOS MÁS VENDIDOS ==========
 
     @GetMapping("/estadisticas-productos")
     @ResponseBody
-    public Map<String, Object> obtenerEstadisticasProductos(@RequestParam(required = false) Integer mes) {
-        Map<String, Object> estadisticas = new HashMap<>();
+    public Map<String, Object> obtenerEstadisticasProductos(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
 
+        Map<String, Object> estadisticas = new HashMap<>();
         Long totalProductosVendidos;
         List<Object[]> productosVendidos;
 
-        if (mes != null && mes >= 1 && mes <= 12) {
-            // Si se especifica un mes, filtrar por mes del año actual
-            Integer anioActual = LocalDate.now().getYear();
-            totalProductosVendidos = detalleOrdenRepository.countTotalProductosVendidosPorMes(mes, anioActual);
-            productosVendidos = detalleOrdenRepository.findProductosMasVendidosPorMes(mes, anioActual);
+        if (fechaInicio != null && fechaFin != null) {
+            LocalDateTime inicio = fechaInicio.atStartOfDay();
+            LocalDateTime fin = fechaFin.atTime(23, 59, 59);
+
+            totalProductosVendidos = detalleOrdenRepository.countTotalProductosVendidosEntreFechas(inicio, fin);
+            productosVendidos = detalleOrdenRepository.findProductosMasVendidosEntreFechas(inicio, fin);
+
         } else {
-            // Si no se especifica mes, mostrar todos los productos vendidos
             totalProductosVendidos = detalleOrdenRepository.countTotalProductosVendidos();
             productosVendidos = detalleOrdenRepository.findProductosMasVendidos();
         }
@@ -268,20 +370,22 @@ public class ReporteController {
     }
 
     @GetMapping("/exportar-excel-productos")
-    public void exportarExcelProductos(@RequestParam(required = false) Integer mes, HttpServletResponse response) throws IOException {
-        // Configurar la respuesta HTTP
+    public void exportarExcelProductos(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin,
+            HttpServletResponse response) throws IOException {
+
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         String fileName = "productos_mas_vendidos_" + LocalDate.now() + ".xlsx";
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
 
         List<Object[]> productosVendidos;
 
-        if (mes != null && mes >= 1 && mes <= 12) {
-            // Si se especifica un mes, filtrar por mes del año actual
-            Integer anioActual = LocalDate.now().getYear();
-            productosVendidos = detalleOrdenRepository.findProductosMasVendidosPorMes(mes, anioActual);
+        if (fechaInicio != null && fechaFin != null) {
+            productosVendidos = detalleOrdenRepository.findProductosMasVendidosEntreFechas(
+                    fechaInicio.atStartOfDay(),
+                    fechaFin.atTime(23, 59, 59));
         } else {
-            // Si no se especifica mes, obtener todos los productos vendidos
             productosVendidos = detalleOrdenRepository.findProductosMasVendidos();
         }
 
@@ -299,7 +403,7 @@ public class ReporteController {
 
             // Crear fila de encabezado
             Row headerRow = sheet.createRow(0);
-            String[] headers = {"Posición", "Producto", "Medida", "Cantidad Vendida"};
+            String[] headers = { "Posición", "Producto", "Medida", "Cantidad Vendida" };
 
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = headerRow.createCell(i);
@@ -366,7 +470,7 @@ public class ReporteController {
 
             // Crear fila de encabezado
             Row headerRow = sheet.createRow(0);
-            String[] headers = {"Nombre del Producto", "Medida del Producto", "Precio Público"};
+            String[] headers = { "Nombre del Producto", "Medida del Producto", "Precio Público" };
 
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = headerRow.createCell(i);
@@ -420,7 +524,8 @@ public class ReporteController {
 
             // Crear fila de encabezado
             Row headerRow = sheet.createRow(0);
-            String[] headers = {"Nombre del Producto",  "Medida del Producto", "Precio Público", "Precio por Mayor", "% Ganancia al por Mayor", "Precio por Encargo", "% Ganancia por Encargo"};
+            String[] headers = { "Nombre del Producto", "Medida del Producto", "Precio Público", "Precio por Mayor",
+                    "% Ganancia al por Mayor", "Precio por Encargo", "% Ganancia por Encargo" };
 
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = headerRow.createCell(i);
@@ -436,9 +541,9 @@ public class ReporteController {
                 double precioPublico = terminado.getPrecioPublico();
                 double precioMayor = terminado.getPrecioPorMayor();
                 double precioEncargo = terminado.getPrecioPorEncargo();
-                
+
                 double gananciaMayorPct = (precioPublico > 0) ? (precioPublico - precioMayor) / precioPublico : 0;
-                double gananciaEncargoPct = (precioPublico > 0 ) ? precioEncargo / precioPublico : 0;
+                double gananciaEncargoPct = (precioPublico > 0) ? precioEncargo / precioPublico : 0;
 
                 row.createCell(0).setCellValue(terminado.getProducto().getNombre());
                 row.createCell(1).setCellValue(terminado.getMedidaTerminadoProducto().doubleValue());
@@ -463,4 +568,3 @@ public class ReporteController {
         }
     }
 }
-
