@@ -1,10 +1,11 @@
 package com.maxiguias.maxigestion.maxigestion.servicio;
 
-
 import java.util.List;
 import java.util.Optional;
 
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.maxiguias.maxigestion.maxigestion.modelo.Producto;
@@ -12,15 +13,11 @@ import com.maxiguias.maxigestion.maxigestion.repositorio.ProductoRepository;
 
 @Service
 public class ProductoService {
-    
+
     private final ProductoRepository productoRepository;
 
     public ProductoService(ProductoRepository productoRepository) {
         this.productoRepository = productoRepository;
-    }
-
-    public List<Producto> buscarPorCodigoONombre(String keyword) {
-        return productoRepository.findByIdProductoOrNombreGuia(keyword);
     }
 
     public List<Producto> listarProductos() {
@@ -32,25 +29,21 @@ public class ProductoService {
     }
 
     public Producto guardarProducto(Producto producto) {
+
+        if (producto.getId() == null || producto.getId() <= 0) {
+            throw new IllegalArgumentException("El código del producto es obligatorio y debe ser mayor a 0");
+        }
+        if (productoRepository.existsById(producto.getId())) {
+            throw new IllegalArgumentException("No se puede crear el producto, el código ingresado ya existe");
+        }
+
+        // Relacionar terminados con el producto
+        if (producto.getTerminados() != null) {
+            producto.getTerminados().forEach(t -> t.setProducto(producto));
+        }
+
         try {
-            // Validación: ID obligatorio y mayor a 0
-            if (producto.getId() == null || producto.getId() <= 0) {
-                throw new IllegalArgumentException("El código del producto es obligatorio y debe ser mayor a 0");
-            }
-
-            // Validación: ID duplicado
-            if (productoRepository.existsById(producto.getId())) {
-                throw new IllegalArgumentException("No se puede crear el producto, el código ingresado ya existe");
-
-            }
-
-            // Relacionar terminados con el producto
-            if (producto.getTerminados() != null) {
-                producto.getTerminados().forEach(t -> t.setProducto(producto));
-            }
-
             return productoRepository.save(producto);
-
         } catch (Exception e) {
             throw new RuntimeException("Error al guardar el producto: " + e.getMessage(), e);
         }
@@ -85,5 +78,14 @@ public class ProductoService {
         productoRepository.delete(producto);
     }
 
-}
+    public Page<Producto> listarProductosPaginados(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return productoRepository.findAll(pageable);
+    }
 
+    public Page<Producto> buscarPorCodigoONombrePaginado(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return productoRepository.buscarPorCodigoONombre(keyword, pageable);
+    }
+
+}

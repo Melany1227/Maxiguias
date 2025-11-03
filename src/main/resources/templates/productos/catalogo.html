@@ -6,8 +6,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/estilos.css}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-</head>
 
+</head>
 
 <body>
 
@@ -44,8 +44,38 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+
+            <!-- Controles de paginación -->
+            <div class="row mt-4" th:if="${totalPages > 1}">
+                <div class="col-12 text-center">
+                    
+                    <p class="text-dark small mb-2">
+                    Página [[${currentPage + 1}]] de [[${totalPages}]] 
+                    ([[${totalElements}]] productos)
+                    </p>
+
+                    <div class="pagination-modern">
+                    <!-- Botón anterior -->
+                    <a th:if="${currentPage > 0}"
+                        th:href="@{(${rolUsuario} == 'NATURAL' ? '/productos/publico' : '/productos/juridico')(page=${currentPage - 1}, size=${size})}"
+                        title="Anterior">‹</a>
+                    <a th:unless="${currentPage > 0}" class="disabled">‹</a>
+
+                    <!-- Números -->
+                    <a th:each="pageNum : ${#numbers.sequence(T(java.lang.Math).max(0, currentPage - 2), T(java.lang.Math).min(totalPages - 1, currentPage + 2))}"
+                        th:href="@{(${rolUsuario} == 'NATURAL' ? '/productos/publico' : '/productos/juridico')(page=${pageNum}, size=${size})}"
+                        th:text="${pageNum + 1}"
+                        th:classappend="${pageNum == currentPage} ? 'active'">
+                    </a>
+
+                    <!-- Botón siguiente -->
+                    <a th:if="${currentPage < totalPages - 1}"
+                        th:href="@{(${rolUsuario} == 'NATURAL' ? '/productos/publico' : '/productos/juridico')(page=${currentPage + 1}, size=${size})}"
+                        title="Siguiente">›</a>
+                    <a th:unless="${currentPage < totalPages - 1}" class="disabled">›</a>
+                    </div>
+                </div>
+            </div>
 
     <!-- Modal por producto -->
     <div th:each="producto : ${productos}">
@@ -67,7 +97,7 @@
                          style="max-width: 100%; height: auto; max-height: 400px; object-fit: contain; margin: 0 auto; display: block;"
                          onerror="if(this.src!='https://via.placeholder.com/600x400/cccccc/666666?text=Error'){this.src='https://via.placeholder.com/600x400/cccccc/666666?text=Error'}">
 
-                    <table class="table table-hover align-middle">
+                    <table class="table table-hover align-middle tabla-detalle-producto">
                         <thead class="table-dark">
                             <tr>
                                 <th>Medida</th>

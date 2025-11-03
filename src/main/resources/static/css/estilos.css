@@ -836,4 +836,182 @@ a[class*="btn"]:hover {
     background: rgba(208, 167, 54, 0.8);
 }
 
-            
+
+/* Estilos del botón de paginación*/
+.btn-sm {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+}
+
+.btn-outline-dark {
+    color: #000;
+    border: 1px solid #000;
+    background: #fff;
+}
+
+.btn-outline-dark:hover {
+    background: #000;
+    color: #fff;
+}
+
+   /* ===== PAGINACIÓN MODERNA ===== */
+.pagination-modern {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pagination-modern a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #fff;
+  color: #000;
+  border: 1px solid #ddd;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.pagination-modern a:hover {
+  background-color: #ffcf00;
+  border-color: #ffcf00;
+  color: #000;
+}
+
+.pagination-modern a.active {
+  background-color: #000;
+  border-color: #000;
+  color: #fff;
+}
+
+.pagination-modern .disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ===== TABLA ADMINISTRADOR DE PRODUCTOS===== */      
+
+.table th, 
+.table td {
+    vertical-align: middle;
+    text-align: center;
+}
+
+.table th:first-child, 
+.table td:first-child {
+    width: 25%; /* Código producto */
+}
+
+.table th:nth-child(2), 
+.table td:nth-child(2) {
+    width: 50%; /* Nombre */
+}
+
+.table th:last-child, 
+.table td:last-child {
+    width: 25%; /* Acciones */
+}
+
+
+/* Ajustes tabla de Terminados */
+.table-terminados {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table-terminados th,
+.table-terminados td {
+  border: none;
+  padding: 6px 10px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.table-terminados th {
+  background-color: #212529;
+  color: #fff;
+  font-weight: 600;
+}
+
+.table-terminados td {
+  background-color: #fff;
+  color: #000;
+}
+
+/* Borde más fino y columnas proporcionadas */
+.table-terminados th:first-child,
+.table-terminados td:first-child {
+  width: 15%;
+}
+.table-terminados th:nth-child(2),
+.table-terminados td:nth-child(2) {
+  width: 20%;
+}
+.table-terminados th:last-child,
+.table-terminados td:last-child {
+  width: 10%;
+}
+
+
+
+
+
+/* ESTILOS TABLA DETALLE DE PRODUCTOS*/
+
+.modal-body table {
+  border-collapse: collapse; /* Elimina espacios entre celdas */
+  width: 100%;
+}
+
+.modal-body th {
+  background-color: #1a1a1a; /* Mantiene tu tono oscuro */
+  color: white; 
+  font-weight: 600;
+  padding: 4px 8px; /* Eencabezado más delgado */ 
+  font-size: 14px;
+  border: none; /* Quita las líneas blancas */
+}
+
+.modal-body td {
+  border-top: 1px solid #e0e0e0; /* Línea sutil entre filas */
+  padding: 6px 10px;
+}
+
+.modal-body tr:last-child td {
+  border-bottom: none; /* Quita línea al final */
+}
+
+.modal-body th:nth-child(1),
+.modal-body td:nth-child(1) {
+  width: 10%; /* Medida más angosta */
+}
+
+.modal-body th:nth-child(2),
+.modal-body td:nth-child(2) {
+  width: 15%; /* Precio Público más angosto */
+}
+
+.modal-body th:nth-child(3),
+.modal-body td:nth-child(3),
+.modal-body th:nth-child(4),
+.modal-body td:nth-child(4) {
+  width: 20%; /* Más espacio para precios */
+}
+
+.modal-body th:nth-child(5),
+.modal-body td:nth-child(5),
+.modal-body th:nth-child(6),
+.modal-body td:nth-child(6) {
+  width: 17.5%; /* Resto equilibrado */
+}
+
+.modal-body table {
+  table-layout: fixed; /* 🔹 Asegura que las proporciones se mantengan */
+}
