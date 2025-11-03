@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden;
 import com.maxiguias.maxigestion.maxigestion.modelo.Orden;
 import com.maxiguias.maxigestion.maxigestion.modelo.Usuario;
 import com.maxiguias.maxigestion.maxigestion.repositorio.OrdenRepository;
@@ -39,7 +42,6 @@ import com.maxiguias.maxigestion.maxigestion.repositorio.ProductoRepository;
 import com.maxiguias.maxigestion.maxigestion.repositorio.TerminadoRepository;
 import com.maxiguias.maxigestion.maxigestion.dto.ProductoVendidoDTO;
 import com.maxiguias.maxigestion.maxigestion.modelo.Terminado;
-import com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden;
 
 @Controller
 @RequestMapping("/reportes")
@@ -73,135 +75,137 @@ public class ReporteController {
     }
 
     @GetMapping("/estadisticas-clientes")
-@ResponseBody
-public Map<String, Object> obtenerEstadisticas(
-        @RequestParam(required = false) String fechaInicio,
-        @RequestParam(required = false) String fechaFin) {
+    @ResponseBody
+    public Map<String, Object> obtenerEstadisticas(
+            @RequestParam(required = false) String fechaInicio,
+            @RequestParam(required = false) String fechaFin) {
 
-    Map<String, Object> estadisticas = new HashMap<>();
+        Map<String, Object> estadisticas = new HashMap<>();
 
-    if (fechaInicio != null && fechaFin != null) {
-        LocalDateTime inicio = LocalDate.parse(fechaInicio).atStartOfDay();
-        LocalDateTime fin = LocalDate.parse(fechaFin).atTime(23, 59, 59);
+        if (fechaInicio != null && fechaFin != null) {
+            LocalDateTime inicio = LocalDate.parse(fechaInicio).atStartOfDay();
+            LocalDateTime fin = LocalDate.parse(fechaFin).atTime(23, 59, 59);
 
-        Long naturales = usuarioRepository.countNaturalesByFechaRegistroBetween(inicio, fin);
-        Long juridicos = usuarioRepository.countJuridicosByFechaRegistroBetween(inicio, fin);
+            Long naturales = usuarioRepository.countNaturalesByFechaRegistroBetween(inicio, fin);
+            Long juridicos = usuarioRepository.countJuridicosByFechaRegistroBetween(inicio, fin);
 
-        naturales = naturales != null ? naturales : 0;
-        juridicos = juridicos != null ? juridicos : 0;
+            naturales = naturales != null ? naturales : 0;
+            juridicos = juridicos != null ? juridicos : 0;
 
-        estadisticas.put("naturales", naturales);
-        estadisticas.put("juridicos", juridicos);
-        estadisticas.put("total", naturales + juridicos);
+            estadisticas.put("naturales", naturales);
+            estadisticas.put("juridicos", juridicos);
+            estadisticas.put("total", naturales + juridicos);
 
-    } else {
-        Long naturales = usuarioRepository.countByTipoUsuario_Id(2);
-        Long juridicos = usuarioRepository.countByTipoUsuario_Id(3);
+        } else {
+            Long naturales = usuarioRepository.countByTipoUsuario_Id(2);
+            Long juridicos = usuarioRepository.countByTipoUsuario_Id(3);
 
-        naturales = naturales != null ? naturales : 0;
-        juridicos = juridicos != null ? juridicos : 0;
+            naturales = naturales != null ? naturales : 0;
+            juridicos = juridicos != null ? juridicos : 0;
 
-        estadisticas.put("naturales", naturales);
-        estadisticas.put("juridicos", juridicos);
-        estadisticas.put("total", naturales + juridicos);
+            estadisticas.put("naturales", naturales);
+            estadisticas.put("juridicos", juridicos);
+            estadisticas.put("total", naturales + juridicos);
+        }
+
+        return estadisticas;
     }
-
-    return estadisticas;
-}
 
     @GetMapping("/exportar-excel")
-public void exportarExcelClientes(
-        @RequestParam(required = false) String fechaInicio,
-        @RequestParam(required = false) String fechaFin,
-        HttpServletResponse response) throws IOException {
+    public void exportarExcelClientes(
+            @RequestParam(required = false) String fechaInicio,
+            @RequestParam(required = false) String fechaFin,
+            HttpServletResponse response) throws IOException {
 
-    // Configurar respuesta
-    response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-    String fileName = "reporte_clientes_" + LocalDate.now() + ".xlsx";
-    response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+        // Configurar respuesta
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        String fileName = "reporte_clientes_" + LocalDate.now() + ".xlsx";
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
 
-    List<Usuario> usuariosNaturales;
-    List<Usuario> usuariosJuridicos;
+        List<Usuario> usuariosNaturales;
+        List<Usuario> usuariosJuridicos;
 
-    // Si hay rango de fechas, filtramos por fechas
-    if (fechaInicio != null && fechaFin != null) {
-        LocalDateTime inicio = LocalDate.parse(fechaInicio).atStartOfDay();
-        LocalDateTime fin = LocalDate.parse(fechaFin).atTime(23, 59, 59);
+        // Si hay rango de fechas, filtramos por fechas
+        if (fechaInicio != null && fechaFin != null) {
+            LocalDateTime inicio = LocalDate.parse(fechaInicio).atStartOfDay();
+            LocalDateTime fin = LocalDate.parse(fechaFin).atTime(23, 59, 59);
 
-        usuariosNaturales = usuarioRepository.findNaturalesByFechaRegistroBetween(inicio, fin);
-        usuariosJuridicos = usuarioRepository.findJuridicosByFechaRegistroBetween(inicio, fin);
+            usuariosNaturales = usuarioRepository.findNaturalesByFechaRegistroBetween(inicio, fin);
+            usuariosJuridicos = usuarioRepository.findJuridicosByFechaRegistroBetween(inicio, fin);
 
-    } else {
-        // Si no hay rango → traer todos
-        usuariosNaturales = usuarioRepository.findByTipoUsuario_Id(2);
-        usuariosJuridicos = usuarioRepository.findByTipoUsuario_Id(3);
+        } else {
+            // Si no hay rango → traer todos
+            usuariosNaturales = usuarioRepository.findByTipoUsuario_Id(2);
+            usuariosJuridicos = usuarioRepository.findByTipoUsuario_Id(3);
+        }
+
+        // Crear Excel
+        try (Workbook workbook = new XSSFWorkbook()) {
+
+            Sheet sheet = workbook.createSheet("Clientes");
+
+            // Estilo encabezado
+            CellStyle headerStyle = workbook.createCellStyle();
+            headerStyle.setFillForegroundColor(IndexedColors.GOLD.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+
+            // Encabezados
+            String[] headers = {
+                    "Documento", "Nombre", "Primer Apellido", "Segundo Apellido",
+                    "Dirección", "Teléfono", "Perfil", "Ciudad", "Fecha Registro"
+            };
+
+            Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            int rowNum = 1;
+
+            // Agregar Usuarios Naturales
+            for (Usuario usuario : usuariosNaturales) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(usuario.getDocumento());
+                row.createCell(1).setCellValue(usuario.getNombre());
+                row.createCell(2).setCellValue(usuario.getPrimerApellido() != null ? usuario.getPrimerApellido() : "");
+                row.createCell(3)
+                        .setCellValue(usuario.getSegundoApellido() != null ? usuario.getSegundoApellido() : "");
+                row.createCell(4).setCellValue(usuario.getDireccion() != null ? usuario.getDireccion() : "");
+                row.createCell(5).setCellValue(usuario.getTelefono() != null ? usuario.getTelefono().toString() : "");
+                row.createCell(6).setCellValue("Natural");
+                row.createCell(7).setCellValue(usuario.getCiudad() != null ? usuario.getCiudad().getNombre() : "");
+                row.createCell(8)
+                        .setCellValue(usuario.getFechaRegistro() != null ? usuario.getFechaRegistro().toString() : "");
+            }
+
+            // Agregar Usuarios Jurídicos
+            for (Usuario usuario : usuariosJuridicos) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(usuario.getDocumento());
+                row.createCell(1).setCellValue(usuario.getNombre());
+                row.createCell(2).setCellValue(""); // No aplica
+                row.createCell(3).setCellValue(""); // No aplica
+                row.createCell(4).setCellValue(usuario.getDireccion() != null ? usuario.getDireccion() : "");
+                row.createCell(5).setCellValue(usuario.getTelefono() != null ? usuario.getTelefono().toString() : "");
+                row.createCell(6).setCellValue("Jurídico");
+                row.createCell(7).setCellValue(usuario.getCiudad() != null ? usuario.getCiudad().getNombre() : "");
+                row.createCell(8)
+                        .setCellValue(usuario.getFechaRegistro() != null ? usuario.getFechaRegistro().toString() : "");
+            }
+
+            // Auto ajustar columnas
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            workbook.write(response.getOutputStream());
+        }
     }
-
-    // Crear Excel
-    try (Workbook workbook = new XSSFWorkbook()) {
-
-        Sheet sheet = workbook.createSheet("Clientes");
-
-        // Estilo encabezado
-        CellStyle headerStyle = workbook.createCellStyle();
-        headerStyle.setFillForegroundColor(IndexedColors.GOLD.getIndex());
-        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        Font headerFont = workbook.createFont();
-        headerFont.setBold(true);
-        headerStyle.setFont(headerFont);
-
-        // Encabezados
-        String[] headers = { 
-                "Documento", "Nombre", "Primer Apellido", "Segundo Apellido", 
-                "Dirección", "Teléfono", "Perfil", "Ciudad", "Fecha Registro" 
-        };
-
-        Row headerRow = sheet.createRow(0);
-        for (int i = 0; i < headers.length; i++) {
-            Cell cell = headerRow.createCell(i);
-            cell.setCellValue(headers[i]);
-            cell.setCellStyle(headerStyle);
-        }
-
-        int rowNum = 1;
-
-        // Agregar Usuarios Naturales
-        for (Usuario usuario : usuariosNaturales) {
-            Row row = sheet.createRow(rowNum++);
-            row.createCell(0).setCellValue(usuario.getDocumento());
-            row.createCell(1).setCellValue(usuario.getNombre());
-            row.createCell(2).setCellValue(usuario.getPrimerApellido() != null ? usuario.getPrimerApellido() : "");
-            row.createCell(3).setCellValue(usuario.getSegundoApellido() != null ? usuario.getSegundoApellido() : "");
-            row.createCell(4).setCellValue(usuario.getDireccion() != null ? usuario.getDireccion() : "");
-            row.createCell(5).setCellValue(usuario.getTelefono() != null ? usuario.getTelefono().toString() : "");
-            row.createCell(6).setCellValue("Natural");
-            row.createCell(7).setCellValue(usuario.getCiudad() != null ? usuario.getCiudad().getNombre() : "");
-            row.createCell(8).setCellValue(usuario.getFechaRegistro() != null ? usuario.getFechaRegistro().toString() : "");
-        }
-
-        // Agregar Usuarios Jurídicos
-        for (Usuario usuario : usuariosJuridicos) {
-            Row row = sheet.createRow(rowNum++);
-            row.createCell(0).setCellValue(usuario.getDocumento());
-            row.createCell(1).setCellValue(usuario.getNombre());
-            row.createCell(2).setCellValue(""); // No aplica
-            row.createCell(3).setCellValue(""); // No aplica
-            row.createCell(4).setCellValue(usuario.getDireccion() != null ? usuario.getDireccion() : "");
-            row.createCell(5).setCellValue(usuario.getTelefono() != null ? usuario.getTelefono().toString() : "");
-            row.createCell(6).setCellValue("Jurídico");
-            row.createCell(7).setCellValue(usuario.getCiudad() != null ? usuario.getCiudad().getNombre() : "");
-            row.createCell(8).setCellValue(usuario.getFechaRegistro() != null ? usuario.getFechaRegistro().toString() : "");
-        }
-
-        // Auto ajustar columnas
-        for (int i = 0; i < headers.length; i++) {
-            sheet.autoSizeColumn(i);
-        }
-
-        workbook.write(response.getOutputStream());
-    }
-}
-
 
     // ========== MÉTODOS PARA REPORTE DE ÓRDENES ==========
 
@@ -261,113 +265,80 @@ public void exportarExcelClientes(
         }
     }
 
-    // ========== MÉTODOS PARA REPORTE DE VENTAS MENSUALES ==========
+    // ========== MÉTODOS PARA REPORTE DE VENTAS AL MES ===========
 
-    @GetMapping("/estadisticas-ventas")
-    @ResponseBody
-    public Map<String, Long> obtenerEstadisticasVentas(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
-        Map<String, Long> estadisticas = new HashMap<>();
+@GetMapping("/estadisticas-ventas")
+@ResponseBody
+public Map<String, Object> obtenerEstadisticasVentas(
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
 
-        List<Orden> ordenes;
-        if (fechaInicio != null && fechaFin != null) {
-            ordenes = ordenRepository.findByFechaOrdenBetween(fechaInicio.atStartOfDay(),
-                    fechaFin.atTime(23, 59, 59));
-        } else {
-            ordenes = ordenRepository.findAll();
-        }
+    Map<String, Object> response = new HashMap<>();
 
-        // Filtrar órdenes por estado FACTURADA y FINALIZADA
-        long facturadas = ordenes.stream()
-                .filter(orden -> EstadoOrden.FACTURADA.equals(orden.getEstado()))
-                .count();
+    EstadoOrden facturada = EstadoOrden.FACTURADA;
+    EstadoOrden finalizada = EstadoOrden.FINALIZADA;
 
-        long finalizadas = ordenes.stream()
-                .filter(orden -> EstadoOrden.FINALIZADA.equals(orden.getEstado()))
-                .count();
+    Long total;
 
-        long total = facturadas + finalizadas;
-
-        estadisticas.put("total", total);
-        estadisticas.put("facturadas", facturadas);
-        estadisticas.put("finalizadas", finalizadas);
-
-        return estadisticas;
+    if (fechaInicio != null && fechaFin != null) {
+        // 🔸 Convertir LocalDate a LocalDateTime para cubrir todo el rango
+        LocalDateTime inicio = fechaInicio.atStartOfDay();
+        LocalDateTime fin = fechaFin.atTime(LocalTime.MAX); // hasta 23:59:59
+        total = ordenRepository.contarPorEstadoYRangoFechas(facturada, finalizada, inicio, fin);
+    } else {
+        total = ordenRepository.contarPorEstado(facturada, finalizada);
     }
 
-    @GetMapping("/exportar-excel-ventas")
-    public void exportarExcelVentas(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin,
+    response.put("total", total);
+    return response;
+}
+
+
+
+    @GetMapping("/exportar-zip-ventas")
+    public void exportarZipVentas(
+            @RequestParam(required = false) String fechaInicio,
+            @RequestParam(required = false) String fechaFin,
             HttpServletResponse response) throws IOException {
 
-        // Configurar respuesta
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        String fileName = "reporte_ventas_mensuales_" + LocalDate.now() + ".xlsx";
+        // Configurar respuesta ZIP
+        response.setContentType("application/zip");
+        String fileName = "ventas_mes_" + LocalDate.now() + ".zip";
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
 
-        List<Orden> todasOrdenes;
+        List<Orden> ordenes;
+
         if (fechaInicio != null && fechaFin != null) {
-            todasOrdenes = ordenRepository.findByFechaOrdenBetween(fechaInicio.atStartOfDay(),
-                    fechaFin.atTime(23, 59, 59));
+            LocalDateTime inicio = LocalDate.parse(fechaInicio).atStartOfDay();
+            LocalDateTime fin = LocalDate.parse(fechaFin).atTime(23, 59, 59);
+            ordenes = ordenRepository.findVentasDelMes(inicio, fin);
         } else {
-            todasOrdenes = ordenRepository.findAll();
+            // Si no se envían fechas, traer todo lo facturado y finalizado
+            ordenes = ordenRepository.findAll().stream()
+                    .filter(o -> {
+                        EstadoOrden estado = o.getEstado();
+                        return estado == EstadoOrden.FACTURADA || estado == EstadoOrden.FINALIZADA;
+                    })
+                    .toList();
+
         }
 
-        // Filtrar solo órdenes FACTURADAS y FINALIZADAS
-        List<Orden> ordenesVentas = todasOrdenes.stream()
-                .filter(orden -> EstadoOrden.FACTURADA.equals(orden.getEstado()) || EstadoOrden.FINALIZADA.equals(orden.getEstado()))
-                .toList();
-
-        // Crear Excel
-        try (Workbook workbook = new XSSFWorkbook()) {
-            Sheet sheet = workbook.createSheet("Ventas Mensuales");
-
-            // Estilo encabezado
-            CellStyle headerStyle = workbook.createCellStyle();
-            headerStyle.setFillForegroundColor(IndexedColors.GOLD.getIndex());
-            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-            Font headerFont = workbook.createFont();
-            headerFont.setBold(true);
-            headerStyle.setFont(headerFont);
-
-            // Encabezados
-            String[] headers = {
-                    "ID Orden", "Cliente", "Fecha Orden", "Estado",
-                    "Total", "Fecha Entrega", "Dirección Entrega"
-            };
-
-            Row headerRow = sheet.createRow(0);
-            for (int i = 0; i < headers.length; i++) {
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
-                cell.setCellStyle(headerStyle);
+        // Crear ZIP
+        try (ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream())) {
+            for (Orden orden : ordenes) {
+                try {
+                    byte[] pdfBytes = ordenService.generarOrdenPDF(orden.getId());
+                    String entryName = "orden_" + orden.getId() + "_" + orden.getFechaOrden() + ".pdf";
+                    ZipEntry zipEntry = new ZipEntry(entryName);
+                    zipOut.putNextEntry(zipEntry);
+                    zipOut.write(pdfBytes);
+                    zipOut.closeEntry();
+                } catch (Exception e) {
+                    System.err.println("Error generando PDF para orden " + orden.getId() + ": " + e.getMessage());
+                }
             }
-
-            int rowNum = 1;
-
-            // Agregar datos de órdenes
-            for (Orden orden : ordenesVentas) {
-                Row row = sheet.createRow(rowNum++);
-                row.createCell(0).setCellValue(orden.getId());
-                row.createCell(1).setCellValue(orden.getUsuario().getNombre());
-                row.createCell(2).setCellValue(orden.getFechaOrden().toString());
-                row.createCell(3).setCellValue(orden.getEstado().getDescripcion());
-                row.createCell(4).setCellValue(orden.getTotalFactura().doubleValue());
-                row.createCell(5).setCellValue(orden.getFechaEntrega() != null ? orden.getFechaEntrega().toString() : "");
-                row.createCell(6).setCellValue(""); // Dirección no disponible en modelo
-            }
-
-            // Auto ajustar columnas
-            for (int i = 0; i < headers.length; i++) {
-                sheet.autoSizeColumn(i);
-            }
-
-            workbook.write(response.getOutputStream());
         }
     }
-
     // ========== MÉTODOS PARA REPORTE DE PRODUCTOS MÁS VENDIDOS ==========
 
     @GetMapping("/estadisticas-productos")

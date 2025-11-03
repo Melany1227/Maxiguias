@@ -1,5 +1,6 @@
 package com.maxiguias.maxigestion.maxigestion.repositorio;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -10,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden;
 import com.maxiguias.maxigestion.maxigestion.modelo.Orden;
 
 public interface OrdenRepository extends JpaRepository<Orden, Long>, PagingAndSortingRepository<Orden, Long> {
@@ -49,5 +51,19 @@ public interface OrdenRepository extends JpaRepository<Orden, Long>, PagingAndSo
                      "STR(o.usuario.documento) LIKE CONCAT('%', :termino, '%'))")
        Page<Orden> findByClienteTerminoAndUsuario(@Param("termino") String termino,
                      @Param("usuarioDocumento") Long usuarioDocumento, Pageable pageable);
+
+       @Query("SELECT COUNT(o) FROM Orden o WHERE o.estado IN (:estado1, :estado2)")
+       Long contarPorEstado(@Param("estado1") EstadoOrden estado1, @Param("estado2") EstadoOrden estado2);
+
+       @Query("SELECT COUNT(o) FROM Orden o WHERE o.estado IN (:estado1, :estado2) " +
+                     "AND o.fechaOrden BETWEEN :inicio AND :fin")
+       Long contarPorEstadoYRangoFechas(@Param("estado1") EstadoOrden estado1,
+                     @Param("estado2") EstadoOrden estado2,
+                     @Param("inicio") LocalDateTime inicio,
+                     @Param("fin") LocalDateTime fin);
+
+       @Query("SELECT o FROM Orden o WHERE (o.estado = 'FACTURADA' OR o.estado = 'FINALIZADA') " +
+                     "AND o.fechaOrden BETWEEN :inicio AND :fin")
+       List<Orden> findVentasDelMes(@Param("inicio") LocalDateTime inicio, @Param("fin") LocalDateTime fin);
 
 }
