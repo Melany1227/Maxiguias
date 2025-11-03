@@ -39,6 +39,7 @@ import com.maxiguias.maxigestion.maxigestion.repositorio.ProductoRepository;
 import com.maxiguias.maxigestion.maxigestion.repositorio.TerminadoRepository;
 import com.maxiguias.maxigestion.maxigestion.dto.ProductoVendidoDTO;
 import com.maxiguias.maxigestion.maxigestion.modelo.Terminado;
+import com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden;
 
 @Controller
 @RequestMapping("/reportes")
@@ -257,6 +258,113 @@ public void exportarExcelClientes(
                     System.err.println("Error generando PDF para orden " + orden.getId() + ": " + e.getMessage());
                 }
             }
+        }
+    }
+
+    // ========== MÉTODOS PARA REPORTE DE VENTAS MENSUALES ==========
+
+    @GetMapping("/estadisticas-ventas")
+    @ResponseBody
+    public Map<String, Long> obtenerEstadisticasVentas(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
+        Map<String, Long> estadisticas = new HashMap<>();
+
+        List<Orden> ordenes;
+        if (fechaInicio != null && fechaFin != null) {
+            ordenes = ordenRepository.findByFechaOrdenBetween(fechaInicio.atStartOfDay(),
+                    fechaFin.atTime(23, 59, 59));
+        } else {
+            ordenes = ordenRepository.findAll();
+        }
+
+        // Filtrar órdenes por estado FACTURADA y FINALIZADA
+        long facturadas = ordenes.stream()
+                .filter(orden -> EstadoOrden.FACTURADA.equals(orden.getEstado()))
+                .count();
+
+        long finalizadas = ordenes.stream()
+                .filter(orden -> EstadoOrden.FINALIZADA.equals(orden.getEstado()))
+                .count();
+
+        long total = facturadas + finalizadas;
+
+        estadisticas.put("total", total);
+        estadisticas.put("facturadas", facturadas);
+        estadisticas.put("finalizadas", finalizadas);
+
+        return estadisticas;
+    }
+
+    @GetMapping("/exportar-excel-ventas")
+    public void exportarExcelVentas(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin,
+            HttpServletResponse response) throws IOException {
+
+        // Configurar respuesta
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        String fileName = "reporte_ventas_mensuales_" + LocalDate.now() + ".xlsx";
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+
+        List<Orden> todasOrdenes;
+        if (fechaInicio != null && fechaFin != null) {
+            todasOrdenes = ordenRepository.findByFechaOrdenBetween(fechaInicio.atStartOfDay(),
+                    fechaFin.atTime(23, 59, 59));
+        } else {
+            todasOrdenes = ordenRepository.findAll();
+        }
+
+        // Filtrar solo órdenes FACTURADAS y FINALIZADAS
+        List<Orden> ordenesVentas = todasOrdenes.stream()
+                .filter(orden -> EstadoOrden.FACTURADA.equals(orden.getEstado()) || EstadoOrden.FINALIZADA.equals(orden.getEstado()))
+                .toList();
+
+        // Crear Excel
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Ventas Mensuales");
+
+            // Estilo encabezado
+            CellStyle headerStyle = workbook.createCellStyle();
+            headerStyle.setFillForegroundColor(IndexedColors.GOLD.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+
+            // Encabezados
+            String[] headers = {
+                    "ID Orden", "Cliente", "Fecha Orden", "Estado",
+                    "Total", "Fecha Entrega", "Dirección Entrega"
+            };
+
+            Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            int rowNum = 1;
+
+            // Agregar datos de órdenes
+            for (Orden orden : ordenesVentas) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(orden.getId());
+                row.createCell(1).setCellValue(orden.getUsuario().getNombre());
+                row.createCell(2).setCellValue(orden.getFechaOrden().toString());
+                row.createCell(3).setCellValue(orden.getEstado().getDescripcion());
+                row.createCell(4).setCellValue(orden.getTotalFactura().doubleValue());
+                row.createCell(5).setCellValue(orden.getFechaEntrega() != null ? orden.getFechaEntrega().toString() : "");
+                row.createCell(6).setCellValue(""); // Dirección no disponible en modelo
+            }
+
+            // Auto ajustar columnas
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            workbook.write(response.getOutputStream());
         }
     }
 
