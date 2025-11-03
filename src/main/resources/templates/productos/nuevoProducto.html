@@ -49,9 +49,16 @@
                 <div class="row g-3 mb-3">
                     <div class="col-md-3">
                         <label class="form-label">Código del producto</label>
-                        <input type="number" th:field="*{id}" class="form-control" required 
-                               th:disabled="${producto.id != null}"
-                               onkeydown="return event.key !== 'e' && event.key !== 'E' && event.key !== '+' && event.key !== '-';" />
+                        <input type="number"
+                            th:field="*{id}"
+                            class="form-control"
+                            required
+                            th:classappend="${errorCodigo} ? 'is-invalid' : ''"
+                            th:disabled="${producto.id != null}"
+                            onkeydown="return event.key !== 'e' && event.key !== 'E' && event.key !== '+' && event.key !== '-';" />
+
+                        <div class="invalid-feedback" th:if="${errorCodigo}" th:text="${errorCodigo}"></div>
+
                         <input type="hidden" th:if="${producto.id != null}" th:field="*{id}" />
                     </div>
                     <div class="col-md-3">
@@ -74,19 +81,16 @@
                                 class="img-thumbnail" />
                         </div>
                     </div>
-
-
-
-
                 </div>
-
                 <!-- Tabla de terminados -->
-                <h4 class="mt-4">Terminados</h4>
+                 <div>
+                      <h4 class="mt-4">Terminados</h4>
                 <button type="button" class="btn-black-yellow mt-2" onclick="agregarFila()">
                     <i ></i> Agregar Terminado
                 </button>
+
                 <div class="table-responsive">
-                    <table class="table table-bordered mt-2 align-middle text-center">
+                    <table class="mt-2 table table-terminados">
                         <thead class="table-dark">
                             <tr>
                                 <th>Medida</th>
@@ -111,8 +115,6 @@
                         </tbody>
                     </table>
                 </div>
-                
-
                 <!-- Botones finales -->
                 <div class="mt-4 d-flex gap-2">
                     <button type="submit" class="btn-black-yellow">
@@ -166,6 +168,18 @@
                 reader.readAsDataURL(input.files[0]);
             }
         }
+
     </script>
+
+    <script th:inline="javascript" th:if="${errorCodigo}">
+    Swal.fire({
+        icon: 'error',
+        title: 'Código duplicado',
+        text: '[[${errorCodigo}]]',
+        confirmButtonColor: '#b8922f',
+        confirmButtonText: 'Aceptar'
+    });
+</script>
+
 </body>
 </html>
