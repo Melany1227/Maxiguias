@@ -52,13 +52,7 @@ public interface OrdenRepository extends JpaRepository<Orden, Long>, PagingAndSo
        Page<Orden> findByClienteTerminoAndUsuario(@Param("termino") String termino,
                      @Param("usuarioDocumento") Long usuarioDocumento, Pageable pageable);
 
-       // ===== Reporte Ventas (Facturadas + Finalizadas) =====
-       Long countByEstadoIn(List<EstadoOrden> estados);
-
-       Long countByEstadoInAndFechaOrdenBetween(List<EstadoOrden> estados, LocalDateTime inicio, LocalDateTime fin);
-
-       List<Orden> findByEstadoIn(List<EstadoOrden> estados);
-
-       List<Orden> findByEstadoInAndFechaOrdenBetween(List<EstadoOrden> estados, LocalDateTime inicio, LocalDateTime fin);
+       
 
 }
+
