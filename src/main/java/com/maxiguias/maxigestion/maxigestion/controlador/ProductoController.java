@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -43,18 +44,43 @@ public class ProductoController {
     }
 
     @GetMapping
-    public String listarProductos(@RequestParam(value = "keyword", required = false) String keyword,
+
+    public String listarProductos(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             Model model) {
-        List<Producto> productos;
 
-        if (keyword != null && !keyword.isEmpty()) {
-            productos = productoService.buscarPorCodigoONombre(keyword);
-        } else {
-            productos = productoService.listarProductos();
+        try {
+            Page<Producto> productosPage;
+
+            // Buscar por keyword si está presente
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                productosPage = productoService.buscarPorCodigoONombrePaginado(keyword.trim(), page, size);
+            } else {
+                productosPage = productoService.listarProductosPaginados(page, size);
+            }
+
+            List<Producto> productos = productosPage.getContent();
+
+            // Si no hay productos, mostrar mensaje
+            if (productos.isEmpty()) {
+                model.addAttribute("mensajeNoResultados", "No se encontraron productos que coincidan con la búsqueda.");
+            }
+
+            model.addAttribute("productos", productos);
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalPages", productosPage.getTotalPages());
+            model.addAttribute("totalElements", productosPage.getTotalElements());
+            model.addAttribute("size", size);
+            model.addAttribute("keyword", keyword);
+
+        } catch (Exception e) {
+            // Registrar el error y mostrar mensaje amigable
+            System.err.println("Error al listar productos: " + e.getMessage());
+            model.addAttribute("errorMensaje",
+                    "Ocurrió un error al cargar los productos. Por favor, intenta nuevamente.");
         }
-
-        model.addAttribute("productos", productos);
-        model.addAttribute("keyword", keyword);
 
         return "productos/listar";
     }
@@ -76,38 +102,31 @@ public class ProductoController {
         System.out.println("=== INICIANDO CREACIÓN DE PRODUCTO ===");
         System.out.println("ID: " + producto.getId());
         System.out.println("Nombre: " + producto.getNombre());
-        System.out.println(
-                "Terminados: " + (producto.getTerminados() != null ? producto.getTerminados().size() : "null"));
 
         try {
             // Subir imagen si se proporciona
             if (imagenFile != null && !imagenFile.isEmpty()) {
                 System.out.println("=== SUBIENDO IMAGEN ===");
-                System.out.println("Archivo: " + imagenFile.getOriginalFilename());
-                System.out.println("Tamaño: " + imagenFile.getSize());
-
                 String publicId = cloudinaryService.uploadImage(imagenFile);
-                System.out.println("Public ID generado: " + publicId);
                 producto.setImagen(publicId);
-            } else {
-                System.out.println("=== NO HAY ARCHIVO DE IMAGEN ===");
             }
 
-            System.out.println("URL final del producto: " + producto.getImagen());
             productoService.guardarProducto(producto);
             ra.addFlashAttribute("mensaje", "Producto creado exitosamente");
             return "redirect:/productos";
 
         } catch (IllegalArgumentException e) {
-            System.out.println("=== ERROR: CÓDIGO DUPLICADO ===");
-            System.out.println("Error: " + e.getMessage());
-            model.addAttribute("producto", producto);
-            model.addAttribute("error", "El código ingresado ya existe");
-            return "productos/nuevoProducto";
+            // anejo de errores de validación
+            System.out.println("=== ERROR DE VALIDACIÓN ===");
+            System.out.println(e.getMessage());
 
+            producto.setId(null); // evita confusión con edición
+            model.addAttribute("producto", producto);
+            model.addAttribute("errorCodigo", e.getMessage());
+
+            return "productos/nuevoProducto"; // recarga formulario con error
         } catch (Exception e) {
-            System.out.println("=== ERROR GENERAL ===");
-            System.out.println("Error: " + e.getMessage());
+            // Errores generales
             e.printStackTrace();
             ra.addFlashAttribute("error", "Ocurrió un error al crear el producto: " + e.getMessage());
             return "redirect:/productos";
@@ -149,7 +168,7 @@ public class ProductoController {
             }
 
             productoService.actualizarProducto(id, producto);
-            ra.addFlashAttribute("mensaje", "Producto actualizado exitosamente");
+            ra.addFlashAttribute("mensajeEdicion", "Producto actualizado satisfactoriamente");
         } catch (Exception e) {
             ra.addFlashAttribute("error", "Error al actualizar el producto: " + e.getMessage());
         }
@@ -166,94 +185,56 @@ public class ProductoController {
         }
     }
 
-    // @GetMapping("/catalogo")
-    // public String catalogo(Model model, HttpSession session) {
-    // List<Producto> productos = productoService.listarProductos();
-    // model.addAttribute("productos", productos);
-    // model.addAttribute("cloudinaryService", cloudinaryService);
-
-    // String rolUsuario = "PUBLICO"; // valor por defecto
-
-    // Recuperar usuario guardado en sesión
-    // Usuario usuario = (Usuario) session.getAttribute("usuario");
-    // if (usuario != null && usuario.getPerfil() != null &&
-    // usuario.getPerfil().getRol() != null) {
-    // String nombreRol = usuario.getPerfil().getRol().getNombreRol();
-    // if ("ADMINISTRADOR".equalsIgnoreCase(nombreRol)) {
-    // rolUsuario = "ADMINISTRADOR";
-    // } else if ("JURIDICO".equalsIgnoreCase(nombreRol)) {
-    // rolUsuario = "JURIDICO";
-    // }
-    // }
-
-    // System.out.println("=== Rol del usuario detectado: " + rolUsuario);
-    // model.addAttribute("rolUsuario", rolUsuario);
-
-    // return "productos/catalogo";
-    // }
-
     // === Catálogo público ===
-    // @GetMapping("/publico")
-    // public String catalogoPublico(Model model) {
-    // List<Producto> productos = productoService.listarProductos();
-    // model.addAttribute("productos", productos);
-    // model.addAttribute("cloudinaryService", cloudinaryService);
-    // model.addAttribute("rolUsuario", "NATURAL");
-    // return "productos/catalogo";
-    // }
-
-    // === Catálogo jurídico ===
-    // @GetMapping("/juridico")
-    // public String catalogoJuridico(Model model, HttpSession session) {
-    // Usuario usuario = (Usuario) session.getAttribute("usuario");
-    // String rolUsuario = "NATURAL";
-
-    // if (usuario != null && usuario.getPerfil() != null &&
-    // usuario.getPerfil().getRol() != null) {
-    // String nombreRol = usuario.getPerfil().getRol().getNombreRol();
-    // if ("JURIDICO".equalsIgnoreCase(nombreRol)) {
-    // rolUsuario = "JURIDICO";
-    // }
-    // }
-
-    // if (!"JURIDICO".equals(rolUsuario)) {
-    // return "redirect:/error/403";
-    // }
-    //
-    // List<Producto> productos = productoService.listarProductos();
-    // model.addAttribute("productos", productos);
-    // model.addAttribute("cloudinaryService", cloudinaryService);
-    // model.addAttribute("rolUsuario", rolUsuario);
-    // return "productos/catalogo";
-    // }
-
     @GetMapping("/publico")
-    public String catalogoPublico(Model model) {
-        List<Producto> productos = productoService.listarProductos();
-        model.addAttribute("productos", productos);
+    public String catalogoPublico(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size,
+            Model model) {
+
+        // Servicio con paginación
+        var productosPage = productoService.listarProductosPaginados(page, size);
+
+        model.addAttribute("productos", productosPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", productosPage.getTotalPages());
+        model.addAttribute("totalElements", productosPage.getTotalElements());
+        model.addAttribute("size", size);
+
         model.addAttribute("cloudinaryService", cloudinaryService);
         model.addAttribute("rolUsuario", "NATURAL");
+
         return "productos/catalogo";
     }
 
     // === Catálogo jurídico ===
     @GetMapping("/juridico")
-    public String catalogoJuridico(Model model, HttpSession session) {
+    public String catalogoJuridico(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size,
+            Model model,
+            HttpSession session) {
+
         Usuario usuario = (Usuario) session.getAttribute("usuario");
 
         if (usuario == null) {
             return "redirect:/login";
         }
 
-        // Verificar permiso utilizando tu servicio centralizado
         boolean tienePermiso = AutorizacionService.tienePermiso(usuario, "/productos/juridico", "VISUALIZAR");
-
         if (!tienePermiso) {
             return "redirect:/error/403";
         }
 
-        List<Producto> productos = productoService.listarProductos();
-        model.addAttribute("productos", productos);
+        // Servicio con paginación
+        var productosPage = productoService.listarProductosPaginados(page, size);
+
+        model.addAttribute("productos", productosPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", productosPage.getTotalPages());
+        model.addAttribute("totalElements", productosPage.getTotalElements());
+        model.addAttribute("size", size);
+
         model.addAttribute("cloudinaryService", cloudinaryService);
         model.addAttribute("rolUsuario", usuario.getPerfil().getRol().getNombreRol());
 

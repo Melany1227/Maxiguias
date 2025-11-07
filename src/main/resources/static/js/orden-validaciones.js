@@ -79,12 +79,20 @@ function actualizarClienteInfo() {
         window.tipoClienteGlobal = window.usuarioSeleccionadoGlobal.tipoUsuario.nombre.toUpperCase();
         
         document.querySelectorAll("#tablaDetalle tbody tr").forEach(fila => {
-            actualizarPrecio(fila);
             actualizarTextoTerminados(fila);
+            actualizarPrecio(fila);
         });
         
         calcularTotalOrden();
     }
+}
+
+// Función para actualizar todos los textos cuando cambie el tipo de cliente globalmente
+function actualizarTodosLosTextosTerminados() {
+    console.log('🔄 Actualizando todos los textos de terminados para tipo:', window.tipoClienteGlobal);
+    document.querySelectorAll("#tablaDetalle tbody tr").forEach(fila => {
+        actualizarTextoTerminados(fila);
+    });
 }
 
 async function cargarTerminadosParaFila(fila, productoId, terminadoSeleccionado = null) {
@@ -127,13 +135,19 @@ async function cargarTerminadosParaFila(fila, productoId, terminadoSeleccionado 
         });
         
         if (terminadoSeleccionado) {
-            // Solo calcular total después de cargar, sin modificar el precio existente
-            setTimeout(() => calcularTotalOrden(), 100);
+            // Actualizar precio automáticamente cuando se selecciona un terminado
+            setTimeout(() => {
+                actualizarPrecio(fila);
+                calcularTotalOrden();
+            }, 100);
         }
+        
+        return true; // Retornar éxito
         
     } catch (error) {
         console.error(`Error cargando terminados para producto ${productoId}:`, error);
         terminadoSelect.innerHTML = "<option value=''>Error al cargar</option>";
+        return false; // Retornar error
     }
 }
 
@@ -170,16 +184,35 @@ function disminuir(btn) {
 function agregarFila() {
     const tabla = document.getElementById("tablaDetalle").querySelector("tbody");
     const nuevaFila = tabla.rows[0].cloneNode(true);
-    nuevaFila.querySelectorAll("input").forEach(input => input.value = input.name === "cantidad" ? 1 : "");
+    
+    // Limpiar valores de la nueva fila
+    nuevaFila.querySelectorAll("input").forEach(input => {
+        if (input.name === "cantidad") {
+            input.value = 1;
+        } else {
+            input.value = "";
+        }
+    });
+    
     // Limpiar selects de la nueva fila
     nuevaFila.querySelectorAll("select").forEach(select => {
         if (select.name === "productoId") {
             select.selectedIndex = 0;
+            // Cambiar a función de edición para nuevas filas
+            select.onchange = function() { cambiarProductoEdicion(this); };
         } else if (select.name === "terminadoId") {
             select.innerHTML = "<option value=''>Seleccione un terminado</option>";
             select.selectedIndex = 0;
+            // Agregar evento para actualizar precio
+            select.onchange = function() { actualizarPrecio(this.closest('tr')); };
         }
     });
+    
+    // Cambiar eventos de los botones de cantidad
+    const btnAumentar = nuevaFila.querySelector("button[onclick*='aumentar']");
+    const btnDisminuir = nuevaFila.querySelector("button[onclick*='disminuir']");
+    if (btnAumentar) btnAumentar.onclick = function() { aumentarEdicion(this); };
+    if (btnDisminuir) btnDisminuir.onclick = function() { disminuirEdicion(this); };
     
     // Asegurar que el botón de eliminar funcione correctamente
     const botonEliminar = nuevaFila.querySelector("button[onclick*='eliminarFilaEspecifica']");
@@ -187,9 +220,14 @@ function agregarFila() {
         botonEliminar.onclick = function() { eliminarFilaEspecifica(this); };
     }
     
+    // Remover atributos de datos de edición
+    nuevaFila.removeAttribute('data-detalle-id');
+    
     tabla.appendChild(nuevaFila);
     actualizarOpcionesProducto(nuevaFila);
     calcularTotalOrden();
+    
+    console.log('➕ Nueva fila agregada en modo edición con tipo cliente:', window.tipoClienteGlobal);
 }
 
 function eliminarFila() {
@@ -329,8 +367,12 @@ function actualizarPrecio(fila) {
     const cantidadInput = fila.querySelector("input[name='cantidad']");
     const valorInput = fila.querySelector("input[name='valor']");
 
+    console.log('🔄 Actualizando precio para fila');
+    console.log('Terminado seleccionado:', terminadoSelect.value);
+
     // Si no hay terminado seleccionado, solo resetear si no estamos en modo edición inicial
     if (!terminadoSelect.value || terminadoSelect.selectedIndex === 0) {
+        console.log('❌ No hay terminado seleccionado');
         // En modo edición, preservar el valor original si existe
         const esFilaEdicion = fila.hasAttribute('data-detalle-id');
         if (!esFilaEdicion || !valorInput.value || valorInput.value === '0') {
@@ -345,6 +387,28 @@ function actualizarPrecio(fila) {
     const mayor = selectedOption?.getAttribute("data-mayor");
     const encargo = selectedOption?.getAttribute("data-encargo");
 
+    console.log('💰 Precios obtenidos:');
+    console.log('Público:', publico);
+    console.log('Mayor:', mayor);
+    console.log('Encargo:', encargo);
+    console.log('Tipo cliente:', window.tipoClienteGlobal);
+    
+    // Fallback: intentar obtener tipo cliente desde ordenData si no está definido
+    if (!window.tipoClienteGlobal) {
+        console.log('🔍 Debug - ordenData disponible:', typeof ordenData !== 'undefined');
+        console.log('🔍 Debug - window.ordenData disponible:', typeof window.ordenData !== 'undefined');
+        
+        if (typeof ordenData !== 'undefined' && ordenData.usuario) {
+            window.tipoClienteGlobal = ordenData.usuario.tipoUsuario.nombre.toUpperCase();
+            console.log('🔄 Fallback - Tipo cliente obtenido de ordenData:', window.tipoClienteGlobal);
+        } else if (typeof window.ordenData !== 'undefined' && window.ordenData.usuario) {
+            window.tipoClienteGlobal = window.ordenData.usuario.tipoUsuario.nombre.toUpperCase();
+            console.log('🔄 Fallback - Tipo cliente obtenido de window.ordenData:', window.tipoClienteGlobal);
+        } else {
+            console.log('❌ No se pudo obtener tipoClienteGlobal - ordenData no disponible');
+        }
+    }
+
     const cantidad = parseInt(cantidadInput.value) || 1;
 
     let precioFinal = 0;
@@ -358,12 +422,23 @@ function actualizarPrecio(fila) {
             } else {
                 precioFinal = parseFloat(mayor);
             }
+        } else {
+            // Fallback: si no se puede determinar el tipo, usar precio público por defecto
+            console.log('⚠️ Tipo cliente no detectado, usando precio público por defecto');
+            precioFinal = parseFloat(publico);
         }
     }
 
-    // Solo actualizar si tenemos un precio válido o si no es modo edición inicial
+    console.log('🎯 Precio final calculado:', precioFinal);
+
+    // Actualizar precio siempre que tengamos un precio válido
     if (precioFinal > 0) {
         valorInput.value = precioFinal;
+        console.log('✅ Precio actualizado en el input');
+    } else if (!valorInput.value || valorInput.value === '0') {
+        // Solo resetear a 0 si el campo está vacío o es 0
+        valorInput.value = 0;
+        console.log('⚠️ Precio reseteado a 0');
     }
     calcularTotalOrden();
 }
@@ -395,6 +470,13 @@ document.addEventListener("input", function (e) {
     }
 });
 
+document.addEventListener("change", function (e) {
+    if (e.target.name === "terminadoId") {
+        const fila = e.target.closest("tr");
+        actualizarPrecio(fila);
+    }
+});
+
 function cambiarProductoEdicion(productoSelect) {
     const fila = productoSelect.closest('tr');
     const productoId = productoSelect.value;
@@ -406,7 +488,13 @@ function cambiarProductoEdicion(productoSelect) {
     
     if (productoId) {
         terminadoSelect.innerHTML = "<option value=''>Cargando terminados...</option>";
-        cargarTerminadosParaFila(fila, productoId);
+        cargarTerminadosParaFila(fila, productoId).then(() => {
+            // Después de cargar, actualizar textos y precio
+            actualizarTextoTerminados(fila);
+            if (terminadoSelect.value) {
+                actualizarPrecio(fila);
+            }
+        });
         actualizarDescripcion(fila);
     } else {
         terminadoSelect.innerHTML = "<option value=''>Seleccione un terminado</option>";

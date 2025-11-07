@@ -1,0 +1,19 @@
+<div th:fragment="selector-rango-fechas(fechaInicioId, fechaFinId)">
+    <div class="row g-3 align-items-end">
+        <div class="col-md-5">
+            <label th:for="${fechaInicioId}" class="form-label">Fecha inicio:</label>
+            <input type="date" th:id="${fechaInicioId}" class="form-control" onchange="onFechaChange()">
+        </div>
+
+        <div class="col-md-5">
+            <label th:for="${fechaFinId}" class="form-label">Fecha fin:</label>
+            <input type="date" th:id="${fechaFinId}" class="form-control" onchange="onFechaChange()">
+        </div>
+
+        <div class="col-md-2">
+            <button class="btn btn-secondary w-100" onclick="limpiarFechas('${fechaInicioId}', '${fechaFinId}')">
+                Limpiar
+            </button>
+        </div>
+    </div>
+</div>

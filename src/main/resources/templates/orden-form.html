@@ -233,7 +233,7 @@
                     </div>
                   </td>
                   <td>
-                    <input type="number" class="form-control" name="valor" step="0.01" required>
+                    <input type="number" class="form-control" name="valor" step="0.01" required readonly>
                   </td>
                   <td>
                     <input type="text" class="form-control" name="descripcion">
@@ -276,7 +276,7 @@
                     </div>
                   </td>
                   <td>
-                    <input type="number" class="form-control" name="valor" step="0.01" th:value="${detalle.valor}" required>
+                    <input type="number" class="form-control" name="valor" step="0.01" th:value="${detalle.valor}" required readonly>
                   </td>
                   <td>
                     <input type="text" class="form-control" name="descripcion" th:value="${detalle.descripcion}">
@@ -746,6 +746,15 @@
     };
     
     console.log("OrdenData cargado desde servidor:", ordenData);
+    
+    // Hacer ordenData disponible globalmente
+    window.ordenData = ordenData;
+    
+    // Inicializar tipoClienteGlobal inmediatamente en modo edición
+    if (ordenData && ordenData.usuario && ordenData.usuario.tipoUsuario) {
+      window.tipoClienteGlobal = ordenData.usuario.tipoUsuario.nombre.toUpperCase();
+      console.log('🚀 Inicialización temprana - Tipo cliente:', window.tipoClienteGlobal);
+    }
   </script>
   <!-- Script de inicialización específico para la página -->
   <script>
@@ -798,9 +807,17 @@
             if (typeof window.usuarioSeleccionadoGlobal !== 'undefined') {
               window.usuarioSeleccionadoGlobal = ordenData.usuario;
             }
-            if (typeof window.tipoClienteGlobal !== 'undefined') {
-              window.tipoClienteGlobal = ordenData.usuario.tipoUsuario.nombre.toUpperCase();
-            }
+            // Asegurar que tipoClienteGlobal se inicialice correctamente
+            window.tipoClienteGlobal = ordenData.usuario.tipoUsuario.nombre.toUpperCase();
+            console.log('🎯 Modo edición - Tipo cliente inicializado:', window.tipoClienteGlobal);
+            console.log('🎯 Modo edición - ordenData.usuario.tipoUsuario:', ordenData.usuario.tipoUsuario);
+            
+            // Actualizar todos los textos después de inicializar el tipo
+            setTimeout(() => {
+              if (typeof actualizarTodosLosTextosTerminados === 'function') {
+                actualizarTodosLosTextosTerminados();
+              }
+            }, 1000);
           }
           
           // Cargar terminados para modo edición
@@ -811,7 +828,12 @@
             const terminadoSeleccionado = terminadoSelect?.dataset?.selected;
             
             if (productoId && typeof cargarTerminadosParaFila === 'function') {
-              cargarTerminadosParaFila(fila, productoId, terminadoSeleccionado);
+              cargarTerminadosParaFila(fila, productoId, terminadoSeleccionado).then(() => {
+                // Actualizar los textos después de cargar terminados
+                if (typeof actualizarTextoTerminados === 'function') {
+                  actualizarTextoTerminados(fila);
+                }
+              });
             }
           });
         }, 600);
@@ -853,6 +875,19 @@
     
     // Ejecutar con delay por si otros scripts sobrescriben
     setTimeout(protegerTotalOrdenFacturada, 1000);
+    
+    // Fallback final para asegurar tipoClienteGlobal en modo edición
+    setTimeout(() => {
+      if (!window.tipoClienteGlobal && window.ordenData && window.ordenData.usuario) {
+        window.tipoClienteGlobal = window.ordenData.usuario.tipoUsuario.nombre.toUpperCase();
+        console.log('⚡ Fallback final - Tipo cliente inicializado:', window.tipoClienteGlobal);
+        
+        // Actualizar textos después del fallback
+        if (typeof actualizarTodosLosTextosTerminados === 'function') {
+          actualizarTodosLosTextosTerminados();
+        }
+      }
+    }, 2000);
   </script>
 </body>
 </html>
