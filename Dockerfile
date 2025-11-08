@@ -1,5 +1,5 @@
 # Imagen base con JDK 17 (compatible con Spring Boot)
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-alpine
 
 # Crea una carpeta en el contenedor
 WORKDIR /app
