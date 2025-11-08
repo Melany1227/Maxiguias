@@ -172,3 +172,16 @@ INSERT INTO roles (nombre_rol) VALUES ('NATURAL');
 
 -- Nuevo Perfil
 INSERT INTO perfiles (nombre_perfil, roles_id_rol) VALUES ('PUBLICO',3);
+
+-- Modificar ciudades para autoincrement
+
+ALTER TABLE usuarios DROP FOREIGN KEY fk_usuarios_ciudades;
+ALTER TABLE ciudades MODIFY COLUMN id_ciudad INT AUTO_INCREMENT;
+ALTER TABLE usuarios ADD CONSTRAINT fk_usuarios_ciudades FOREIGN KEY (id_ciudad) REFERENCES ciudades(id_ciudad);
+
+-- Modificar departamento para autoincrement
+ALTER TABLE ciudades DROP FOREIGN KEY fk_ciudades_departamento;
+ALTER TABLE departamento MODIFY COLUMN id_departamento INT AUTO_INCREMENT;
+ALTER TABLE ciudades ADD CONSTRAINT fk_ciudades_departamento FOREIGN KEY (id_departamento) REFERENCES departamento(id_departamento);
+
+
