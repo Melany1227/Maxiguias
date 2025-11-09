@@ -44,6 +44,26 @@ public class UsuarioService {
     }
 
     public String crearUsuario(Usuario usuario) {
+        // Validar formato del documento (solo números)
+        String documentoValidation = validarFormatoDocumento(usuario.getDocumento());
+        if (documentoValidation != null) {
+            return documentoValidation;
+        }
+        
+        // Validar formato del teléfono
+        String telefonoValidation = validarFormatoTelefono(usuario.getTelefono());
+        if (telefonoValidation != null) {
+            return telefonoValidation;
+        }
+        
+        // Validar política de contraseñas (solo si se proporciona contraseña)
+        if (usuario.getContrasena() != null && !usuario.getContrasena().trim().isEmpty()) {
+            String contrasenaValidation = validarPoliticaContrasena(usuario.getContrasena());
+            if (contrasenaValidation != null) {
+                return contrasenaValidation;
+            }
+        }
+        
         // Validar si el documento ya existe
         if (usuarioRepository.existsByDocumento(usuario.getDocumento())) {
             return "Error: Ya existe un usuario con el documento " + usuario.getDocumento() + ".";
@@ -108,7 +128,26 @@ public class UsuarioService {
         Usuario existente = obtenerPorId(usuario.getDocumento());
         if (existente == null) {
             return "Error: Usuario no encontrado";
-        }else{
+        } else {
+            // Validar formato del documento (solo números)
+            String documentoValidation = validarFormatoDocumento(usuario.getDocumento());
+            if (documentoValidation != null) {
+                return documentoValidation;
+            }
+            
+            // Validar formato del teléfono
+            String telefonoValidation = validarFormatoTelefono(usuario.getTelefono());
+            if (telefonoValidation != null) {
+                return telefonoValidation;
+            }
+            
+            // Validar política de contraseñas (solo si se proporciona nueva contraseña)
+            if (usuario.getContrasena() != null && !usuario.getContrasena().trim().isEmpty()) {
+                String contrasenaValidation = validarPoliticaContrasena(usuario.getContrasena());
+                if (contrasenaValidation != null) {
+                    return contrasenaValidation;
+                }
+            }
             String tipo = usuario.getTipoUsuario().getNombre().toUpperCase();
 
             if (tipo.equals("NATURAL")) {
@@ -199,9 +238,10 @@ public class UsuarioService {
             return "Error: La contraseña temporal es incorrecta.";
         }
         
-        // Validar que la nueva contraseña tenga al menos 6 caracteres
-        if (nuevaContrasena.length() < 6) {
-            return "Error: La nueva contraseña debe tener al menos 6 caracteres.";
+        // Validar política de contraseñas para la nueva contraseña
+        String contrasenaValidation = validarPoliticaContrasena(nuevaContrasena);
+        if (contrasenaValidation != null) {
+            return contrasenaValidation;
         }
         
         // Encriptar y guardar la nueva contraseña
@@ -209,6 +249,112 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
         
         return "Contraseña cambiada exitosamente.";
+    }
+    
+    /**
+     * Valida que el documento contenga solo números
+     */
+    private String validarFormatoDocumento(Long documento) {
+        if (documento == null) {
+            return "Error: El documento es obligatorio.";
+        }
+        
+        String documentoStr = documento.toString();
+        
+        // Verificar que no esté vacío
+        if (documentoStr.trim().isEmpty()) {
+            return "Error: El documento no puede estar vacío.";
+        }
+        
+        // Verificar longitud mínima y máxima
+        if (documentoStr.length() < 6) {
+            return "Error: El documento debe tener al menos 6 dígitos.";
+        }
+        
+        if (documentoStr.length() > 15) {
+            return "Error: El documento no puede tener más de 15 dígitos.";
+        }
+        
+        // Verificar que solo contenga números (ya que es Long, esto se valida automáticamente)
+        // Pero agregamos una validación adicional por si acaso
+        try {
+            Long.parseLong(documentoStr);
+        } catch (NumberFormatException e) {
+            return "Error: El documento solo puede contener números. No se permiten puntos, guiones, espacios o letras.";
+        }
+        
+        return null; // Sin errores
+    }
+    
+    /**
+     * Valida que el teléfono tenga el formato correcto
+     */
+    private String validarFormatoTelefono(Long telefono) {
+        if (telefono == null) {
+            return "Error: El teléfono es obligatorio.";
+        }
+        
+        String telefonoStr = telefono.toString();
+        
+        // Verificar que no esté vacío
+        if (telefonoStr.trim().isEmpty()) {
+            return "Error: El teléfono no puede estar vacío.";
+        }
+        
+        // Verificar longitud mínima (10 dígitos para Colombia)
+        if (telefonoStr.length() < 10) {
+            return "Error: El teléfono debe tener al menos 10 dígitos.";
+        }
+        
+        // Verificar longitud máxima
+        if (telefonoStr.length() > 15) {
+            return "Error: El teléfono no puede tener más de 15 dígitos.";
+        }
+        
+        // Verificar que solo contenga números
+        try {
+            Long.parseLong(telefonoStr);
+        } catch (NumberFormatException e) {
+            return "Error: El teléfono solo puede contener números. No se permiten espacios, guiones o caracteres especiales.";
+        }
+        
+        return null; // Sin errores
+    }
+    
+    /**
+     * Valida que la contraseña cumpla con las políticas de seguridad
+     */
+    private String validarPoliticaContrasena(String contrasena) {
+        if (contrasena == null || contrasena.trim().isEmpty()) {
+            return "Error: La contraseña es obligatoria.";
+        }
+        
+        // Verificar longitud mínima (8 caracteres)
+        if (contrasena.length() < 8) {
+            return "Error: La contraseña no cumple con las políticas de seguridad. Debe tener al menos 8 caracteres.";
+        }
+        
+        // Verificar al menos una letra mayúscula
+        if (!contrasena.matches(".*[A-Z].*")) {
+            return "Error: La contraseña no cumple con las políticas de seguridad. Debe tener al menos una letra mayúscula.";
+        }
+        
+        // Verificar al menos una letra minúscula
+        if (!contrasena.matches(".*[a-z].*")) {
+            return "Error: La contraseña no cumple con las políticas de seguridad. Debe tener al menos una letra minúscula.";
+        }
+        
+        // Verificar al menos un número
+        if (!contrasena.matches(".*[0-9].*")) {
+            return "Error: La contraseña no cumple con las políticas de seguridad. Debe tener al menos un número.";
+        }
+        
+        // Verificar al menos un carácter especial
+        if (!contrasena.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) {
+            return "Error: La contraseña no cumple con las políticas de seguridad. Debe tener al menos un carácter especial (!@#$%^&*).";
+        }
+        
+        return null; // Sin errores - contraseña válida
     }
 
 }
