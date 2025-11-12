@@ -311,6 +311,13 @@ body {
     color: white;
 }
 
+.edit-btn{
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin-top: 20px;
+    
+}
+
 .modal-success {
     background-color: #dde2dd;
     border-radius: 15px;
