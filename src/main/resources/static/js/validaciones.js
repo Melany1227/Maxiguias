@@ -321,3 +321,410 @@ const dd = String(hoy.getDate()).padStart(2, '0');
 const fechaMax = `${yyyy}-${mm}-${dd}`;
 fechaInput.max = fechaMax;
 });
+
+// Validación de documento en tiempo real
+function validarDocumento(input) {
+    const valor = input.value;
+    const errorDiv = document.getElementById('error-documento') || createErrorDiv('error-documento', input);
+    
+    // Limpiar mensaje anterior
+    errorDiv.textContent = '';
+    errorDiv.style.display = 'none';
+    
+    if (valor === '') {
+        return; // No mostrar error si está vacío
+    }
+    
+    // Validar que solo contenga números
+    if (!/^\d+$/.test(valor)) {
+        mostrarErrorDocumento(errorDiv, 'El documento solo puede contener números. No se permiten puntos, guiones, espacios o letras.');
+        return false;
+    }
+    
+    // Validar longitud
+    if (valor.length < 6) {
+        mostrarErrorDocumento(errorDiv, 'El documento debe tener al menos 6 dígitos.');
+        return false;
+    }
+    
+    if (valor.length > 15) {
+        mostrarErrorDocumento(errorDiv, 'El documento no puede tener más de 15 dígitos.');
+        return false;
+    }
+    
+    return true;
+}
+
+// Validación de teléfono en tiempo real
+function validarTelefono(input) {
+    const valor = input.value;
+    const errorDiv = document.getElementById('error-telefono') || createErrorDiv('error-telefono', input);
+    
+    // Limpiar mensaje anterior
+    errorDiv.textContent = '';
+    errorDiv.style.display = 'none';
+    
+    if (valor === '') {
+        return; // No mostrar error si está vacío
+    }
+    
+    // Validar que solo contenga números
+    if (!/^\d+$/.test(valor)) {
+        mostrarErrorTelefono(errorDiv, 'El teléfono solo puede contener números. No se permiten espacios, guiones o caracteres especiales.');
+        return false;
+    }
+    
+    // Validar longitud mínima (10 dígitos)
+    if (valor.length < 10) {
+        mostrarErrorTelefono(errorDiv, 'El teléfono debe tener al menos 10 dígitos.');
+        return false;
+    }
+    
+    // Validar longitud máxima
+    if (valor.length > 15) {
+        mostrarErrorTelefono(errorDiv, 'El teléfono no puede tener más de 15 dígitos.');
+        return false;
+    }
+    
+    return true;
+}
+
+// Validación de contraseña en tiempo real
+function validarContrasena(input) {
+    const valor = input.value;
+    const errorDiv = document.getElementById('error-contrasena') || createErrorDiv('error-contrasena', input);
+    
+    // Limpiar mensaje anterior
+    errorDiv.textContent = '';
+    errorDiv.style.display = 'none';
+    
+    if (valor === '') {
+        return; // No mostrar error si está vacío
+    }
+    
+    // Lista de validaciones
+    const validaciones = [];
+    
+    // Verificar longitud mínima (8 caracteres)
+    if (valor.length < 8) {
+        validaciones.push('al menos 8 caracteres');
+    }
+    
+    // Verificar al menos una letra mayúscula
+    if (!/[A-Z]/.test(valor)) {
+        validaciones.push('al menos una letra mayúscula');
+    }
+    
+    // Verificar al menos una letra minúscula
+    if (!/[a-z]/.test(valor)) {
+        validaciones.push('al menos una letra minúscula');
+    }
+    
+    // Verificar al menos un número
+    if (!/[0-9]/.test(valor)) {
+        validaciones.push('al menos un número');
+    }
+    
+    // Verificar al menos un carácter especial
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(valor)) {
+        validaciones.push('al menos un carácter especial (!@#$%^&*)');
+    }
+    
+    if (validaciones.length > 0) {
+        let mensaje = 'La contraseña no cumple con las políticas de seguridad. Debe tener: ' + validaciones.join(', ') + '.';
+        mostrarErrorContrasena(errorDiv, mensaje);
+        return false;
+    }
+    
+    return true;
+}
+
+function createErrorDiv(id, inputElement) {
+    const errorDiv = document.createElement('div');
+    errorDiv.id = id;
+    errorDiv.className = 'alert alert-danger';
+    errorDiv.style.display = 'none';
+    errorDiv.style.position = 'absolute';
+    errorDiv.style.top = '100%';
+    errorDiv.style.left = '0';
+    errorDiv.style.right = '0';
+    errorDiv.style.zIndex = '1000';
+    
+    // Asegurar que el padre tenga position relative
+    const parent = inputElement.parentNode;
+    if (getComputedStyle(parent).position === 'static') {
+        parent.style.position = 'relative';
+    }
+    
+    parent.appendChild(errorDiv);
+    return errorDiv;
+}
+
+function mostrarErrorDocumento(errorDiv, mensaje) {
+    errorDiv.textContent = mensaje;
+    errorDiv.style.display = 'block';
+}
+
+function mostrarErrorTelefono(errorDiv, mensaje) {
+    errorDiv.textContent = mensaje;
+    errorDiv.style.display = 'block';
+}
+
+function mostrarErrorContrasena(errorDiv, mensaje) {
+    errorDiv.textContent = mensaje;
+    errorDiv.style.display = 'block';
+}
+
+// Función para limpiar caracteres no numéricos del input
+function limpiarCaracteresInvalidos(input) {
+    const valor = input.value;
+    const soloNumeros = valor.replace(/[^0-9]/g, '');
+    
+    if (valor !== soloNumeros) {
+        input.value = soloNumeros;
+        const errorDiv = document.getElementById('error-documento') || 
+            createErrorDiv('error-documento', input);
+        mostrarErrorDocumento(errorDiv, 'Se han eliminado caracteres no válidos. Solo se permiten números.');
+        
+        // Ocultar el error después de 2 segundos
+        setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 2000);
+    }
+}
+
+// Función para limpiar caracteres no numéricos del teléfono
+function limpiarTelefonoInvalido(input) {
+    const valor = input.value;
+    const soloNumeros = valor.replace(/[^0-9]/g, '');
+    
+    if (valor !== soloNumeros) {
+        input.value = soloNumeros;
+        const errorDiv = document.getElementById('error-telefono') || 
+            createErrorDiv('error-telefono', input);
+        mostrarErrorTelefono(errorDiv, 'Se han eliminado caracteres no válidos. Solo se permiten números.');
+        
+        // Ocultar el error después de 2 segundos
+        setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 2000);
+    }
+}
+
+// Agregar listener cuando el DOM esté cargado
+document.addEventListener('DOMContentLoaded', function() {
+    const documentoInputs = document.querySelectorAll('input[name="documento"]');
+    
+    documentoInputs.forEach(function(documentoInput) {
+        // Configurar el input para que solo acepte números
+        documentoInput.setAttribute('inputmode', 'numeric');
+        documentoInput.setAttribute('pattern', '[0-9]*');
+        
+        // Validar y limpiar en tiempo real mientras escribe
+        documentoInput.addEventListener('input', function() {
+            limpiarCaracteresInvalidos(this);
+            validarDocumento(this);
+        });
+        
+        // Validar cuando pierde el foco
+        documentoInput.addEventListener('blur', function() {
+            limpiarCaracteresInvalidos(this);
+            validarDocumento(this);
+        });
+        
+        // Prevenir pegado de contenido no numérico
+        documentoInput.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const clipboardData = e.clipboardData || window.clipboardData;
+            const pastedData = clipboardData.getData('text');
+            const soloNumeros = pastedData.replace(/[^0-9]/g, '');
+            
+            if (soloNumeros !== pastedData && pastedData !== '') {
+                const errorDiv = document.getElementById('error-documento') || 
+                    createErrorDiv('error-documento', this);
+                mostrarErrorDocumento(errorDiv, 'Solo se pueden pegar números. Se han filtrado los caracteres inválidos.');
+                
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 3000);
+            }
+            
+            this.value = soloNumeros;
+            validarDocumento(this);
+        });
+        
+        // Prevenir caracteres no numéricos al escribir
+        documentoInput.addEventListener('keypress', function(e) {
+            // Permitir teclas especiales (backspace, tab, delete, arrows)
+            if (e.keyCode === 8 || e.keyCode === 9 || e.keyCode === 46 || 
+                (e.keyCode >= 37 && e.keyCode <= 40)) {
+                return;
+            }
+            
+            // Bloquear caracteres que no sean números
+            if (e.keyCode < 48 || e.keyCode > 57) {
+                e.preventDefault();
+                const errorDiv = document.getElementById('error-documento') || 
+                    createErrorDiv('error-documento', this);
+                mostrarErrorDocumento(errorDiv, 'Solo se permiten números en el documento.');
+                
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 2000);
+            }
+        });
+        
+        // Prevenir arrastrar y soltar contenido no válido
+        documentoInput.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const data = e.dataTransfer.getData('text');
+            const soloNumeros = data.replace(/[^0-9]/g, '');
+            
+            if (soloNumeros !== data && data !== '') {
+                const errorDiv = document.getElementById('error-documento') || 
+                    createErrorDiv('error-documento', this);
+                mostrarErrorDocumento(errorDiv, 'Solo se pueden arrastrar números. Se han filtrado los caracteres inválidos.');
+                
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 3000);
+            }
+            
+            this.value = soloNumeros;
+            validarDocumento(this);
+        });
+    });
+    
+    // Validación de teléfono - aplicar a todos los campos de teléfono
+    const telefonoInputs = document.querySelectorAll('input[name="telefono"]');
+    
+    telefonoInputs.forEach(function(telefonoInput) {
+        // Configurar el input para que solo acepte números
+        telefonoInput.setAttribute('inputmode', 'numeric');
+        telefonoInput.setAttribute('pattern', '[0-9]*');
+        
+        // Validar y limpiar en tiempo real mientras escribe
+        telefonoInput.addEventListener('input', function() {
+            limpiarTelefonoInvalido(this);
+            validarTelefono(this);
+        });
+        
+        // Validar cuando pierde el foco
+        telefonoInput.addEventListener('blur', function() {
+            limpiarTelefonoInvalido(this);
+            validarTelefono(this);
+        });
+        
+        // Prevenir pegado de contenido no numérico
+        telefonoInput.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const clipboardData = e.clipboardData || window.clipboardData;
+            const pastedData = clipboardData.getData('text');
+            const soloNumeros = pastedData.replace(/[^0-9]/g, '');
+            
+            if (soloNumeros !== pastedData && pastedData !== '') {
+                const errorDiv = document.getElementById('error-telefono') || 
+                    createErrorDiv('error-telefono', this);
+                mostrarErrorTelefono(errorDiv, 'Solo se pueden pegar números. Se han filtrado los caracteres inválidos.');
+                
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 3000);
+            }
+            
+            this.value = soloNumeros;
+            validarTelefono(this);
+        });
+        
+        // Prevenir caracteres no numéricos al escribir
+        telefonoInput.addEventListener('keypress', function(e) {
+            // Permitir teclas especiales (backspace, tab, delete, arrows)
+            if (e.keyCode === 8 || e.keyCode === 9 || e.keyCode === 46 || 
+                (e.keyCode >= 37 && e.keyCode <= 40)) {
+                return;
+            }
+            
+            // Bloquear caracteres que no sean números
+            if (e.keyCode < 48 || e.keyCode > 57) {
+                e.preventDefault();
+                const errorDiv = document.getElementById('error-telefono') || 
+                    createErrorDiv('error-telefono', this);
+                mostrarErrorTelefono(errorDiv, 'Solo se permiten números en el teléfono.');
+                
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 2000);
+            }
+        });
+        
+        // Prevenir arrastrar y soltar contenido no válido
+        telefonoInput.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const data = e.dataTransfer.getData('text');
+            const soloNumeros = data.replace(/[^0-9]/g, '');
+            
+            if (soloNumeros !== data && data !== '') {
+                const errorDiv = document.getElementById('error-telefono') || 
+                    createErrorDiv('error-telefono', this);
+                mostrarErrorTelefono(errorDiv, 'Solo se pueden arrastrar números. Se han filtrado los caracteres inválidos.');
+                
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 3000);
+            }
+            
+            this.value = soloNumeros;
+            validarTelefono(this);
+        });
+    });
+    
+    // Validación de contraseña - aplicar a todos los campos de contraseña
+    const contrasenaInputs = document.querySelectorAll('input[name="contrasena"], input[type="password"]');
+    
+    contrasenaInputs.forEach(function(contrasenaInput) {
+        // Validar en tiempo real mientras escribe
+        contrasenaInput.addEventListener('input', function() {
+            validarContrasena(this);
+        });
+        
+        // Validar cuando pierde el foco
+        contrasenaInput.addEventListener('blur', function() {
+            validarContrasena(this);
+        });
+    });
+    
+    // Validación de confirmación de contraseña
+    const confirmarContrasenaInputs = document.querySelectorAll('input[name="confirmarContrasena"]');
+    
+    confirmarContrasenaInputs.forEach(function(confirmarInput) {
+        confirmarInput.addEventListener('input', function() {
+            validarConfirmacionContrasena(this);
+        });
+        
+        confirmarInput.addEventListener('blur', function() {
+            validarConfirmacionContrasena(this);
+        });
+    });
+});
+
+// Función para validar que las contraseñas coincidan
+function validarConfirmacionContrasena(input) {
+    const valor = input.value;
+    const contrasenaInput = document.querySelector('input[name="contrasena"]');
+    const errorDiv = document.getElementById('error-confirmar-contrasena') || createErrorDiv('error-confirmar-contrasena', input);
+    
+    // Limpiar mensaje anterior
+    errorDiv.textContent = '';
+    errorDiv.style.display = 'none';
+    
+    if (valor === '') {
+        return; // No mostrar error si está vacío
+    }
+    
+    if (contrasenaInput && valor !== contrasenaInput.value) {
+        mostrarErrorContrasena(errorDiv, 'Las contraseñas no coinciden.');
+        return false;
+    }
+    
+    return true;
+}
