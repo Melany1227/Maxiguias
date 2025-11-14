@@ -95,7 +95,6 @@ public class ProductoController {
     public String crearProducto(
             @ModelAttribute("producto") Producto producto,
             @RequestParam(value = "imagenFile", required = false) MultipartFile imagenFile,
-            @RequestParam(value = "imagenCloudinary", required = false) String imagenCloudinary,
             BindingResult binding,
             Model model,
             RedirectAttributes ra) {
@@ -105,10 +104,8 @@ public class ProductoController {
         System.out.println("Nombre: " + producto.getNombre());
 
         try {
-            // Tomar imagen desde Cloudinary si se proporcionó texto, si no, subir archivo si existe
-            if (imagenCloudinary != null && !imagenCloudinary.trim().isEmpty()) {
-                producto.setImagen(imagenCloudinary.trim());
-            } else if (imagenFile != null && !imagenFile.isEmpty()) {
+            // Subir imagen si se proporciona
+            if (imagenFile != null && !imagenFile.isEmpty()) {
                 System.out.println("=== SUBIENDO IMAGEN ===");
                 String publicId = cloudinaryService.uploadImage(imagenFile);
                 producto.setImagen(publicId);
@@ -152,19 +149,12 @@ public class ProductoController {
             @PathVariable Long id,
             @ModelAttribute Producto producto,
             @RequestParam(value = "imagenFile", required = false) MultipartFile imagenFile,
-            @RequestParam(value = "imagenCloudinary", required = false) String imagenCloudinary,
             RedirectAttributes ra) {
         try {
             // Obtener producto existente para mantener imagen actual si no se sube nueva
             Optional<Producto> productoExistente = productoService.obtenerProductoPorId(id);
 
-            if (imagenCloudinary != null && !imagenCloudinary.trim().isEmpty()) {
-                if (productoExistente.isPresent() && productoExistente.get().getImagen() != null
-                        && !imagenCloudinary.trim().equals(productoExistente.get().getImagen())) {
-                    cloudinaryService.deleteImage(productoExistente.get().getImagen());
-                }
-                producto.setImagen(imagenCloudinary.trim());
-            } else if (imagenFile != null && !imagenFile.isEmpty()) {
+            if (imagenFile != null && !imagenFile.isEmpty()) {
                 // Eliminar imagen anterior si existe
                 if (productoExistente.isPresent() && productoExistente.get().getImagen() != null) {
                     cloudinaryService.deleteImage(productoExistente.get().getImagen());
