@@ -265,80 +265,6 @@ public class ReporteController {
         }
     }
 
-    // ========== MÉTODOS PARA REPORTE DE VENTAS AL MES ===========
-
-@GetMapping("/estadisticas-ventas")
-@ResponseBody
-public Map<String, Object> obtenerEstadisticasVentas(
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
-
-    Map<String, Object> response = new HashMap<>();
-
-    EstadoOrden facturada = EstadoOrden.FACTURADA;
-    EstadoOrden finalizada = EstadoOrden.FINALIZADA;
-
-    Long total;
-
-    if (fechaInicio != null && fechaFin != null) {
-        // 🔸 Convertir LocalDate a LocalDateTime para cubrir todo el rango
-        LocalDateTime inicio = fechaInicio.atStartOfDay();
-        LocalDateTime fin = fechaFin.atTime(LocalTime.MAX); // hasta 23:59:59
-        total = ordenRepository.contarPorEstadoYRangoFechas(facturada, finalizada, inicio, fin);
-    } else {
-        total = ordenRepository.contarPorEstado(facturada, finalizada);
-    }
-
-    response.put("total", total);
-    return response;
-}
-
-
-
-    @GetMapping("/exportar-zip-ventas")
-    public void exportarZipVentas(
-            @RequestParam(required = false) String fechaInicio,
-            @RequestParam(required = false) String fechaFin,
-            HttpServletResponse response) throws IOException {
-
-        // Configurar respuesta ZIP
-        response.setContentType("application/zip");
-        String fileName = "ventas_mes_" + LocalDate.now() + ".zip";
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
-
-        List<Orden> ordenes;
-
-        if (fechaInicio != null && fechaFin != null) {
-            LocalDateTime inicio = LocalDate.parse(fechaInicio).atStartOfDay();
-            LocalDateTime fin = LocalDate.parse(fechaFin).atTime(23, 59, 59);
-            ordenes = ordenRepository.findVentasDelMes(inicio, fin);
-        } else {
-            // Si no se envían fechas, traer todo lo facturado y finalizado
-            ordenes = ordenRepository.findAll().stream()
-                    .filter(o -> {
-                        EstadoOrden estado = o.getEstado();
-                        return estado == EstadoOrden.FACTURADA || estado == EstadoOrden.FINALIZADA;
-                    })
-                    .toList();
-
-        }
-
-        // Crear ZIP
-        try (ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream())) {
-            for (Orden orden : ordenes) {
-                try {
-                    byte[] pdfBytes = ordenService.generarOrdenPDF(orden.getId());
-                    String entryName = "orden_" + orden.getId() + "_" + orden.getFechaOrden() + ".pdf";
-                    ZipEntry zipEntry = new ZipEntry(entryName);
-                    zipOut.putNextEntry(zipEntry);
-                    zipOut.write(pdfBytes);
-                    zipOut.closeEntry();
-                } catch (Exception e) {
-                    System.err.println("Error generando PDF para orden " + orden.getId() + ": " + e.getMessage());
-                }
-            }
-        }
-    }
     // ========== MÉTODOS PARA REPORTE DE PRODUCTOS MÁS VENDIDOS ==========
 
     @GetMapping("/estadisticas-productos")
@@ -564,6 +490,126 @@ public Map<String, Object> obtenerEstadisticasVentas(
             }
 
             // Escribir el archivo
+            workbook.write(response.getOutputStream());
+        }
+    }
+
+    // ========== REPORTE DE VENTAS (FACTURADAS + FINALIZADAS) ==========
+
+    @GetMapping("/estadisticas-ventas")
+    @ResponseBody
+    public Map<String, Object> obtenerEstadisticasVentas(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
+
+        Map<String, Object> estadisticas = new HashMap<>();
+        List<EstadoOrden> estados = List.of(EstadoOrden.FACTURADA, EstadoOrden.FINALIZADA);
+
+        Long total;
+        if (fechaInicio != null && fechaFin != null) {
+            LocalDateTime inicio = fechaInicio.atStartOfDay();
+            LocalDateTime fin = fechaFin.atTime(23, 59, 59);
+            total = ordenRepository.countByEstadoInAndFechaOrdenBetween(estados, inicio, fin);
+        } else {
+            total = ordenRepository.countByEstadoIn(estados);
+        }
+
+        estadisticas.put("total", total != null ? total : 0);
+        return estadisticas;
+    }
+
+    @GetMapping("/exportar-excel-ventas")
+    public void exportarExcelVentas(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin,
+            HttpServletResponse response) throws IOException {
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        String fileName = "ventas_mensuales_" + LocalDate.now() + ".xlsx";
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+
+        List<EstadoOrden> estados = List.of(EstadoOrden.FACTURADA, EstadoOrden.FINALIZADA);
+        List<Orden> ordenes;
+
+        if (fechaInicio != null && fechaFin != null) {
+            LocalDateTime inicio = fechaInicio.atStartOfDay();
+            LocalDateTime fin = fechaFin.atTime(23, 59, 59);
+            ordenes = ordenRepository.findByEstadoInAndFechaOrdenBetween(estados, inicio, fin);
+        } else {
+            ordenes = ordenRepository.findByEstadoIn(estados);
+        }
+
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Ventas Mensuales");
+
+            // Estilo encabezado
+            CellStyle headerStyle = workbook.createCellStyle();
+            headerStyle.setFillForegroundColor(IndexedColors.GOLD.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+
+            // Encabezados combinando ordenes + detalle_ordenes
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {
+                    "ID_FACTURA", "DOCUMENTO_USUARIO", "ID_EMPRESA", "ESTADO", "FECHA_ORDEN", "FECHA_ENTREGA",
+                    "DESCRIPCION_VENTA", "TOTAL_FACTURA", "FIRMA_DIGITAL",
+                    "ID_TERMINADO", "DESCRIPCION_PRODUCTO", "CANTIDAD_PRODUCTO", "VALOR_PRODUCTO"
+            };
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            int rowNum = 1;
+            for (Orden orden : ordenes) {
+                List<com.maxiguias.maxigestion.maxigestion.modelo.DetalleOrden> detalles = orden.getDetalles();
+
+                if (detalles != null && !detalles.isEmpty()) {
+                    for (com.maxiguias.maxigestion.maxigestion.modelo.DetalleOrden d : detalles) {
+                        Row row = sheet.createRow(rowNum++);
+                        // Datos de orden
+                        row.createCell(0).setCellValue(orden.getId() != null ? orden.getId() : 0);
+                        row.createCell(1).setCellValue(orden.getUsuario() != null && orden.getUsuario().getDocumento() != null
+                                ? orden.getUsuario().getDocumento() : 0);
+                        row.createCell(2).setCellValue(orden.getEmpresa() != null && orden.getEmpresa().getNitEmpresa() != null
+                                ? orden.getEmpresa().getNitEmpresa() : "");
+                        row.createCell(3).setCellValue(orden.getEstado() != null ? orden.getEstado().name() : "");
+                        row.createCell(4).setCellValue(orden.getFechaOrden() != null ? orden.getFechaOrden().toString() : "");
+                        row.createCell(5).setCellValue(orden.getFechaEntrega() != null ? orden.getFechaEntrega().toString() : "");
+                        row.createCell(6).setCellValue(orden.getDescripcionVenta() != null ? orden.getDescripcionVenta() : "");
+                        row.createCell(7).setCellValue(orden.getTotalFactura() != null ? orden.getTotalFactura().doubleValue() : 0);
+                        row.createCell(8).setCellValue(orden.getFirmaDigital() != null ? orden.getFirmaDigital() : "");
+
+                        // Datos del detalle
+                        row.createCell(9).setCellValue(d.getTerminado() != null && d.getTerminado().getId() != null ? d.getTerminado().getId() : 0);
+                        row.createCell(10).setCellValue(d.getDescripcion() != null ? d.getDescripcion() : "");
+                        row.createCell(11).setCellValue(d.getCantidad() != null ? d.getCantidad() : 0);
+                        row.createCell(12).setCellValue(d.getValor() != null ? d.getValor().doubleValue() : 0);
+                    }
+                } else {
+                    Row row = sheet.createRow(rowNum++);
+                    row.createCell(0).setCellValue(orden.getId() != null ? orden.getId() : 0);
+                    row.createCell(1).setCellValue(orden.getUsuario() != null && orden.getUsuario().getDocumento() != null
+                            ? orden.getUsuario().getDocumento() : 0);
+                    row.createCell(2).setCellValue(orden.getEmpresa() != null && orden.getEmpresa().getNitEmpresa() != null
+                            ? orden.getEmpresa().getNitEmpresa() : "");
+                    row.createCell(3).setCellValue(orden.getEstado() != null ? orden.getEstado().name() : "");
+                    row.createCell(4).setCellValue(orden.getFechaOrden() != null ? orden.getFechaOrden().toString() : "");
+                    row.createCell(5).setCellValue(orden.getFechaEntrega() != null ? orden.getFechaEntrega().toString() : "");
+                    row.createCell(6).setCellValue(orden.getDescripcionVenta() != null ? orden.getDescripcionVenta() : "");
+                    row.createCell(7).setCellValue(orden.getTotalFactura() != null ? orden.getTotalFactura().doubleValue() : 0);
+                    row.createCell(8).setCellValue(orden.getFirmaDigital() != null ? orden.getFirmaDigital() : "");
+                    // columnas de detalle quedan vacías
+                }
+            }
+
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
             workbook.write(response.getOutputStream());
         }
     }
