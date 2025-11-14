@@ -15,7 +15,7 @@
 
         <!-- Si está autenticado -->
         <div sec:authorize="isAuthenticated()">
-            <p sec:authentication="name"
+            <p th:text="${nombreUsuarioActual}"
                style="color: white; margin: 10px 0; text-align: center; font-weight: bold;"></p>
 
             <!-- Todos los usuarios autenticados ven INICIO -->
@@ -27,10 +27,15 @@
                <i class="bi bi-journal-text"></i> CATÁLOGO
             </a>
 
+            <!-- Toma de pedidos/órdenes para ADMINISTRADOR y JURIDICO -->
+            <a href="/ordenes" class="btn"
+               sec:authorize="hasAuthority('ADMINISTRADOR') or hasAuthority('JURIDICO')">
+               <i class="bi bi-receipt"></i> ÓRDENES
+            </a>
+
             <!-- Solo ADMINISTRADOR -->
             <div sec:authorize="hasAuthority('ADMINISTRADOR')">
                 <a href="/usuarios" class="btn"><i class="bi bi-people-fill"></i> USUARIOS</a>
-                <a href="/ordenes" class="btn"><i class="bi bi-receipt"></i> ÓRDENES</a>
                 <a href="/productos" class="btn"><i class="bi bi-box-seam"></i> PRODUCTOS</a>
                 <a href="/perfiles" class="btn"><i class="bi bi-person-badge"></i> PERFILES</a>
                 <a href="/roles" class="btn"><i class="bi bi-shield-lock"></i> ROLES</a>
