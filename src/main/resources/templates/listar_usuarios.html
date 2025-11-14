@@ -83,24 +83,35 @@
                             <td th:text="${usuario.tipoUsuario.nombre}"></td>
                             <td th:text="${usuario.perfil.nombrePerfil}"></td>
                             <td class="text-center">
-                                <a th:href="@{/usuarios/ver/{id}(id=${usuario.documento})}"
-                                class="btn btn-outline-info btn-sm me-1"
-                                title="Ver detalles">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-
-                                <a th:href="@{/usuarios/editar/{id}(id=${usuario.documento})}"
-                                class="btn btn-outline-warning btn-sm me-1"
-                                title="Editar">
-                                    <i class="fas fa-pen"></i>
-                                </a>
-
-                                <button type="button"
-                                        class="btn btn-outline-dark btn-sm"
-                                        th:onclick="'confirmarEliminar(\'' + ${usuario.documento} + '\')'"
-                                        title="Eliminar">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                                <!-- Dropdown con ícono de tres puntos -->
+                                <div class="dropdown">
+                                    <button class="btn btn-sm" style="background-color: transparent; border: none; color: #d0a736; font-size: 1.2rem;"
+                                            type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                            title="Acciones">
+                                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item"
+                                               th:href="@{/usuarios/ver/{id}(id=${usuario.documento})}">
+                                               <i class="fa-solid fa-eye text-info"></i> Ver Detalles
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item"
+                                               th:href="@{/usuarios/editar/{id}(id=${usuario.documento})}">
+                                               <i class="fa-solid fa-pen text-primary"></i> Editar
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="javascript:void(0)"
+                                               th:onclick="'confirmarEliminar(\'' + ${usuario.documento} + '\')'"
+                                               style="cursor: pointer;">
+                                               <i class="fa-solid fa-trash text-danger"></i> Eliminar
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -217,29 +228,37 @@
                             method: 'POST',
                             headers: {
                                 'X-Requested-With': 'XMLHttpRequest',
+                                'Content-Type': 'application/json'
                             }
                         });
 
-                        if (response.ok) {
-                            Swal.fire(
-                                '¡Eliminado!',
-                                'El usuario ha sido eliminado con éxito.',
-                                'success'
-                            ).then(() => location.reload());
+                        const data = await response.json();
+
+                        if (data.success) {
+                            Swal.fire({
+                                title: '¡Éxito!',
+                                text: data.mensaje,
+                                icon: 'success',
+                                confirmButtonText: 'Aceptar',
+                                confirmButtonColor: '#d0a736'
+                            }).then(() => location.reload());
                         } else {
-                            const errorText = await response.text();
-                            Swal.fire(
-                                'Error',
-                                `No se pudo eliminar el usuario. Código: ${response.status}`,
-                                'error'
-                            );
+                            Swal.fire({
+                                title: 'Error',
+                                text: data.mensaje,
+                                icon: 'error',
+                                confirmButtonText: 'Aceptar',
+                                confirmButtonColor: '#d33'
+                            });
                         }
                     } catch (error) {
-                        Swal.fire(
-                            'Error',
-                            'Ocurrió un problema al intentar eliminar.',
-                            'error'
-                        );
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Ocurrió un problema al intentar eliminar el usuario.',
+                            icon: 'error',
+                            confirmButtonText: 'Aceptar',
+                            confirmButtonColor: '#d33'
+                        });
                     }
                 }
                 /*]]>*/

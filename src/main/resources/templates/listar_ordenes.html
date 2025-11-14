@@ -56,50 +56,56 @@
         <div class="table-responsive">
             <table class="table tabla-usuarios">
                 <thead class="table-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>Cliente</th>
-                        <th>Fecha</th>
-                        <th>Ciudad Cliente</th>
-                        <th>Estado</th>
-                        <th>Total</th>
-                        <th>Descripción</th>
-                        <th>Acciones</th>
+                    <tr style="text-align: center;">
+                        <th style="text-align: center;">Número de Orden</th>
+                        <th style="text-align: center;">Cliente</th>
+                        <th style="text-align: center;">Fecha de Entrega</th>
+                        <th style="text-align: center;">Ciudad Cliente</th>
+                        <th style="text-align: center;">Estado</th>
+                        <th style="text-align: center;">Total</th>
+                        <th style="text-align: center;">Descripción</th>
+                        <th style="text-align: center;">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr th:each="orden : ${ordenes}">
-                        <td th:text="${orden.id}"></td>
-                        <td th:text="${orden.usuario.nombre + ' ' + orden.usuario.primerApellido}"></td>
-                        <td th:text="${orden.fechaEntrega != null ? #temporals.format(orden.fechaEntrega, 'dd/MM/yyyy HH:mm') : 'Sin fecha'}"></td>
-                        <td th:text="${orden.usuario.ciudad != null ? orden.usuario.ciudad.nombre : 'Sin ciudad'}"></td>
-                        <td>
-                            <span th:class="${orden.estado != null ? orden.estado.cssClass : 'badge bg-secondary'}" 
+                        <td style="text-align: center;" th:text="${orden.id}"></td>
+                        <td style="text-align: center;" th:text="${orden.usuario.primerApellido != null ? orden.usuario.nombre + ' ' + orden.usuario.primerApellido : orden.usuario.nombre}"></td>
+                        <td style="text-align: center;" th:text="${orden.fechaEntrega != null ? #temporals.format(orden.fechaEntrega, 'dd/MM/yyyy HH:mm') : 'Sin fecha'}"></td>
+                        <td style="text-align: center;" th:text="${orden.usuario.ciudad != null ? orden.usuario.ciudad.nombre : 'Sin ciudad'}"></td>
+                        <td style="text-align: center;">
+                            <span th:class="${orden.estado != null ? orden.estado.cssClass : 'badge bg-secondary'}"
                                   th:text="${orden.estado != null ? orden.estado.descripcion : 'Sin Estado'}"></span>
                         </td>
-                        <td th:text="'$' + ${#numbers.formatDecimal(orden.totalFactura, 1, 2)}"></td>
-                        <td th:text="${orden.descripcionVenta}"></td>
-                        <td>
-                            <a th:href="@{/ordenes/verMas/{id}(id=${orden.id})}" class="btn btn-outline-primary btn-sm me-1">
-                                <i class="fa-solid fa-eye"></i> Ver
-                            </a>
-                            
-                            <!-- Botón Editar: Solo para PENDIENTE, EN_PROCESO y FACTURADA -->
-                            <a th:if="${orden.estado.name() == 'PENDIENTE' || orden.estado.name() == 'EN_PROCESO' || orden.estado.name() == 'FACTURADA'}" 
-                               th:href="@{/ordenes/editar/{id}(id=${orden.id})}" 
-                               class="btn btn-outline-warning btn-sm me-1"
-                               th:title="${orden.estado.name() == 'FACTURADA'} ? 'Solo se puede cambiar el estado' : 'Editar orden'">
-                                <i class="fa-solid fa-edit"></i> 
-                                <span th:text="${orden.estado.name() == 'FACTURADA'} ? 'Estado' : 'Editar'">Editar</span>
-                            </a>
-                            
-                            <!-- Botón PDF: Solo para FINALIZADA y FACTURADA -->
-                            <a th:if="${orden.estado.name() == 'FINALIZADA' || orden.estado.name() == 'FACTURADA'}" 
-                               th:href="@{/ordenes/pdf/{id}(id=${orden.id})}" 
-                               class="btn btn-outline-danger btn-sm"
-                               title="Descargar PDF">
-                                <i class="fa-solid fa-file-pdf"></i> PDF
-                            </a>
+                        <td style="text-align: center;" th:text="'$' + ${#numbers.formatDecimal(orden.totalFactura, 1, 2)}"></td>
+                        <td style="text-align: center;" th:text="${orden.descripcionVenta}"></td>
+                        <td style="text-align: center;">
+                            <div class="dropdown">
+                                <button class="btn btn-sm" style="background-color: transparent; border: none; color: #d0a736; font-size: 1.2rem;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a th:href="@{/ordenes/verMas/{id}(id=${orden.id})}" class="dropdown-item">
+                                            <i class="fa-solid fa-eye me-2"></i> Ver Detalle
+                                        </a>
+                                    </li>
+                                    <!-- Editar: Solo para PENDIENTE, EN_PROCESO y FACTURADA -->
+                                    <li th:if="${orden.estado.name() == 'PENDIENTE' || orden.estado.name() == 'EN_PROCESO' || orden.estado.name() == 'FACTURADA'}">
+                                        <a th:href="@{/ordenes/editar/{id}(id=${orden.id})}" class="dropdown-item"
+                                           th:title="${orden.estado.name() == 'FACTURADA'} ? 'Solo se puede cambiar el estado' : 'Editar orden'">
+                                            <i class="fa-solid fa-edit me-2"></i>
+                                            <span th:text="${orden.estado.name() == 'FACTURADA'} ? 'Cambiar Estado' : 'Editar'">Editar</span>
+                                        </a>
+                                    </li>
+                                    <!-- PDF: Solo para FINALIZADA y FACTURADA -->
+                                    <li th:if="${orden.estado.name() == 'FINALIZADA' || orden.estado.name() == 'FACTURADA'}">
+                                        <a th:href="@{/ordenes/pdf/{id}(id=${orden.id})}" class="dropdown-item">
+                                            <i class="fa-solid fa-file-pdf me-2"></i> Descargar PDF
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </td>
                     </tr>
                 </tbody>
