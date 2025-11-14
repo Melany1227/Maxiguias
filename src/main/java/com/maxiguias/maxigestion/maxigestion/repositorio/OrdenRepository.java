@@ -52,13 +52,18 @@ public interface OrdenRepository extends JpaRepository<Orden, Long>, PagingAndSo
        Page<Orden> findByClienteTerminoAndUsuario(@Param("termino") String termino,
                      @Param("usuarioDocumento") Long usuarioDocumento, Pageable pageable);
 
-       // ===== Reporte Ventas (Facturadas + Finalizadas) =====
-       Long countByEstadoIn(List<EstadoOrden> estados);
+       @Query("SELECT COUNT(o) FROM Orden o WHERE o.estado IN (:estado1, :estado2)")
+       Long contarPorEstado(@Param("estado1") EstadoOrden estado1, @Param("estado2") EstadoOrden estado2);
 
-       Long countByEstadoInAndFechaOrdenBetween(List<EstadoOrden> estados, LocalDateTime inicio, LocalDateTime fin);
+       @Query("SELECT COUNT(o) FROM Orden o WHERE o.estado IN (:estado1, :estado2) " +
+                     "AND o.fechaOrden BETWEEN :inicio AND :fin")
+       Long contarPorEstadoYRangoFechas(@Param("estado1") EstadoOrden estado1,
+                     @Param("estado2") EstadoOrden estado2,
+                     @Param("inicio") LocalDateTime inicio,
+                     @Param("fin") LocalDateTime fin);
 
-       List<Orden> findByEstadoIn(List<EstadoOrden> estados);
-
-       List<Orden> findByEstadoInAndFechaOrdenBetween(List<EstadoOrden> estados, LocalDateTime inicio, LocalDateTime fin);
+       @Query("SELECT o FROM Orden o WHERE (o.estado = 'FACTURADA' OR o.estado = 'FINALIZADA') " +
+                     "AND o.fechaOrden BETWEEN :inicio AND :fin")
+       List<Orden> findVentasDelMes(@Param("inicio") LocalDateTime inicio, @Param("fin") LocalDateTime fin);
 
 }

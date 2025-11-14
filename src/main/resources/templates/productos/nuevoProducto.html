@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
-
 <head>
     <meta charset="UTF-8">
     <title th:text="${producto.id == null ? 'Nuevo Producto' : 'Editar Producto'}"></title>
@@ -10,20 +9,20 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <style>
-
+      
     </style>
 </head>
 
 <body>
     <!-- Sidebar -->
-    <div th:replace="menú/sidebar :: sidebar"></div>
+    <div th:replace="menú/sidebar :: sidebar"></div> 
 
     <!-- Contenido principal -->
     <div class="main-content">
         <div class="form-container">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 class="form-title m-0">
-                    <i class="fa-solid fa-box"></i>
+                    <i class="fa-solid fa-box"></i> 
                     <span th:text="${producto.id == null ? 'Registrar Nuevo Producto' : 'Editar Producto'}"></span>
                 </h4>
                 <a href="/productos" class="btn-black-yellow">
@@ -44,15 +43,19 @@
 
             <!-- Formulario -->
             <form th:action="${producto.id == null} ? @{/productos/nuevo} : @{/productos/{id}(id=${producto.id})}"
-                th:object="${producto}" method="post" class="mt-3" enctype="multipart/form-data">
+                  th:object="${producto}" method="post" class="mt-3" enctype="multipart/form-data">
 
                 <!-- Datos generales -->
                 <div class="row g-3 mb-3">
                     <div class="col-md-3">
                         <label class="form-label">Código del producto</label>
-                        <input type="number" th:field="*{id}" class="form-control" required
-                            th:classappend="${errorCodigo} ? 'is-invalid' : ''" th:disabled="${producto.id != null}"
-                            onkeydown="return event.key !== ',' && event.key !== '.' && event.key !== 'e' && event.key !== 'E' && event.key !== '+' && event.key !== '-';" />
+                        <input type="number"
+                            th:field="*{id}"
+                            class="form-control"
+                            required
+                            th:classappend="${errorCodigo} ? 'is-invalid' : ''"
+                            th:disabled="${producto.id != null}"
+                            onkeydown="return event.key !== 'e' && event.key !== 'E' && event.key !== '+' && event.key !== '-';" />
 
                         <div class="invalid-feedback" th:if="${errorCodigo}" th:text="${errorCodigo}"></div>
 
@@ -64,81 +67,63 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Imagen del Producto</label>
-                        <input type="file" name="imagenFile" class="form-control" accept="image/*"
-                            onchange="previewImage(this)" />
+                        <input type="file" name="imagenFile" class="form-control" accept="image/*" onchange="previewImage(this)" />
                         <small class="text-muted">Formatos: JPG, PNG, GIF (máx. 5MB)</small>
-                    <div class="mt-2">
-                        <label class="form-label">O pegar ID de Cloudinary</label>
-                        <input type="text" name="imagenCloudinary" class="form-control"
-                               placeholder="public_id#version (ej.: MAXIGUIAS/Imagenes-Productos/mi-imagen#1734567890)" />
-                        <small class="text-muted">Si completas este campo, se usará en lugar de subir un archivo. Debe ser el texto generado por Cloudinary: public_id#version.</small>
                     </div>
-                    </div>
-
+                 
 
                     <div class="col-md-3" th:if="${producto.imagen}">
-                        <label class="form-label">Imagen Actual</label>
+                         <label class="form-label">Imagen Actual</label>
                         <div>
-                            <img th:src="${@cloudinaryService.getImageUrl(producto.imagen)}" alt="Imagen del producto"
-                                style="max-width: 100px; max-height: 100px; object-fit: cover;" class="img-thumbnail" />
+                            <img th:src="${@cloudinaryService.getImageUrl(producto.imagen)}" 
+                                alt="Imagen del producto"
+                                style="max-width: 100px; max-height: 100px; object-fit: cover;"
+                                class="img-thumbnail" />
                         </div>
                     </div>
                 </div>
                 <!-- Tabla de terminados -->
-                <div>
-                    <h4 class="mt-4">Terminados</h4>
-                    <button type="button" class="btn-black-yellow mt-2" onclick="agregarFila()">
-                        <i></i> Agregar Terminado
-                    </button>
+                 <div>
+                      <h4 class="mt-4">Terminados</h4>
+                <button type="button" class="btn-black-yellow mt-2" onclick="agregarFila()">
+                    <i ></i> Agregar Terminado
+                </button>
 
-                    <div class="table-responsive">
-                        <table class="mt-2 table table-terminados">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Medida</th>
-                                    <th>Precio Público</th>
-                                    <th>Precio x Mayor</th>
-                                    <th>Precio x Encargo</th>
-                                    <th>% Ganancia x Mayor</th>
-                                    <th>% Ganancia x Encargo</th>
-                                    <th>Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="terminadosTable">
-                                <tr th:each="terminado, iterStat : *{terminados}">
-                                    <td><input type="text" step="0.01"
-                                            th:field="*{terminados[__${iterStat.index}__].medidaTerminadoProducto}"
-                                            class="form-control numero-estricto" required /></td>
-                                    <td><input type="number"
-                                            th:field="*{terminados[__${iterStat.index}__].precioPublico}"
-                                            class="form-control numero-estricto" required /></td>
-                                    <td><input type="number"
-                                            th:field="*{terminados[__${iterStat.index}__].precioPorMayor}"
-                                            class="form-control numero-estricto" required /></td>
-                                    <td><input type="number"
-                                            th:field="*{terminados[__${iterStat.index}__].precioPorEncargo}"
-                                            class="form-control numero-estricto" required /></td>
-                                    <td><input type="text" step="0.01"
-                                            th:field="*{terminados[__${iterStat.index}__].gananciaXMayor}"
-                                            class="form-control numero-estricto" /></td>
-                                    <td><input type="text" step="0.01"
-                                            th:field="*{terminados[__${iterStat.index}__].gananciaXEncargo}"
-                                            class="form-control numero-estricto" /></td>
-                                    <td><button type="button" class="btn btn-danger btn-sm"
-                                            onclick="eliminarFila(this)"><i class="bi bi-x-lg"></i></button></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- Botones finales -->
-                    <div class="mt-4 d-flex gap-2">
-                        <button type="submit" class="btn-black-yellow">
-                            <i></i> Guardar
-                        </button>
-                        <a href="/productos" class="btn-black-yellow">
-                            <i></i> Cancelar
-                        </a>
-                    </div>
+                <div class="table-responsive">
+                    <table class="mt-2 table table-terminados">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Medida</th>
+                                <th>Precio Público</th>
+                                <th>Precio x Mayor</th>
+                                <th>Precio x Encargo</th>
+                                <th>% Ganancia x Mayor</th>
+                                <th>% Ganancia x Encargo</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="terminadosTable">
+                            <tr th:each="terminado, iterStat : *{terminados}">
+                                <td><input type="number" step="0.01" th:field="*{terminados[__${iterStat.index}__].medidaTerminadoProducto}" class="form-control" required /></td>
+                                <td><input type="number" th:field="*{terminados[__${iterStat.index}__].precioPublico}" class="form-control" required /></td>
+                                <td><input type="number" th:field="*{terminados[__${iterStat.index}__].precioPorMayor}" class="form-control" required /></td>
+                                <td><input type="number" th:field="*{terminados[__${iterStat.index}__].precioPorEncargo}" class="form-control" required /></td>
+                                <td><input type="number" step="0.01" th:field="*{terminados[__${iterStat.index}__].gananciaXMayor}" class="form-control" /></td>
+                                <td><input type="number" step="0.01" th:field="*{terminados[__${iterStat.index}__].gananciaXEncargo}" class="form-control" /></td>
+                                <td><button type="button" class="btn btn-danger btn-sm" onclick="eliminarFila(this)"><i class="bi bi-x-lg"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Botones finales -->
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn-black-yellow">
+                        <i></i> Guardar
+                    </button>
+                    <a href="/productos" class="btn-black-yellow">
+                        <i ></i> Cancelar
+                    </a>
+                </div>
             </form>
         </div>
     </div>
@@ -170,7 +155,7 @@
         function previewImage(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = function (e) {
+                reader.onload = function(e) {
                     let preview = document.getElementById('imagePreview');
                     if (!preview) {
                         preview = document.createElement('div');
@@ -187,75 +172,14 @@
     </script>
 
     <script th:inline="javascript" th:if="${errorCodigo}">
-        Swal.fire({
-            icon: 'error',
-            title: 'Código duplicado',
-            text: '[[${errorCodigo}]]',
-            confirmButtonColor: '#b8922f',
-            confirmButtonText: 'Aceptar'
-        });
-
-
-    </script>
-    <script>
-        // Función para aplicar restricción a todos los inputs con la clase .numero-estricto
-        function aplicarRestriccionNumeros() {
-            document.querySelectorAll('.numero-estricto').forEach(input => {
-                input.addEventListener('keydown', function (e) {
-                    const tecla = e.key;
-
-                    // Permitir control (borrar, tab, navegación)
-                    if (['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight'].includes(tecla)) {
-                        return;
-                    }
-
-                    // Permitir solo números, punto y %
-                    if (!/[0-9.%]/.test(tecla)) {
-                        e.preventDefault();
-                    }
-
-                    // Evitar más de un punto decimal
-                    if (tecla === '.' && this.value.includes('.')) {
-                        e.preventDefault();
-                    }
-
-                    // Evitar más de un signo %
-                    if (tecla === '%' && this.value.includes('%')) {
-                        e.preventDefault();
-                    }
-                });
-            });
-        }
-
-        // Aplicar al cargar la página
-        document.addEventListener('DOMContentLoaded', aplicarRestriccionNumeros);
-
-        // Reemplazamos tu función agregarFila con la versión extendida
-        function agregarFila() {
-            let tbody = document.getElementById("terminadosTable");
-            let index = tbody.rows.length;
-            let row = tbody.insertRow();
-            row.innerHTML =
-                '<td><input type="number" step="0.01" name="terminados[' + index + '].medidaTerminadoProducto" class="form-control numero-estricto" required /></td>' +
-                '<td><input type="number" name="terminados[' + index + '].precioPublico" class="form-control numero-estricto" required /></td>' +
-                '<td><input type="number" name="terminados[' + index + '].precioPorMayor" class="form-control numero-estricto" required /></td>' +
-                '<td><input type="number" name="terminados[' + index + '].precioPorEncargo" class="form-control numero-estricto" required /></td>' +
-                '<td><input type="text" step="0.01" name="terminados[' + index + '].gananciaXMayor" class="form-control numero-estricto" /></td>' +
-                '<td><input type="text" step="0.01" name="terminados[' + index + '].gananciaXEncargo" class="form-control numero-estricto" /></td>' +
-                '<td><button type="button" class="btn btn-danger btn-sm" onclick="eliminarFila(this)"><i class="bi bi-x-lg"></i></button></td>';
-
-            // Reaplicar validación a los nuevos inputs
-            aplicarRestriccionNumeros();
-        }
-
-        // Función para eliminar fila (igual que antes)
-        function eliminarFila(btn) {
-            btn.closest("tr").remove();
-        }
-    </script>
-
-
+    Swal.fire({
+        icon: 'error',
+        title: 'Código duplicado',
+        text: '[[${errorCodigo}]]',
+        confirmButtonColor: '#b8922f',
+        confirmButtonText: 'Aceptar'
+    });
+</script>
 
 </body>
-
 </html>
