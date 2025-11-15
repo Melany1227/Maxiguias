@@ -155,7 +155,7 @@ public class ReporteController {
             // Encabezados
             String[] headers = {
                     "Documento", "Nombre", "Primer Apellido", "Segundo Apellido",
-                    "Dirección", "Teléfono", "Perfil", "Ciudad", "Fecha Registro"
+                    "Dirección", "Teléfono", "Tipo de Usuario", "Ciudad", "Fecha Registro"
             };
 
             Row headerRow = sheet.createRow(0);

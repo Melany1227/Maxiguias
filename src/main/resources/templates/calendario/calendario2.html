@@ -1,21 +1,36 @@
+<link rel="stylesheet" th:href="@{/css/estilos.css}">
 <div th:fragment="selector-rango-fechas(fechaInicioId, fechaFinId)">
     <div class="row g-3 align-items-end">
         <div class="col-md-5">
             <label th:for="${fechaInicioId}" class="form-label">Fecha inicio:</label>
-            <input type="date" th:id="${fechaInicioId}" class="form-control" onchange="onFechaChange()">
+            <input type="date"
+                   th:id="${fechaInicioId}"
+                   class="form-control"
+                   th:max="${#dates.format(#dates.createNow(),'yyyy-MM-dd')}"
+                   th:attr="onchange=|validarRangoFechas('${fechaInicioId}','${fechaFinId}')|">
         </div>
 
         <div class="col-md-5">
             <label th:for="${fechaFinId}" class="form-label">Fecha fin:</label>
-            <input type="date" th:id="${fechaFinId}" class="form-control" onchange="onFechaChange()">
+            <input type="date"
+                   th:id="${fechaFinId}"
+                   class="form-control"
+                   th:max="${#dates.format(#dates.createNow(),'yyyy-MM-dd')}"
+                   th:attr="onchange=|validarRangoFechas('${fechaInicioId}','${fechaFinId}')|">
         </div>
 
         <div class="col-md-2">
-            <button class="btn btn-secondary w-100"
+            <button class="custom-btn"
                     th:attr="data-fecha-inicio-id=${fechaInicioId}, data-fecha-fin-id=${fechaFinId}"
                     onclick="limpiarFechas(this.getAttribute('data-fecha-inicio-id'), this.getAttribute('data-fecha-fin-id'))">
                 Limpiar
             </button>
+        </div>
+
+        <div class="col-12">
+            <div class="alert alert-danger py-2 px-3 mt-2 d-none" th:id="${fechaInicioId + 'Error'}">
+                Fechas no validas
+            </div>
         </div>
     </div>
 </div>
