@@ -40,8 +40,8 @@
           <div class="reporte-icon">
             <i class="fas fa-shopping-cart"></i>
           </div>
-          <h3>Informe órdenes por mes</h3>
-          <p>Visualiza y descarga información de órdenes con PDFs por mes</p>
+          <h3>Informe de facturas mensuales</h3>
+          <p>Visualiza y descarga información de facturas con PDFs por mes</p>
         </div>
 
         <!-- Reporte de Productos Más Vendidos -->
@@ -49,7 +49,7 @@
           <div class="reporte-icon">
             <i class="fas fa-chart-bar"></i>
           </div>
-          <h3>Productos más vendidos</h3>
+          <h3>Informe de productos más vendidos</h3>
           <p>
             Filtra y analiza los productos más vendidos por rango de fechas
           </p>
@@ -60,7 +60,7 @@
           <div class="reporte-icon">
             <i class="fas fa-book"></i>
           </div>
-          <h3>Catálogo de productos</h3>
+          <h3>Informe de catálogo de productos</h3>
           <p>
             Exporta catálogos de productos para usuarios naturales y jurídicos
           </p>
@@ -71,7 +71,7 @@
           <div class="reporte-icon">
             <i class="fas fa-file-invoice-dollar"></i>
           </div>
-          <h3>Ventas mensuales</h3>
+          <h3>Informe de ventas mensuales</h3>
           <p>Órdenes facturadas y finalizadas por fecha</p>
         </div>
       </div>
@@ -108,17 +108,23 @@
               <div class="estadistica-numero" id="usuariosJuridicos">0</div>
             </div>
           </div>
+                    <!-- Descripción -->
+          <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Informe clientes nuevos por mes:</strong> Tener en cuenta que los usuarios administradores no están
+            incluidos en este reporte.
+          </div>
 
           <!-- Filtro por mes -->
           <div th:replace="calendario/calendario2 :: selector-rango-fechas('fechaInicioClientes','fechaFinClientes')">
           </div>
 
           <div class="text-end mt-3">
-            <button class="btn btn-primary" onclick="actualizarEstadisticasClientes()">
+            <button class="custom-btn" onclick="actualizarEstadisticasClientes()">
               <i class="fas fa-search"></i> Buscar
             </button>
 
-            <button class="btn btn-excel" onclick="generarExcelClientes()">
+            <button class="custom-btn" onclick="generarExcelClientes()">
               <i class="fas fa-file-excel"></i> Exportar Excel
             </button>
           </div>
@@ -151,7 +157,7 @@
           <!-- Filtro por fecha (usar calendario2 con ids explícitos) -->
           <div th:replace="calendario/calendario2 :: selector-rango-fechas('fechaInicio','fechaFin')"></div>
           <div class="text-end mt-3">
-            <button class="btn btn-primary" onclick="generarZipOrdenes()">
+            <button class="custom-btn" onclick="generarZipOrdenes()">
               <i class="fas fa-download"></i> Descargar ZIP con PDFs
             </button>
           </div>
@@ -178,10 +184,10 @@
           <div th:replace="calendario/calendario2 :: selector-rango-fechas('fechaInicioProductos','fechaFinProductos')"></div>
 
           <div class="text-end mt-3 d-flex gap-2 justify-content-end">
-            <button class="btn btn-primary" onclick="cargarProductosMasVendidos()">
+            <button class="custom-btn" onclick="cargarProductosMasVendidos()">
               <i class="fas fa-search"></i> Buscar
             </button>
-            <button class="btn btn-excel" onclick="generarExcelProductos()">
+            <button class="custom-btn" onclick="generarExcelProductos()">
               <i class="fas fa-file-excel"></i> Excel
             </button>
           </div>
@@ -197,7 +203,7 @@
               <th>Cantidad Vendida</th>
             </tr>
           </thead>
-          <tbody id="tablaProductosMasVendidos">
+          <tbody id="tablaProductosMasVendidos" data-has-data="false">
             <tr>
               <td colspan="3">Sin datos...</td>
             </tr>
@@ -235,13 +241,13 @@
           <div class="export-buttons-section">
             <div class="row g-3">
               <div class="col-md-6">
-                <button class="btn btn-excel w-100" onclick="exportarCatalogoNaturales()">
+                <button class="custom-btn w-100" onclick="exportarCatalogoNaturales()">
                   <i class="fas fa-file-excel me-2"></i>
                   Exportar Catálogo Usuarios Naturales
                 </button>
               </div>
               <div class="col-md-6">
-                <button class="btn btn-excel w-100" onclick="exportarCatalogoJuridicos()">
+                <button class="custom-btn w-100" onclick="exportarCatalogoJuridicos()">
                   <i class="fas fa-file-excel me-2"></i>
                   Exportar Catálogo Usuarios Jurídicos
                 </button>
@@ -267,7 +273,7 @@
         <div class="modal-body">
           <div class="estadisticas-grid">
             <div class="estadistica-card total">
-              <h5>Total Órdenes</h5>
+              <h5>Total Ventas</h5>
               <div class="estadistica-numero" id="totalOrdenesVentas">0</div>
             </div>
           </div>
@@ -275,13 +281,31 @@
           <div th:replace="calendario/calendario2 :: selector-rango-fechas('fechaInicioVentas','fechaFinVentas')"></div>
 
           <div class="text-end mt-3 d-flex gap-2 justify-content-end">
-            <button class="btn btn-primary" onclick="actualizarEstadisticasVentas()">
+            <button class="custom-btn" onclick="actualizarEstadisticasVentas()">
               <i class="fas fa-search"></i> Buscar
             </button>
-            <button class="btn btn-excel" onclick="exportarExcelVentas()">
+            <button class="custom-btn" onclick="exportarExcelVentas()">
               <i class="fas fa-file-excel"></i> Exportar Excel
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal genérico para alertas de datos -->
+  <div class="modal fade" id="sinDatosModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-info-circle me-2"></i> Información</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0" id="sinDatosMensaje">No hay datos disponibles para exportar</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="custom-btn" data-bs-dismiss="modal">Aceptar</button>
         </div>
       </div>
     </div>
@@ -303,6 +327,40 @@
       if (anioActualOrdenesElement)
         anioActualOrdenesElement.textContent = currentYear;
     });
+
+    const MENSAJE_SIN_DATOS_EXPORTACION = "No hay datos disponibles para exportar";
+
+    function mostrarAlertaSinDatos() {
+      const modalElement = document.getElementById("sinDatosModal");
+      const mensajeElement = document.getElementById("sinDatosMensaje");
+      if (mensajeElement) {
+        mensajeElement.textContent = MENSAJE_SIN_DATOS_EXPORTACION;
+      }
+      if (modalElement && window.bootstrap) {
+        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        modal.show();
+      } else {
+        alert(MENSAJE_SIN_DATOS_EXPORTACION);
+      }
+    }
+
+    function obtenerConteoDesdeElemento(elementId) {
+      const element = document.getElementById(elementId);
+      if (!element) return 0;
+      const textoLimpio = (element.textContent || "").replace(/[^\d]/g, "");
+      if (!textoLimpio) return 0;
+      const valor = parseInt(textoLimpio, 10);
+      return Number.isNaN(valor) ? 0 : valor;
+    }
+
+    function hayDatosEnElemento(elementId) {
+      return obtenerConteoDesdeElemento(elementId) > 0;
+    }
+
+    function hayDatosEnTabla(tbodyId) {
+      const tbody = document.getElementById(tbodyId);
+      return Boolean(tbody && tbody.dataset && tbody.dataset.hasData === "true");
+    }
 
     // ========== FUNCIONES PARA REPORTE DE CLIENTES ==========
     function mostrarInformeClientes() {
@@ -353,6 +411,10 @@
 
 
     function generarExcelClientes() {
+      if (!hayDatosEnElemento("totalUsuarios")) {
+        mostrarAlertaSinDatos();
+        return;
+      }
       const inicio = document.getElementById("fechaInicioClientes").value;
       const fin = document.getElementById("fechaFinClientes").value;
 
@@ -386,6 +448,50 @@
       modal.show();
     }
 
+    function validarRangoFechas(fechaInicioId, fechaFinId) {
+      const fechaInicioInput = document.getElementById(fechaInicioId);
+      const fechaFinInput = document.getElementById(fechaFinId);
+      const errorContainer = document.getElementById(`${fechaInicioId}Error`);
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      const parseDateValue = (value) => {
+        const [year, month, day] = value.split("-").map(Number);
+        return new Date(year, month - 1, day);
+      };
+
+      let invalido = false;
+
+      if (fechaInicioInput && fechaInicioInput.value) {
+        const inicio = parseDateValue(fechaInicioInput.value);
+        if (inicio > hoy) {
+          fechaInicioInput.value = "";
+          invalido = true;
+        }
+      }
+
+      if (fechaFinInput && fechaFinInput.value) {
+        const fin = parseDateValue(fechaFinInput.value);
+        if (fin > hoy) {
+          fechaFinInput.value = "";
+          invalido = true;
+        }
+      }
+
+      if (invalido) {
+        if (errorContainer) {
+          errorContainer.classList.remove("d-none");
+          errorContainer.textContent = "Fechas no validas";
+        }
+        return;
+      }
+
+      if (errorContainer) {
+        errorContainer.classList.add("d-none");
+      }
+
+      onFechaChange();
+    }
+
     function onFechaChange() {
       const ventasModal = document.getElementById('informeVentasModal');
       const ordenesModal = document.getElementById('informeOrdenesModal');
@@ -408,6 +514,10 @@
       const fin = document.getElementById(fechaFinId);
       if (ini) ini.value = '';
       if (fin) fin.value = '';
+      const errorContainer = document.getElementById(`${fechaInicioId}Error`);
+      if (errorContainer) {
+        errorContainer.classList.add("d-none");
+      }
       onFechaChange();
     }
 
@@ -432,6 +542,10 @@
     }
 
     function generarZipOrdenes() {
+      if (!hayDatosEnElemento("totalOrdenes")) {
+        mostrarAlertaSinDatos();
+        return;
+      }
       const inicio = document.getElementById("fechaInicio").value;
       const fin = document.getElementById("fechaFin").value;
 
@@ -448,43 +562,44 @@
 
     // ========== FUNCIONES PARA REPORTE DE PRODUCTOS MÁS VENDIDOS ==========
     function mostrarProductosMasVendidos() {
-      
-      document.getElementById("tablaProductosMasVendidos").innerHTML = '<tr><td colspan="3">Cargando...</td></tr>';
-      cargarProductosMasVendidos(); 
+      const tablaProductos = document.getElementById("tablaProductosMasVendidos");
+      if (tablaProductos) {
+        tablaProductos.innerHTML = '<tr><td colspan="3">Cargando...</td></tr>';
+        tablaProductos.dataset.hasData = "false";
+      }
+      cargarProductosMasVendidos();
       const modal = new bootstrap.Modal(document.getElementById('productosMasVendidosModal'));
       modal.show();
     }
 
-    
     function cargarProductosMasVendidos() {
       const fechaInicio = document.getElementById("fechaInicioProductos").value;
       const fechaFin = document.getElementById("fechaFinProductos").value;
 
-      
       let url = "/reportes/estadisticas-productos";
 
-     
       if (fechaInicio && fechaFin) {
         url += `?fechaInicio=${encodeURIComponent(fechaInicio)}&fechaFin=${encodeURIComponent(fechaFin)}`;
       }
 
       fetch(url)
         .then(response => {
-          if (!response.ok) throw new Error("Error al obtener estadísticas de productos");
+          if (!response.ok) throw new Error("Error al obtener estad��sticas de productos");
           return response.json();
         })
         .then(data => {
-         
           const productos = data.productos || [];
           const tbody = document.getElementById("tablaProductosMasVendidos");
+          if (!tbody) return;
           tbody.innerHTML = "";
+          const hayProductos = Array.isArray(productos) && productos.length > 0;
+          tbody.dataset.hasData = hayProductos ? "true" : "false";
 
-          if (!productos || productos.length === 0) {
+          if (!hayProductos) {
             tbody.innerHTML = `<tr><td colspan="3">No hay resultados en este rango.</td></tr>`;
             return;
           }
 
-        
           productos.forEach(item => {
             let nombre, medida, cantidad;
             if (Array.isArray(item)) {
@@ -508,12 +623,20 @@
         })
         .catch(err => {
           console.error(err);
-          document.getElementById("tablaProductosMasVendidos").innerHTML = `<tr><td colspan="3">Error cargando datos.</td></tr>`;
+          const tablaProductos = document.getElementById("tablaProductosMasVendidos");
+          if (tablaProductos) {
+            tablaProductos.dataset.hasData = "false";
+            tablaProductos.innerHTML = `<tr><td colspan="3">Error cargando datos.</td></tr>`;
+          }
         });
     }
 
     // Redirige a la URL de exportación Excel respetando el rango de fechas
     function generarExcelProductos() {
+      if (!hayDatosEnTabla("tablaProductosMasVendidos")) {
+        mostrarAlertaSinDatos();
+        return;
+      }
       const fechaInicio = document.getElementById("fechaInicioProductos").value;
       const fechaFin = document.getElementById("fechaFinProductos").value;
 
@@ -573,6 +696,10 @@
     }
 
     function exportarExcelVentas() {
+      if (!hayDatosEnElemento("totalOrdenesVentas")) {
+        mostrarAlertaSinDatos();
+        return;
+      }
       const inicio = document.getElementById("fechaInicioVentas").value;
       const fin = document.getElementById("fechaFinVentas").value;
       let url = "/reportes/exportar-excel-ventas";
