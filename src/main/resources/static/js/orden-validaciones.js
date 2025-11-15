@@ -241,24 +241,51 @@ function eliminarFila() {
 
 function eliminarFilaEspecifica(botonEliminar) {
     const tabla = document.getElementById("tablaDetalle").querySelector("tbody");
-    
+
     // No permitir eliminar si solo queda una fila
     if (tabla.rows.length <= 1) {
-        alert("Debe mantener al menos un producto en la orden.");
+        Swal.fire({
+            title: 'No se puede eliminar',
+            text: 'Debe mantener al menos un producto en la orden.',
+            icon: 'warning',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#d0a736'
+        });
         return;
     }
-    
+
     const fila = botonEliminar.closest("tr");
     const filaIndex = Array.from(tabla.rows).indexOf(fila);
-    
-    // Confirmar eliminación
-    if (confirm("¿Está seguro de que desea eliminar este producto de la orden?")) {
-        tabla.deleteRow(filaIndex);
-        
-        // Actualizar opciones de productos después de eliminar
-        setTimeout(() => actualizarTodasLasOpcionesProducto(), 100);
-        calcularTotalOrden();
-    }
+
+    // Confirmar eliminación con SweetAlert2
+    Swal.fire({
+        title: '¿Eliminar producto?',
+        text: '¿Está seguro de que desea eliminar este producto de la orden?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#d0a736'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            tabla.deleteRow(filaIndex);
+
+            // Actualizar opciones de productos después de eliminar
+            setTimeout(() => actualizarTodasLasOpcionesProducto(), 100);
+            calcularTotalOrden();
+
+            // Mostrar confirmación de eliminación
+            Swal.fire({
+                title: '¡Eliminado!',
+                text: 'El producto ha sido eliminado de la orden.',
+                icon: 'success',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#d0a736',
+                timer: 2000
+            });
+        }
+    });
 }
 
 function actualizarDescripcion(fila) {
@@ -327,17 +354,23 @@ document.addEventListener("change", function (e) {
     if (e.target.name === "terminadoId") {
         const productoId = fila.querySelector("select[name='productoId']").value;
         const terminadoId = e.target.value;
-        
+
         if (productoId && terminadoId && esCombinacionDuplicada(productoId, terminadoId, fila)) {
-            alert("Esta combinación de producto y terminado ya está seleccionada en otra fila.");
+            Swal.fire({
+                title: 'Combinación duplicada',
+                text: 'Esta combinación de producto y terminado ya está seleccionada en otra fila.',
+                icon: 'warning',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#d0a736'
+            });
             e.target.selectedIndex = 0;
             actualizarPrecio(fila);
             return;
         }
-        
+
         actualizarDescripcion(fila);
         actualizarPrecio(fila);
-        
+
         setTimeout(() => actualizarTodasLasOpcionesProducto(), 100);
     }
 });

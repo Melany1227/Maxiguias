@@ -1,12 +1,15 @@
 package com.maxiguias.maxigestion.maxigestion.controlador;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -209,12 +212,22 @@ public class UsuarioController {
     }
 
     @PostMapping("/eliminar/{id}")
-    public String eliminarUsuario(RedirectAttributes redirectAttributes, @PathVariable Long id) {
-        usuarioService.eliminarPorId(id);
-        redirectAttributes.addFlashAttribute("mensajeModal", "Usuario eliminado exitosamente.");
-        redirectAttributes.addFlashAttribute("tipoMensaje", "success");
-        redirectAttributes.addFlashAttribute("redirigirDespues", true);
-        return "redirect:/usuarios";
+    public ResponseEntity<Map<String, Object>> eliminarUsuario(@PathVariable Long id) {
+        String resultado = usuarioService.eliminarPorId(id);
+        Map<String, Object> response = new HashMap<>();
+
+        // Verificar si la eliminación fue exitosa o hubo un error
+        if (resultado.startsWith("Error:")) {
+            response.put("success", false);
+            response.put("mensaje", resultado);
+            response.put("tipoMensaje", "error");
+            return ResponseEntity.badRequest().body(response);
+        } else {
+            response.put("success", true);
+            response.put("mensaje", resultado);
+            response.put("tipoMensaje", "success");
+            return ResponseEntity.ok(response);
+        }
     }
 
 

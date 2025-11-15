@@ -120,7 +120,7 @@
                   </h6>
                   <div id="datosCliente">
                     <div th:if="${editMode}">
-                      <strong th:text="${orden.usuario.nombre + ' ' + orden.usuario.primerApellido}"></strong><br>
+                      <strong th:text="${orden.usuario.primerApellido != null ? orden.usuario.nombre + ' ' + orden.usuario.primerApellido : orden.usuario.nombre}"></strong><br>
                       <small>Documento: <span th:text="${orden.usuario.documento}"></span></small><br>
                       <small>Tipo: <span th:text="${orden.usuario.tipoUsuario.nombre}"></span></small>
                     </div>
@@ -180,7 +180,7 @@
                 <div class="p-3 border rounded bg-light">
                   <h6><i class="fa-solid fa-info-circle"></i> Información de la Orden</h6>
                   <div>
-                    <strong>Cliente:</strong> <span th:text="${orden.usuario.nombre + ' ' + orden.usuario.primerApellido}"></span><br>
+                    <strong>Cliente:</strong> <span th:text="${orden.usuario.primerApellido != null ? orden.usuario.nombre + ' ' + orden.usuario.primerApellido : orden.usuario.nombre}"></span><br>
                     <strong>Fecha de Entrega:</strong> <span th:text="${#temporals.format(orden.fechaEntrega, 'dd/MM/yyyy HH:mm')}"></span><br>
                     <strong>Total:</strong> $<span th:text="${orden.totalFactura}"></span><br>
                     <strong>Estado Actual:</strong> <span th:text="${orden.estado.descripcion}" th:class="'badge bg-' + ${orden.estado.colorBootstrap}"></span>
@@ -322,10 +322,10 @@
             <input type="hidden" id="inputTotalOrden" name="totalFactura" th:value="${(editMode and orden.totalFactura != null) ? orden.totalFactura : ''}">
 
             <div class="col-12 d-flex justify-content-between">
-                <button th:if="${editMode}" type="button" class="btn btn-secondary" onclick="window.location.href='/ordenes'">
+                <button th:if="${editMode}" type="button" class="btn" style="background-color: #d0a736; color: white;" onclick="window.location.href='/ordenes'">
                     <i class="fa-solid fa-arrow-left"></i> Volver a Lista
                 </button>
-                <button th:unless="${editMode}" type="button" class="btn btn-secondary" 
+                <button th:unless="${editMode}" type="button" class="btn" style="background-color: #d0a736; color: white;"
                         onclick="volverAPaso1()">
                     <i class="fa-solid fa-arrow-left"></i> Volver
                 </button>
@@ -763,6 +763,7 @@
 
     // Agregar validación antes del submit del formulario
     function validarFormularioAntesDePrincipal(event) {
+      // Validar fecha de entrega
       const fechaInput = document.getElementById('fechaEntrega');
       if (fechaInput && fechaInput.value) {
         if (!validarFechaEntrega(fechaInput)) {
@@ -770,6 +771,52 @@
           return false;
         }
       }
+
+      // Validar que no haya filas de productos con campos vacíos
+      const filas = document.querySelectorAll("#tablaDetalle tbody tr");
+      for (let fila of filas) {
+        const productoSelect = fila.querySelector("select[name='productoId']");
+        const terminadoSelect = fila.querySelector("select[name='terminadoId']");
+        const cantidadInput = fila.querySelector("input[name='cantidad']");
+
+        // Verificar si algún campo está vacío
+        if (!productoSelect.value || productoSelect.value === "") {
+          Swal.fire({
+            title: 'Campo incompleto',
+            text: 'Debe seleccionar un producto en todas las filas.',
+            icon: 'warning',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#d0a736'
+          });
+          event.preventDefault();
+          return false;
+        }
+
+        if (!terminadoSelect.value || terminadoSelect.value === "") {
+          Swal.fire({
+            title: 'Campo incompleto',
+            text: 'Debe seleccionar un terminado en todas las filas.',
+            icon: 'warning',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#d0a736'
+          });
+          event.preventDefault();
+          return false;
+        }
+
+        if (!cantidadInput.value || cantidadInput.value === "" || parseInt(cantidadInput.value) <= 0) {
+          Swal.fire({
+            title: 'Campo incompleto',
+            text: 'La cantidad debe ser mayor a 0 en todas las filas.',
+            icon: 'warning',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#d0a736'
+          });
+          event.preventDefault();
+          return false;
+        }
+      }
+
       return true;
     }
 

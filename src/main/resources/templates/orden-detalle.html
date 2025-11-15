@@ -16,13 +16,14 @@
             <h2><i class="fa-solid fa-shopping-cart"></i> DETALLE DE ORDEN #<span th:text="${orden.id}"></span></h2>
             <div>
                 <!-- Botón PDF: Solo para FINALIZADA y FACTURADA -->
-                <a th:if="${orden.estado.name() == 'FINALIZADA' || orden.estado.name() == 'FACTURADA'}" 
-                   th:href="@{/ordenes/pdf/{id}(id=${orden.id})}" 
-                   class="btn btn-danger me-2"
+                <a th:if="${orden.estado.name() == 'FINALIZADA' || orden.estado.name() == 'FACTURADA'}"
+                   th:href="@{/ordenes/pdf/{id}(id=${orden.id})}"
+                   class="btn me-2"
+                   style="background-color: #d0a736; color: white;"
                    title="Descargar PDF">
                     <i class="fa-solid fa-file-pdf"></i> Descargar PDF
                 </a>
-                <a th:href="@{/ordenes}" class="btn btn-secondary">
+                <a th:href="@{/ordenes}" class="btn" style="background-color: #d0a736; color: white;">
                     <i class="fa-solid fa-arrow-left"></i> Volver
                 </a>
             </div>
@@ -31,7 +32,7 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="card">
-                    <div class="card-header bg-primary text-white">
+                    <div class="card-header" style="background-color: #d0a736; color: white;">
                         <h5 class="mb-0"><i class="fa-solid fa-info-circle"></i> Información General</h5>
                     </div>
                     <div class="card-body">
@@ -45,11 +46,11 @@
 
             <div class="col-md-6">
                 <div class="card">
-                    <div class="card-header bg-success text-white">
+                    <div class="card-header" style="background-color: #d0a736; color: white;">
                         <h5 class="mb-0"><i class="fa-solid fa-user"></i> Información del Cliente</h5>
                     </div>
                     <div class="card-body">
-                        <p><strong>Nombre:</strong> <span th:text="${orden.usuario.nombre + ' ' + orden.usuario.primerApellido}"></span></p>
+                        <p><strong>Nombre:</strong> <span th:text="${orden.usuario.primerApellido != null ? orden.usuario.nombre + ' ' + orden.usuario.primerApellido : orden.usuario.nombre}"></span></p>
                         <p><strong>Documento:</strong> <span th:text="${orden.usuario.documento}"></span></p>
                         <p><strong>Tipo:</strong> <span th:text="${orden.usuario.tipoUsuario.nombre}"></span></p>
                      <!--   <p><strong>Email:</strong> <span th:text="${orden.usuario.email}"></span></p>-->
@@ -63,7 +64,7 @@
         </div>
 
         <div class="card mt-4">
-            <div class="card-header bg-warning">
+            <div class="card-header" style="background-color: #d0a736; color: white;">
                 <h5 class="mb-0"><i class="fa-solid fa-list"></i> Productos de la Orden</h5>
             </div>
             <div class="card-body">
@@ -99,7 +100,7 @@
         </div>
 
         <div class="card mt-4">
-            <div class="card-header bg-info text-white">
+            <div class="card-header" style="background-color: #d0a736; color: white;">
                 <h5 class="mb-0"><i class="fa-solid fa-building"></i> Información de la Empresa</h5>
             </div>
             <div class="card-body">
