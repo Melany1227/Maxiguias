@@ -697,15 +697,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Validación de contraseña - aplicar a todos los campos de contraseña
-    const contrasenaInputs = document.querySelectorAll('input[name="contrasena"], input[type="password"]');
-    
+    // Validación de contraseña - aplicar a campos de contraseña específicos
+    // En crear_usuario.html: input[name="contrasena"]
+    // En cambiar-password.html: input[name="nuevaContrasena"]
+    const contrasenaInputs = document.querySelectorAll('input[name="contrasena"], input[name="nuevaContrasena"]');
+
     contrasenaInputs.forEach(function(contrasenaInput) {
         // Validar en tiempo real mientras escribe
         contrasenaInput.addEventListener('input', function() {
             validarContrasena(this);
         });
-        
+
         // Validar cuando pierde el foco
         contrasenaInput.addEventListener('blur', function() {
             validarContrasena(this);
@@ -714,12 +716,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Validación de confirmación de contraseña
     const confirmarContrasenaInputs = document.querySelectorAll('input[name="confirmarContrasena"]');
-    
+
     confirmarContrasenaInputs.forEach(function(confirmarInput) {
         confirmarInput.addEventListener('input', function() {
             validarConfirmacionContrasena(this);
         });
-        
+
         confirmarInput.addEventListener('blur', function() {
             validarConfirmacionContrasena(this);
         });
@@ -729,7 +731,13 @@ document.addEventListener('DOMContentLoaded', function() {
 // Función para validar que las contraseñas coincidan
 function validarConfirmacionContrasena(input) {
     const valor = input.value;
-    const contrasenaInput = document.querySelector('input[name="contrasena"]');
+    // Buscar el campo de contraseña principal en diferentes formularios
+    // En crear_usuario.html usa "contrasena", en cambiar-password.html usa "nuevaContrasena"
+    let contrasenaInput = document.querySelector('input[name="contrasena"]');
+    if (!contrasenaInput) {
+        contrasenaInput = document.querySelector('input[name="nuevaContrasena"]');
+    }
+
     const errorDiv = document.getElementById('error-confirmar-contrasena') || createErrorDiv('error-confirmar-contrasena', input);
 
     // Limpiar mensaje anterior

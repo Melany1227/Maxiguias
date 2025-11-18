@@ -113,8 +113,8 @@
                                 
                                 <div class="col-12 mb-3">
                                     <label class="form-label fw-bold"><i class="fa-solid fa-calendar me-2"></i>Fecha de Registro:</label>
-                                    <p class="form-control-plaintext border rounded px-3 py-2 bg-light" 
-                                       th:text="${usuario.fechaRegistro != null} ? ${#temporals.format(usuario.fechaRegistro, 'dd/MM/yyyy HH:mm')} : 'No disponible'"></p>
+                                    <p class="form-control-plaintext border rounded px-3 py-2 bg-light"
+                                       th:text="${usuario.fechaRegistro != null} ? ${#temporals.format(usuario.fechaRegistro, 'dd/MM/yyyy')} : 'No disponible'"></p>
                                 </div>
                             </div>
                         </div>
