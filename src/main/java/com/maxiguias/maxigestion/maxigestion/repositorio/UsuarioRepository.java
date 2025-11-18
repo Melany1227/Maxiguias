@@ -70,4 +70,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>, PagingA
        List<Usuario> findJuridicosByFechaRegistroBetween(@Param("inicio") LocalDateTime inicio,
                      @Param("fin") LocalDateTime fin);
 
+       // Métodos para administrador de perfiles
+       long countByPerfil_Id(Long perfilId);
+
 }

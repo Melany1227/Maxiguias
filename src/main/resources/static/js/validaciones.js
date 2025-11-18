@@ -224,16 +224,22 @@ if (e.target.name === "terminadoId") {
     // Verificar si la combinación ya existe (validación adicional)
     const productoId = fila.querySelector("select[name='productoId']").value;
     const terminadoId = e.target.value;
-    
+
     if (productoId && terminadoId && esCombinacionDuplicada(productoId, terminadoId, fila)) {
-        alert("Esta combinación de producto y terminado ya está seleccionada en otra fila.");
+        Swal.fire({
+            title: 'Combinación duplicada',
+            text: 'Esta combinación de producto y terminado ya está seleccionada en otra fila.',
+            icon: 'warning',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#d0a736'
+        });
         e.target.selectedIndex = 0;
         return;
     }
-    
+
     actualizarDescripcion(fila);
     actualizarPrecio(fila);
-    
+
     // Actualizar opciones de productos en otras filas después del cambio
     setTimeout(() => actualizarTodasLasOpcionesProducto(), 100);
 }
@@ -393,69 +399,82 @@ function validarTelefono(input) {
 function validarContrasena(input) {
     const valor = input.value;
     const errorDiv = document.getElementById('error-contrasena') || createErrorDiv('error-contrasena', input);
-    
+
     // Limpiar mensaje anterior
     errorDiv.textContent = '';
     errorDiv.style.display = 'none';
-    
+
     if (valor === '') {
         return; // No mostrar error si está vacío
     }
-    
+
     // Lista de validaciones
     const validaciones = [];
-    
+
     // Verificar longitud mínima (8 caracteres)
     if (valor.length < 8) {
         validaciones.push('al menos 8 caracteres');
     }
-    
+
     // Verificar al menos una letra mayúscula
     if (!/[A-Z]/.test(valor)) {
         validaciones.push('al menos una letra mayúscula');
     }
-    
+
     // Verificar al menos una letra minúscula
     if (!/[a-z]/.test(valor)) {
         validaciones.push('al menos una letra minúscula');
     }
-    
+
     // Verificar al menos un número
     if (!/[0-9]/.test(valor)) {
         validaciones.push('al menos un número');
     }
-    
+
     // Verificar al menos un carácter especial
     if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(valor)) {
         validaciones.push('al menos un carácter especial (!@#$%^&*)');
     }
-    
+
     if (validaciones.length > 0) {
         let mensaje = 'La contraseña no cumple con las políticas de seguridad. Debe tener: ' + validaciones.join(', ') + '.';
         mostrarErrorContrasena(errorDiv, mensaje);
         return false;
     }
-    
+
+    // Si la contraseña es válida y existe un campo de confirmación, re-validarlo
+    const confirmarContrasenaInput = document.querySelector('input[name="confirmarContrasena"]');
+    if (confirmarContrasenaInput && confirmarContrasenaInput.value !== '') {
+        validarConfirmacionContrasena(confirmarContrasenaInput);
+    }
+
     return true;
 }
 
 function createErrorDiv(id, inputElement) {
     const errorDiv = document.createElement('div');
     errorDiv.id = id;
-    errorDiv.className = 'alert alert-danger';
+
+    // Usar clase específica para alerta de contraseña (validación de seguridad), clase general para otros
+    if (id === 'error-contrasena') {
+        errorDiv.className = 'alert alert-danger alert-password-strength';
+    } else {
+        errorDiv.className = 'alert alert-danger';
+        errorDiv.style.position = 'absolute';
+        errorDiv.style.top = '100%';
+        errorDiv.style.left = '0';
+        errorDiv.style.right = '0';
+        errorDiv.style.zIndex = '1000';
+    }
+
     errorDiv.style.display = 'none';
-    errorDiv.style.position = 'absolute';
-    errorDiv.style.top = '100%';
-    errorDiv.style.left = '0';
-    errorDiv.style.right = '0';
-    errorDiv.style.zIndex = '1000';
-    
+
     // Asegurar que el padre tenga position relative
     const parent = inputElement.parentNode;
     if (getComputedStyle(parent).position === 'static') {
         parent.style.position = 'relative';
     }
-    
+
     parent.appendChild(errorDiv);
     return errorDiv;
 }
@@ -678,15 +697,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Validación de contraseña - aplicar a todos los campos de contraseña
-    const contrasenaInputs = document.querySelectorAll('input[name="contrasena"], input[type="password"]');
-    
+    // Validación de contraseña - aplicar a campos de contraseña específicos
+    // En crear_usuario.html: input[name="contrasena"]
+    // En cambiar-password.html: input[name="nuevaContrasena"]
+    const contrasenaInputs = document.querySelectorAll('input[name="contrasena"], input[name="nuevaContrasena"]');
+
     contrasenaInputs.forEach(function(contrasenaInput) {
         // Validar en tiempo real mientras escribe
         contrasenaInput.addEventListener('input', function() {
             validarContrasena(this);
         });
-        
+
         // Validar cuando pierde el foco
         contrasenaInput.addEventListener('blur', function() {
             validarContrasena(this);
@@ -695,12 +716,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Validación de confirmación de contraseña
     const confirmarContrasenaInputs = document.querySelectorAll('input[name="confirmarContrasena"]');
-    
+
     confirmarContrasenaInputs.forEach(function(confirmarInput) {
         confirmarInput.addEventListener('input', function() {
             validarConfirmacionContrasena(this);
         });
-        
+
         confirmarInput.addEventListener('blur', function() {
             validarConfirmacionContrasena(this);
         });
@@ -710,21 +731,34 @@ document.addEventListener('DOMContentLoaded', function() {
 // Función para validar que las contraseñas coincidan
 function validarConfirmacionContrasena(input) {
     const valor = input.value;
-    const contrasenaInput = document.querySelector('input[name="contrasena"]');
+    // Buscar el campo de contraseña principal en diferentes formularios
+    // En crear_usuario.html usa "contrasena", en cambiar-password.html usa "nuevaContrasena"
+    let contrasenaInput = document.querySelector('input[name="contrasena"]');
+    if (!contrasenaInput) {
+        contrasenaInput = document.querySelector('input[name="nuevaContrasena"]');
+    }
+
     const errorDiv = document.getElementById('error-confirmar-contrasena') || createErrorDiv('error-confirmar-contrasena', input);
-    
+
     // Limpiar mensaje anterior
     errorDiv.textContent = '';
     errorDiv.style.display = 'none';
-    
+
+    // No mostrar error si el campo de confirmación está vacío
     if (valor === '') {
-        return; // No mostrar error si está vacío
+        return;
     }
-    
-    if (contrasenaInput && valor !== contrasenaInput.value) {
+
+    // No mostrar error si el campo de contraseña principal está vacío
+    if (!contrasenaInput || contrasenaInput.value === '') {
+        return;
+    }
+
+    // Solo mostrar error si las contraseñas no coinciden Y ambos campos tienen valor
+    if (valor !== contrasenaInput.value) {
         mostrarErrorContrasena(errorDiv, 'Las contraseñas no coinciden.');
         return false;
     }
-    
+
     return true;
 }

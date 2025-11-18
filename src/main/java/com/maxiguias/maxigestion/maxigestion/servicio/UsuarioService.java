@@ -49,13 +49,13 @@ public class UsuarioService {
         if (documentoValidation != null) {
             return documentoValidation;
         }
-        
+
         // Validar formato del teléfono
         String telefonoValidation = validarFormatoTelefono(usuario.getTelefono());
         if (telefonoValidation != null) {
             return telefonoValidation;
         }
-        
+
         // Validar política de contraseñas (solo si se proporciona contraseña)
         if (usuario.getContrasena() != null && !usuario.getContrasena().trim().isEmpty()) {
             String contrasenaValidation = validarPoliticaContrasena(usuario.getContrasena());
@@ -63,9 +63,9 @@ public class UsuarioService {
                 return contrasenaValidation;
             }
         }
-        
-        // Validar si el documento ya existe
-        if (usuarioRepository.existsByDocumento(usuario.getDocumento())) {
+
+        // Validar si el documento ya existe (solo si el documento no es null o 0)
+        if (usuario.getDocumento() != null && usuario.getDocumento() > 0 && usuarioRepository.existsByDocumento(usuario.getDocumento())) {
             return "Error: Ya existe un usuario con el documento " + usuario.getDocumento() + ".";
         }
         
@@ -182,9 +182,21 @@ public class UsuarioService {
        
     }
 
-    
-    public void eliminarPorId(Long id) {
-        usuarioRepository.deleteById(id);
+
+    public String eliminarPorId(Long id) {
+        try {
+            usuarioRepository.deleteById(id);
+            return "Usuario eliminado exitosamente.";
+        } catch (DataIntegrityViolationException e) {
+            String mensaje = e.getMessage();
+            if (mensaje != null && mensaje.contains("ordenes")) {
+                return "Error: No se puede eliminar este usuario porque tiene órdenes asociadas.";
+            } else {
+                return "Error: No se puede eliminar este usuario porque tiene datos asociados en el sistema que lo impiden.";
+            }
+        } catch (Exception e) {
+            return "Error: Ocurrió un error al intentar eliminar el usuario: " + e.getMessage();
+        }
     }
 
     public String encriptarContrasena(String contrasenaPlana) {

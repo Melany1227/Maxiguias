@@ -28,7 +28,8 @@
                     <label class="form-icon-label">
                         <i class="fa-solid fa-id-badge"></i> Documento *
                     </label>
-                    <input type="text" th:field="*{documento}" name="documento" class="form-control" inputmode="numeric" pattern="[0-9]*" required>
+                    <input type="text" th:field="*{documento}" name="documento" class="form-control" inputmode="numeric" pattern="[0-9]*" required
+                           th:disabled="${esEdicion}">
 
                     <label class="form-icon-label">
                         <i class="fa-solid fa-user"></i> Nombre *
@@ -38,12 +39,12 @@
                     <label class="form-icon-label">
                         <i class="fa-solid fa-user"></i> Primer Apellido
                     </label>
-                    <input type="text" th:field="*{primerApellido}" class="form-control">
+                    <input type="text" th:field="*{primerApellido}" class="form-control" pattern="[a-zA-ZáéíóúñÁÉÍÓÚÑ\s\-']*" title="El apellido no puede contener números">
 
                     <label class="form-icon-label">
                         <i class="fa-solid fa-user"></i> Segundo Apellido
                     </label>
-                    <input type="text" th:field="*{segundoApellido}" class="form-control">
+                    <input type="text" th:field="*{segundoApellido}" class="form-control" pattern="[a-zA-ZáéíóúñÁÉÍÓÚÑ\s\-']*" title="El apellido no puede contener números">
 
                     <label class="form-icon-label">
                         <i class="fa-solid fa-phone"></i> Teléfono *
@@ -56,9 +57,9 @@
                     <input type="text" th:field="*{direccion}" class="form-control" required>
 
                     <label class="form-icon-label">
-                        <i class="fa-solid fa-envelope"></i> Correo Electrónico
+                        <i class="fa-solid fa-envelope"></i> Correo Electrónico *
                     </label>
-                    <input type="email" th:field="*{correo}" class="form-control">
+                    <input type="email" th:field="*{correo}" class="form-control" required>
                 </div>
 
                 <div class="col-md-6">
@@ -94,15 +95,19 @@
                     <label class="form-icon-label">
                         <i class="fa-solid fa-user"></i> Tipo de Usuario *
                     </label>
-                    <select th:field="*{tipoUsuario}" class="form-control" required>
+                    <select th:field="*{tipoUsuario}" class="form-control" required th:disabled="${esEdicion}">
                         <option value="">Seleccione</option>
                         <option th:each="tipo : ${tiposUsuario}" th:value="${tipo.id}" th:text="${tipo.nombre}"></option>
                     </select>
+                    <small th:if="!${esEdicion}" class="form-text text-muted d-block mt-2">
+                        <i class="fa-solid fa-info-circle"></i>
+                        <strong>Nota importante:</strong> Si registra un cliente <strong>Natural</strong>, no debe ingresar usuario ni contraseña.
+                    </small>
 
                     <label class="form-icon-label">
                         <i class="fa-solid fa-user"></i> Perfil *
                     </label>
-                    <select th:field="*{perfil}" class="form-control" required>
+                    <select th:field="*{perfil}" class="form-control" required th:disabled="${esEdicion}">
                         <option value="">Seleccione</option>
                         <option th:each="perfil : ${perfiles}" th:value="${perfil.id}" th:text="${perfil.nombrePerfil}"></option>
                     </select>
@@ -122,11 +127,12 @@
                     <label class="form-icon-label">
                         <i class="fa-solid fa-location-dot"></i> Ciudad *
                     </label>
-                    <select th:field="*{ciudad}" id="ciudadSelect" class="form-control" required>
+                    <select id="ciudadSelect" class="form-control" required name="ciudad.id">
                         <option value="">Seleccione primero un departamento</option>
-                        <option th:each="ciudad : ${ciudades}" 
-                                th:value="${ciudad.id}" 
-                                th:text="${ciudad.nombre}">
+                        <option th:each="ciudad : ${ciudades}"
+                                th:value="${ciudad.id}"
+                                th:text="${ciudad.nombre}"
+                                th:selected="${usuario.ciudad != null and usuario.ciudad.id == ciudad.id}">
                         </option>
                     </select>
                 </div>

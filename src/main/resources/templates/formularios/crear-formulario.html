@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Formulario</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+
+    <div th:replace="menú/sidebar :: sidebar"></div>
+
+    <div class="main-content">
+        <div class="form-container">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="form-title m-0">
+                    <i class="fa-solid fa-plus"></i> CREAR FORMULARIO
+                </h4>
+                <a href="/formularios"
+                   class="btn"
+                   style="background-color: #000; color: white; border-left: 5px solid #f3c623;">
+                    <i class="fa-solid fa-arrow-left"></i> Volver
+                </a>
+            </div>
+
+            <!-- Mensajes -->
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fa-solid fa-exclamation-circle me-2"></i>
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Formulario -->
+            <form action="/formularios/nuevo" method="post" class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">
+                        <i class="fa-solid fa-file me-2"></i>Nombre del Formulario *
+                    </label>
+                    <input type="text" name="nombreFormulario" class="form-control" required
+                           placeholder="Ej: Dashboard, Productos, Usuarios">
+                    <small class="text-muted">Nombre identificador del formulario</small>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">
+                        <i class="fa-solid fa-link me-2"></i>URL *
+                    </label>
+                    <input type="text" name="url" class="form-control" required
+                           placeholder="Ej: /dashboard, /productos, /usuarios">
+                    <small class="text-muted">Ruta de acceso del formulario</small>
+                </div>
+
+                <!-- Botones -->
+                <div class="col-12 d-flex justify-content-end gap-2 mt-4">
+                    <button type="submit" class="btn" style="background-color: #f3c623; color: #000; border-left: 5px solid #000;">
+                        <i class="fa-solid fa-save"></i> CREAR FORMULARIO
+                    </button>
+                    <a href="/formularios"
+                       class="btn"
+                       style="background-color: #000; color: white; border-left: 5px solid #f3c623;">
+                        <i class="fa-solid fa-times"></i> CANCELAR
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

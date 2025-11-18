@@ -245,6 +245,29 @@ body {
 
 /* Alertas */
 .alert {
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    font-size: 16px;
+    text-align: left;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.alert-success {
+    background: rgba(232, 246, 236, 0.9);
+    color: #205b37;
+    box-shadow: 0 4px 16px rgba(32, 91, 55, 0.1);
+}
+
+.alert-danger {
+    background: rgba(253, 232, 234, 0.9);
+    color: #7a2530;
+    border: 1px solid #f5c6cb;
+}
+
+/* Clase específica para alerta de validación de contraseña */
+.alert-password-strength {
     border-radius: 8px;
     padding: 8px 12px;
     margin-bottom: 8px;
@@ -261,18 +284,12 @@ body {
     overflow-y: auto;
     line-height: 1.3;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    margin-top: 4px;
 }
 
-.alert-success {
-    background: rgba(232, 246, 236, 0.95);
-    color: #205b37;
-    box-shadow: 0 2px 8px rgba(32, 91, 55, 0.1);
-}
-
-.alert-danger {
+.alert-password-strength.alert-danger {
     background: rgba(253, 232, 234, 0.95);
     color: #7a2530;
-    border: 1px solid #f5c6cb;
 }
 
 /* === ESTILOS EXISTENTES === */
