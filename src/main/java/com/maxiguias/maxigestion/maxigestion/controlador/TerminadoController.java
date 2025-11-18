@@ -1,6 +1,7 @@
 package com.maxiguias.maxigestion.maxigestion.controlador;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,15 +11,18 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.maxiguias.maxigestion.maxigestion.modelo.Terminado;
 import com.maxiguias.maxigestion.maxigestion.servicio.TerminadoService;
+import com.maxiguias.maxigestion.maxigestion.repositorio.DetalleOrdenRepository;
 
 @Controller
 @RequestMapping("/terminados")
 public class TerminadoController {
 
     private final TerminadoService terminadoService;
+    private final DetalleOrdenRepository detalleOrdenRepository;
 
-    public TerminadoController(TerminadoService terminadoService) {
+    public TerminadoController(TerminadoService terminadoService, DetalleOrdenRepository detalleOrdenRepository) {
         this.terminadoService = terminadoService;
+        this.detalleOrdenRepository = detalleOrdenRepository;
     }
 
     @GetMapping("")
@@ -33,5 +37,11 @@ public class TerminadoController {
         return terminados;
     }
 
+    @GetMapping("/{id}/en-uso")
+    @ResponseBody
+    public Map<String, Boolean> verificarSiEstáEnUso(@PathVariable("id") Long terminadoId) {
+        boolean enUso = detalleOrdenRepository.existsByTerminadoId(terminadoId);
+        return Map.of("enUso", enUso);
+    }
 
 }

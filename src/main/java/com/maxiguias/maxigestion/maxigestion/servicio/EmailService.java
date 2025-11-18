@@ -3,10 +3,15 @@ package com.maxiguias.maxigestion.maxigestion.servicio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.MailAuthenticationException;
+import org.springframework.mail.MailSendException;
 import org.springframework.stereotype.Service;
+import java.util.logging.Logger;
 
 @Service
 public class EmailService {
+
+    private static final Logger logger = Logger.getLogger(EmailService.class.getName());
 
     @Autowired
     private JavaMailSender mailSender;
@@ -17,13 +22,21 @@ public class EmailService {
             mensaje.setTo(destinatario);
             mensaje.setSubject("Recuperación de Contraseña - Maxigestion");
             mensaje.setText(construirMensajeRecuperacion(nuevaContrasena));
-            
+
             mailSender.send(mensaje);
-            System.out.println("✅ Correo enviado exitosamente a: " + destinatario);
-            
+            logger.info("✅ Correo enviado exitosamente a: " + destinatario);
+
+        } catch (MailAuthenticationException e) {
+            logger.severe("❌ Error de Autenticación SMTP: " + e.getMessage());
+            logger.severe("Verifica: usuario, contraseña y credenciales de aplicación de Gmail");
+            throw new RuntimeException("Error de autenticación SMTP. Verifica credenciales de Gmail.", e);
+        } catch (MailSendException e) {
+            logger.severe("❌ Error al enviar correo: " + e.getMessage());
+            throw new RuntimeException("Error al enviar correo de recuperación: " + e.getMessage(), e);
         } catch (Exception e) {
-            System.err.println("❌ Error al enviar correo: " + e.getMessage());
-            throw new RuntimeException("Error al enviar correo de recuperación: " + e.getMessage());
+            logger.severe("❌ Error inesperado: " + e.getClass().getName() + " - " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error al enviar correo de recuperación: " + e.getMessage(), e);
         }
     }
 

@@ -149,6 +149,7 @@ public class ProductoController {
             @PathVariable Long id,
             @ModelAttribute Producto producto,
             @RequestParam(value = "imagenFile", required = false) MultipartFile imagenFile,
+            @RequestParam(value = "terminadosEliminados", required = false) String terminadosEliminados,
             RedirectAttributes ra) {
         try {
             // Obtener producto existente para mantener imagen actual si no se sube nueva
@@ -167,10 +168,10 @@ public class ProductoController {
                 producto.setImagen(productoExistente.get().getImagen());
             }
 
-            productoService.actualizarProducto(id, producto);
+            productoService.actualizarProducto(id, producto, terminadosEliminados);
             ra.addFlashAttribute("mensajeEdicion", "Producto actualizado satisfactoriamente");
         } catch (Exception e) {
-            ra.addFlashAttribute("error", "Error al actualizar el producto: " + e.getMessage());
+            ra.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/productos";
     }
@@ -180,8 +181,11 @@ public class ProductoController {
         try {
             productoService.eliminarProducto(id);
             return ResponseEntity.ok("Producto eliminado correctamente.");
+        } catch (RuntimeException e) {
+            // Retornar el mensaje específico del error (ej: "No se puede eliminar el producto porque...")
+            return ResponseEntity.status(400).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error al eliminar el producto.");
+            return ResponseEntity.status(500).body("Error al eliminar el producto: " + e.getMessage());
         }
     }
 
