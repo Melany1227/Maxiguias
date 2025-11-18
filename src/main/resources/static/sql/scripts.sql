@@ -185,3 +185,9 @@ ALTER TABLE departamento MODIFY COLUMN id_departamento INT AUTO_INCREMENT;
 ALTER TABLE ciudades ADD CONSTRAINT fk_ciudades_departamento FOREIGN KEY (id_departamento) REFERENCES departamento(id_departamento);
 
 
+--- Modificar formularios para autoincrement
+ALTER TABLE formularios_x_perfiles DROP FOREIGN KEY formularios_x_perfiles_ibfk_2;
+ALTER TABLE formularios DROP FOREIGN KEY formularios_ibfk_1;
+ALTER TABLE formularios MODIFY id_formulario INT NOT NULL AUTO_INCREMENT;
+ALTER TABLE formularios ADD CONSTRAINT formularios_ibfk_1 FOREIGN KEY (padre) REFERENCES formularios(id_formulario);
+ALTER TABLE formularios_x_perfiles ADD CONSTRAINT formularios_x_perfiles_ibfk_2 FOREIGN KEY (formularios_id_formulario) REFERENCES formularios(id_formulario);
