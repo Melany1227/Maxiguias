@@ -28,7 +28,8 @@
                     <label class="form-icon-label">
                         <i class="fa-solid fa-id-badge"></i> Documento *
                     </label>
-                    <input type="text" th:field="*{documento}" name="documento" class="form-control" inputmode="numeric" pattern="[0-9]*" required>
+                    <input type="text" th:field="*{documento}" name="documento" class="form-control" inputmode="numeric" pattern="[0-9]*" required
+                           th:disabled="${esEdicion}">
 
                     <label class="form-icon-label">
                         <i class="fa-solid fa-user"></i> Nombre *
@@ -94,11 +95,11 @@
                     <label class="form-icon-label">
                         <i class="fa-solid fa-user"></i> Tipo de Usuario *
                     </label>
-                    <select th:field="*{tipoUsuario}" class="form-control" required>
+                    <select th:field="*{tipoUsuario}" class="form-control" required th:disabled="${esEdicion}">
                         <option value="">Seleccione</option>
                         <option th:each="tipo : ${tiposUsuario}" th:value="${tipo.id}" th:text="${tipo.nombre}"></option>
                     </select>
-                    <small class="form-text text-muted d-block mt-2">
+                    <small th:if="!${esEdicion}" class="form-text text-muted d-block mt-2">
                         <i class="fa-solid fa-info-circle"></i>
                         <strong>Nota importante:</strong> Si registra un cliente <strong>Natural</strong>, no debe ingresar usuario ni contraseña.
                     </small>
@@ -106,7 +107,7 @@
                     <label class="form-icon-label">
                         <i class="fa-solid fa-user"></i> Perfil *
                     </label>
-                    <select th:field="*{perfil}" class="form-control" required>
+                    <select th:field="*{perfil}" class="form-control" required th:disabled="${esEdicion}">
                         <option value="">Seleccione</option>
                         <option th:each="perfil : ${perfiles}" th:value="${perfil.id}" th:text="${perfil.nombrePerfil}"></option>
                     </select>

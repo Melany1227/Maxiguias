@@ -14,6 +14,10 @@ public interface DetalleOrdenRepository extends JpaRepository<DetalleOrden, Deta
 
        public void deleteByOrdenId(Long ordenId);
 
+       // Verificar si un terminado está en uso en alguna orden
+       @Query("SELECT COUNT(d) > 0 FROM DetalleOrden d WHERE d.terminado.id = :terminadoId")
+       boolean existsByTerminadoId(@Param("terminadoId") Long terminadoId);
+
        // Total de productos vendidos (sin filtro)
        @Query("SELECT SUM(d.cantidad) FROM DetalleOrden d")
        Long countTotalProductosVendidos();
