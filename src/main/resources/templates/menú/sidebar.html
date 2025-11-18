@@ -18,8 +18,9 @@
             <p th:text="${nombreUsuarioActual}"
                style="color: white; margin: 10px 0; text-align: center; font-weight: bold;"></p>
 
-            <!-- Todos los usuarios autenticados ven INICIO -->
+            <!-- Todos los usuarios autenticados ven INICIO y PERFIL -->
             <a href="/" class="btn"><i class="bi bi-house-door-fill"></i> INICIO</a>
+            <a href="/perfil" class="btn"><i class="bi bi-person-circle"></i> MI PERFIL</a>
 
             <!-- Catálogo visible para ADMINISTRADOR y JURIDICO -->
             <a href="/productos/juridico" class="btn"

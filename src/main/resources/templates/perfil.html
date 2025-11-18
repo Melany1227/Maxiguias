@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+
+    <div th:replace="menú/sidebar :: sidebar"></div>
+
+    <div class="main-content">
+        <div class="form-container">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="form-title m-0">
+                    <i class="fa-solid fa-user-circle"></i> MI PERFIL
+                </h4>
+                <a href="/" class="btn" style="background-color: #000; color: white; border-left: 5px solid #f3c623;">
+                    <i class="fa-solid fa-home"></i> Inicio
+                </a>
+            </div>
+
+            <!-- Mensajes -->
+            <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fa-solid fa-check-circle me-2"></i>
+                <span th:text="${mensajeExito}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fa-solid fa-exclamation-circle me-2"></i>
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <form th:action="@{/perfil}" method="post" class="row g-3">
+
+                <!-- Información Personal -->
+                <div class="col-md-6">
+                    <div class="card mb-4" style="border-left: 5px solid #f3c623;">
+                        <div class="card-header bg-dark text-white">
+                            <h5 class="mb-0"><i class="fas fa-user me-2"></i>Información Personal</h5>
+                        </div>
+                        <div class="card-body">
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold"><i class="fa-solid fa-id-badge me-2"></i>Documento</label>
+                                <p class="form-control-plaintext border rounded px-3 py-2 bg-light" th:text="${usuario.documento}"></p>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold"><i class="fa-solid fa-user me-2"></i>Nombre *</label>
+                                <input type="text" name="nombre" th:value="${usuario.nombre}" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold"><i class="fa-solid fa-user me-2"></i>Primer Apellido</label>
+                                <input type="text" name="primerApellido" th:value="${usuario.primerApellido}" class="form-control">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold"><i class="fa-solid fa-user me-2"></i>Segundo Apellido</label>
+                                <input type="text" name="segundoApellido" th:value="${usuario.segundoApellido}" class="form-control">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold"><i class="fa-solid fa-phone me-2"></i>Teléfono *</label>
+                                <input type="text" name="telefono" th:value="${usuario.telefono}" class="form-control" required pattern="[0-9]*" inputmode="numeric">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold"><i class="fa-solid fa-envelope me-2"></i>Correo Electrónico *</label>
+                                <input type="email" name="correo" th:value="${usuario.correo}" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold"><i class="fa-solid fa-location-dot me-2"></i>Dirección *</label>
+                                <input type="text" name="direccion" th:value="${usuario.direccion}" class="form-control" required>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cambiar Contraseña e Información del Sistema -->
+                <div class="col-md-6">
+
+                    <!-- Cambiar Contraseña -->
+                    <div class="card mb-4" style="border-left: 5px solid #000;">
+                        <div class="card-header text-white" style="background-color: #f3c623; color: #000 !important;">
+                            <h5 class="mb-0 text-dark"><i class="fas fa-lock me-2"></i>Cambiar Contraseña</h5>
+                        </div>
+                        <div class="card-body">
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold"><i class="fa-solid fa-lock me-2"></i>Contraseña Actual</label>
+                                <div class="password-input-container">
+                                    <input type="password" name="contrasenActual" class="form-control" id="contrasenActual" placeholder="Ingresa tu contraseña actual">
+                                    <button type="button" class="password-toggle" onclick="togglePassword('contrasenActual')">
+                                        <i class="fa-solid fa-eye" id="eye-contrasenActual"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted">Solo completa si deseas cambiar tu contraseña</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold"><i class="fa-solid fa-lock me-2"></i>Nueva Contraseña</label>
+                                <div class="password-input-container">
+                                    <input type="password" name="nuevaContrasena" class="form-control" id="nuevaContrasena" placeholder="Ingresa tu nueva contraseña">
+                                    <button type="button" class="password-toggle" onclick="togglePassword('nuevaContrasena')">
+                                        <i class="fa-solid fa-eye" id="eye-nuevaContrasena"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold"><i class="fa-solid fa-lock me-2"></i>Confirmar Contraseña</label>
+                                <div class="password-input-container">
+                                    <input type="password" name="confirmarContrasena" class="form-control" id="confirmarContrasena" placeholder="Confirma tu nueva contraseña">
+                                    <button type="button" class="password-toggle" onclick="togglePassword('confirmarContrasena')">
+                                        <i class="fa-solid fa-eye" id="eye-confirmarContrasena"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Información del Sistema -->
+                    <div class="card" style="border-left: 5px solid #6c757d;">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0"><i class="fas fa-cog me-2"></i>Información del Sistema</h5>
+                        </div>
+                        <div class="card-body">
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold"><i class="fa-solid fa-user-tag me-2"></i>Tipo de Usuario</label>
+                                <p class="form-control-plaintext border rounded px-3 py-2 bg-light" th:text="${usuario.tipoUsuario.nombre}"></p>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold"><i class="fa-solid fa-id-card me-2"></i>Perfil</label>
+                                <p class="form-control-plaintext border rounded px-3 py-2 bg-light" th:text="${usuario.perfil.nombrePerfil}"></p>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold"><i class="fa-solid fa-calendar me-2"></i>Fecha de Registro</label>
+                                <p class="form-control-plaintext border rounded px-3 py-2 bg-light"
+                                   th:text="${usuario.fechaRegistro != null} ? ${#temporals.format(usuario.fechaRegistro, 'dd/MM/yyyy')} : 'No disponible'"></p>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold"><i class="fa-solid fa-map me-2"></i>Departamento *</label>
+                                <select id="departamentoSelect" class="form-control" required onchange="cargarCiudades()">
+                                    <option value="">Seleccione un departamento</option>
+                                    <option th:each="departamento : ${departamentos}"
+                                            th:value="${departamento.id}"
+                                            th:text="${departamento.nombre}"
+                                            th:selected="${usuario.ciudad != null and usuario.ciudad.departamento != null and usuario.ciudad.departamento.id == departamento.id}">
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold"><i class="fa-solid fa-location-dot me-2"></i>Ciudad *</label>
+                                <select id="ciudadSelect" class="form-control" required name="ciudad.id">
+                                    <option value="">Seleccione primero un departamento</option>
+                                    <option th:each="ciudad : ${ciudades}"
+                                            th:value="${ciudad.id}"
+                                            th:text="${ciudad.nombre}"
+                                            th:selected="${usuario.ciudad != null and usuario.ciudad.id == ciudad.id}">
+                                    </option>
+                                </select>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="col-12 d-flex justify-content-end gap-2 mt-4">
+                    <button type="submit" class="btn" style="background-color: #f3c623; color: #000; border-left: 5px solid #000;">
+                        <i class="fa-solid fa-save"></i> GUARDAR CAMBIOS
+                    </button>
+                    <a href="/" class="btn" style="background-color: #000; color: white; border-left: 5px solid #f3c623;">
+                        <i class="fa-solid fa-arrow-left"></i> CANCELAR
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Incluir validaciones de documento, teléfono y contraseña -->
+    <script th:src="@{/js/validaciones.js}"></script>
+
+    <script>
+        // Función para alternar visibilidad de contraseñas
+        function togglePassword(fieldId) {
+            const passwordField = document.getElementById(fieldId);
+            const eyeIcon = document.getElementById('eye-' + fieldId);
+
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
+        }
+
+        // Función para cargar ciudades según el departamento seleccionado
+        function cargarCiudades() {
+            const departamentoSelect = document.getElementById('departamentoSelect');
+            const ciudadSelect = document.getElementById('ciudadSelect');
+            const departamentoId = departamentoSelect.value;
+
+            // Limpiar el select de ciudades
+            ciudadSelect.innerHTML = '<option value="">Cargando ciudades...</option>';
+            ciudadSelect.disabled = true;
+
+            if (departamentoId) {
+                fetch(`/api/departamentos/${departamentoId}/ciudades`)
+                    .then(response => response.json())
+                    .then(ciudades => {
+                        ciudadSelect.innerHTML = '<option value="">Seleccione una ciudad</option>';
+                        ciudades.forEach(ciudad => {
+                            const option = document.createElement('option');
+                            option.value = ciudad.id;
+                            option.textContent = ciudad.nombre;
+                            ciudadSelect.appendChild(option);
+                        });
+                        ciudadSelect.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar ciudades:', error);
+                        ciudadSelect.innerHTML = '<option value="">Error al cargar ciudades</option>';
+                    });
+            } else {
+                ciudadSelect.innerHTML = '<option value="">Seleccione primero un departamento</option>';
+                ciudadSelect.disabled = true;
+            }
+        }
+
+        // Cargar ciudades al cargar la página si ya hay un departamento seleccionado
+        document.addEventListener('DOMContentLoaded', function() {
+            const departamentoSelect = document.getElementById('departamentoSelect');
+            const ciudadSelect = document.getElementById('ciudadSelect');
+
+            if (departamentoSelect.value) {
+                const ciudadActualId = ciudadSelect.value; // Guardar el ID de la ciudad actual
+                cargarCiudadesConSeleccion(ciudadActualId);
+            }
+
+            const form = document.querySelector('form');
+            const contrasenActual = document.getElementById('contrasenActual');
+            const nuevaContrasena = document.getElementById('nuevaContrasena');
+            const confirmarContrasena = document.getElementById('confirmarContrasena');
+
+            form.addEventListener('submit', function(e) {
+                // Si se ingresó nueva contraseña, validar campos de contraseña
+                if (nuevaContrasena.value.trim() !== '' || confirmarContrasena.value.trim() !== '') {
+
+                    if (!contrasenActual.value.trim()) {
+                        e.preventDefault();
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Debe ingresar su contraseña actual para cambiarla.',
+                            icon: 'error',
+                            confirmButtonText: 'Aceptar',
+                            confirmButtonColor: '#d33'
+                        });
+                        return;
+                    }
+
+                    if (!nuevaContrasena.value.trim()) {
+                        e.preventDefault();
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Debe ingresar la nueva contraseña.',
+                            icon: 'error',
+                            confirmButtonText: 'Aceptar',
+                            confirmButtonColor: '#d33'
+                        });
+                        return;
+                    }
+
+                    if (nuevaContrasena.value !== confirmarContrasena.value) {
+                        e.preventDefault();
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Las nuevas contraseñas no coinciden.',
+                            icon: 'error',
+                            confirmButtonText: 'Aceptar',
+                            confirmButtonColor: '#d33'
+                        });
+                        return;
+                    }
+
+                    // Validar que haya error de contraseña visible (validación de políticas de seguridad)
+                    const errorContrasena = document.getElementById('error-contrasena');
+                    if (errorContrasena && errorContrasena.style.display !== 'none') {
+                        e.preventDefault();
+                        Swal.fire({
+                            title: 'Error de validación',
+                            text: errorContrasena.textContent || 'La contraseña no cumple con las políticas de seguridad.',
+                            icon: 'error',
+                            confirmButtonText: 'Aceptar',
+                            confirmButtonColor: '#d33'
+                        });
+                        return;
+                    }
+                }
+            });
+        });
+
+        // Función para cargar ciudades y seleccionar una específica
+        function cargarCiudadesConSeleccion(ciudadIdASeleccionar) {
+            const departamentoSelect = document.getElementById('departamentoSelect');
+            const ciudadSelect = document.getElementById('ciudadSelect');
+            const departamentoId = departamentoSelect.value;
+
+            ciudadSelect.innerHTML = '<option value="">Cargando ciudades...</option>';
+            ciudadSelect.disabled = true;
+
+            if (departamentoId) {
+                fetch(`/api/departamentos/${departamentoId}/ciudades`)
+                    .then(response => response.json())
+                    .then(ciudades => {
+                        ciudadSelect.innerHTML = '<option value="">Seleccione una ciudad</option>';
+                        ciudades.forEach(ciudad => {
+                            const option = document.createElement('option');
+                            option.value = ciudad.id;
+                            option.textContent = ciudad.nombre;
+
+                            // Seleccionar la ciudad si coincide con la guardada
+                            if (ciudadIdASeleccionar && ciudad.id == ciudadIdASeleccionar) {
+                                option.selected = true;
+                            }
+
+                            ciudadSelect.appendChild(option);
+                        });
+                        ciudadSelect.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar ciudades:', error);
+                        ciudadSelect.innerHTML = '<option value="">Error al cargar ciudades</option>';
+                    });
+            }
+        }
+    </script>
+
+</body>
+</html>
