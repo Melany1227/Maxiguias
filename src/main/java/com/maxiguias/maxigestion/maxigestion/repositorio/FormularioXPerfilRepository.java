@@ -5,8 +5,10 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.maxiguias.maxigestion.maxigestion.modelo.FormularioXPerfil;
 import com.maxiguias.maxigestion.maxigestion.modelo.FormularioXPerfilId;
@@ -25,4 +27,14 @@ public interface FormularioXPerfilRepository extends JpaRepository<FormularioXPe
     
     @Query("SELECT fxp FROM FormularioXPerfil fxp WHERE fxp.perfil.id = :perfilId AND :url LIKE CONCAT(fxp.formulario.url, '%') ORDER BY LENGTH(fxp.formulario.url) DESC")
     List<FormularioXPerfil> findByPerfilIdAndUrlStartsWith(@Param("perfilId") Long perfilId, @Param("url") String url);
+
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE FROM formularios_x_perfiles WHERE formularios_id_formulario = :formularioId", nativeQuery = true)
+    void deleteByFormularioId(@Param("formularioId") Long formularioId);
+
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE FROM formularios_x_perfiles WHERE perfiles_id_perfil = :perfilId", nativeQuery = true)
+    void deleteByPerfilId(@Param("perfilId") Long perfilId);
 }

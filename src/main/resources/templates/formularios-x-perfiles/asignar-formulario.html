@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asignar Formulario a Perfil</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+
+    <div th:replace="menú/sidebar :: sidebar"></div>
+
+    <div class="main-content">
+        <div class="form-container">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="form-title m-0">
+                    <i class="fa-solid fa-plus"></i> ASIGNAR FORMULARIO A PERFIL
+                </h4>
+                <a th:href="@{/formularios-x-perfiles/{id}(id=${perfil.id})}"
+                   class="btn"
+                   style="background-color: #000; color: white; border-left: 5px solid #f3c623;">
+                    <i class="fa-solid fa-arrow-left"></i> Volver
+                </a>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fa-solid fa-info-circle me-2"></i>
+                <strong>Perfil seleccionado:</strong> <span th:text="${perfil.nombrePerfil}"></span>
+                | <strong>Rol:</strong> <span th:text="${perfil.rol.nombreRol}"></span>
+            </div>
+
+            <!-- Formulario -->
+            <form th:action="@{/formularios-x-perfiles/{id}/nuevo(id=${perfil.id})}"
+                  method="post"
+                  class="row g-3">
+
+                <div class="col-md-12">
+                    <label class="form-label fw-bold"><i class="fa-solid fa-file me-2"></i>Seleccionar Formulario *</label>
+                    <select name="formularioId" class="form-control" required>
+                        <option value="">Seleccione un formulario</option>
+                        <option th:each="formulario : ${formularios}"
+                                th:value="${formulario.id}"
+                                th:text="${formulario.nombreFormulario + ' (' + formulario.url + ')'}">
+                        </option>
+                    </select>
+                    <small class="text-muted d-block mt-2">Solo se muestran formularios no asignados a este perfil</small>
+                </div>
+
+                <!-- Permisos -->
+                <div class="col-12">
+                    <h5 class="mt-4 mb-3"><i class="fa-solid fa-lock me-2"></i>Asignar Permisos</h5>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-check form-switch" style="padding-left: 3rem;">
+                        <input class="form-check-input" type="checkbox" id="crear" name="crear" value="S" data-default="S" checked>
+                        <label class="form-check-label" for="crear">
+                            <i class="fa-solid fa-plus me-2"></i><strong>Crear</strong>
+                            <small class="d-block text-muted">Permite crear nuevos registros</small>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-check form-switch" style="padding-left: 3rem;">
+                        <input class="form-check-input" type="checkbox" id="editar" name="editar" value="S" data-default="S" checked>
+                        <label class="form-check-label" for="editar">
+                            <i class="fa-solid fa-pen me-2"></i><strong>Editar</strong>
+                            <small class="d-block text-muted">Permite modificar registros</small>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-check form-switch" style="padding-left: 3rem;">
+                        <input class="form-check-input" type="checkbox" id="visualizar" name="visualizar" value="S" data-default="S" checked>
+                        <label class="form-check-label" for="visualizar">
+                            <i class="fa-solid fa-eye me-2"></i><strong>Visualizar</strong>
+                            <small class="d-block text-muted">Permite ver registros</small>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-check form-switch" style="padding-left: 3rem;">
+                        <input class="form-check-input" type="checkbox" id="eliminar" name="eliminar" value="S" data-default="S" checked>
+                        <label class="form-check-label" for="eliminar">
+                            <i class="fa-solid fa-trash me-2"></i><strong>Eliminar</strong>
+                            <small class="d-block text-muted">Permite eliminar registros</small>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Botones -->
+                <div class="col-12 d-flex justify-content-end gap-2 mt-4">
+                    <button type="submit" class="btn" style="background-color: #f3c623; color: #000; border-left: 5px solid #000;">
+                        <i class="fa-solid fa-save"></i> ASIGNAR
+                    </button>
+                    <a th:href="@{/formularios-x-perfiles/{id}(id=${perfil.id})}"
+                       class="btn"
+                       style="background-color: #000; color: white; border-left: 5px solid #f3c623;">
+                        <i class="fa-solid fa-times"></i> CANCELAR
+                    </a>
+                </div>
+            </form>
+
+            <div th:if="${#lists.isEmpty(formularios)}" class="alert alert-warning mt-4">
+                <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                <strong>No hay formularios disponibles</strong> para asignar a este perfil.
+                Todos los formularios ya están asignados.
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Convertir checkboxes a formato esperado (S/N) al enviar el formulario
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const permisos = ['crear', 'editar', 'visualizar', 'eliminar'];
+            permisos.forEach(permiso => {
+                document.getElementById(permiso).value = document.getElementById(permiso).checked ? 'S' : 'N';
+            });
+        });
+    </script>
+
+</body>
+</html>
