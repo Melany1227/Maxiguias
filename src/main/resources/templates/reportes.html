@@ -149,7 +149,7 @@
           <!-- Estadísticas -->
           <div class="estadisticas-grid">
             <div class="estadistica-card total">
-              <h5>Total Órdenes</h5>
+              <h5>Total Facturas</h5>
               <div class="estadistica-numero" id="totalOrdenes">0</div>
             </div>
           </div>
@@ -362,6 +362,22 @@
       return Boolean(tbody && tbody.dataset && tbody.dataset.hasData === "true");
     }
 
+    function rangoFechasValido(fechaInicioId, fechaFinId) {
+      const inicioInput = document.getElementById(fechaInicioId);
+      const finInput = document.getElementById(fechaFinId);
+      if (
+        inicioInput &&
+        finInput &&
+        inicioInput.value &&
+        finInput.value &&
+        inicioInput.value > finInput.value
+      ) {
+        mostrarAlertaSinDatos();
+        return false;
+      }
+      return true;
+    }
+
     // ========== FUNCIONES PARA REPORTE DE CLIENTES ==========
     function mostrarInformeClientes() {
       // Cargar estadísticas iniciales
@@ -413,6 +429,9 @@
     function generarExcelClientes() {
       if (!hayDatosEnElemento("totalUsuarios")) {
         mostrarAlertaSinDatos();
+        return;
+      }
+      if (!rangoFechasValido("fechaInicioClientes", "fechaFinClientes")) {
         return;
       }
       const inicio = document.getElementById("fechaInicioClientes").value;
@@ -485,6 +504,24 @@
         return;
       }
 
+      if (
+        fechaInicioInput &&
+        fechaInicioInput.value &&
+        fechaFinInput &&
+        fechaFinInput.value
+      ) {
+        const inicio = parseDateValue(fechaInicioInput.value);
+        const fin = parseDateValue(fechaFinInput.value);
+        if (inicio > fin) {
+          if (errorContainer) {
+            errorContainer.classList.remove("d-none");
+            errorContainer.textContent =
+              "La fecha inicial no puede ser mayor a la final";
+          }
+          return;
+        }
+      }
+
       if (errorContainer) {
         errorContainer.classList.add("d-none");
       }
@@ -544,6 +581,9 @@
     function generarZipOrdenes() {
       if (!hayDatosEnElemento("totalOrdenes")) {
         mostrarAlertaSinDatos();
+        return;
+      }
+      if (!rangoFechasValido("fechaInicio", "fechaFin")) {
         return;
       }
       const inicio = document.getElementById("fechaInicio").value;
@@ -637,6 +677,9 @@
         mostrarAlertaSinDatos();
         return;
       }
+      if (!rangoFechasValido("fechaInicioProductos", "fechaFinProductos")) {
+        return;
+      }
       const fechaInicio = document.getElementById("fechaInicioProductos").value;
       const fechaFin = document.getElementById("fechaFinProductos").value;
 
@@ -698,6 +741,9 @@
     function exportarExcelVentas() {
       if (!hayDatosEnElemento("totalOrdenesVentas")) {
         mostrarAlertaSinDatos();
+        return;
+      }
+      if (!rangoFechasValido("fechaInicioVentas", "fechaFinVentas")) {
         return;
       }
       const inicio = document.getElementById("fechaInicioVentas").value;
