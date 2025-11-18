@@ -154,26 +154,32 @@ public class AuthController {
             if (!nuevaContrasena.equals(confirmarContrasena)) {
                 model.addAttribute("mensajeModal", "Las contraseñas no coinciden.");
                 model.addAttribute("tipoMensaje", "error");
+                model.addAttribute("correoPrelleno", correo);
+                model.addAttribute("contrasenaTemporal", contrasenaTemporal);
                 return "cambiar-password";
             }
 
             // Validar y cambiar contraseña usando el servicio
             String resultado = usuarioService.cambiarContrasenaTemporal(correo, contrasenaTemporal, nuevaContrasena);
-            
+
             if (resultado.startsWith("Error:")) {
                 model.addAttribute("mensajeModal", resultado);
                 model.addAttribute("tipoMensaje", "error");
+                model.addAttribute("correoPrelleno", correo);
+                model.addAttribute("contrasenaTemporal", contrasenaTemporal);
             } else {
                 model.addAttribute("mensajeModal", "Contraseña cambiada exitosamente. Ya puedes iniciar sesión.");
                 model.addAttribute("tipoMensaje", "success");
                 model.addAttribute("redirigirLogin", true);
             }
-            
+
         } catch (Exception e) {
             model.addAttribute("mensajeModal", "Error al cambiar contraseña: " + e.getMessage());
             model.addAttribute("tipoMensaje", "error");
+            model.addAttribute("correoPrelleno", correo);
+            model.addAttribute("contrasenaTemporal", contrasenaTemporal);
         }
-        
+
         return "cambiar-password";
     }
 }
