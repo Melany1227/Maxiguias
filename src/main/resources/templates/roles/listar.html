@@ -41,27 +41,33 @@
                         <tr th:each="rol : ${roles}">
                             <td th:text="${rol.id}"></td>
                             <td th:text="${rol.nombreRol}"></td>
-                            <td class="text-center">
-                                <a th:href="@{/roles/{id}(id=${rol.id})}"
-                                   class="btn btn-outline-info btn-sm me-1"
-                                   title="Ver detalles">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-
-                                <a th:href="@{/roles/{id}/editar(id=${rol.id})}"
-                                   class="btn btn-outline-warning btn-sm me-1"
-                                   title="Editar">
-                                    <i class="fas fa-pen"></i>
-                                </a>
-
-                                <button type="button"
-                                        class="btn btn-outline-dark btn-sm btn-eliminar"
-                                        th:data-id="${rol.id}"
-                                        th:data-nombre="${rol.nombreRol}"
-                                        title="Eliminar">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
+                            <td>
+                            <div class="dropdown">
+                                <button class="btn btn-dark btn-sm rounded-circle" type="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i></button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item"
+                                            th:href="@{/roles/{id}/editar(id=${rol.id})}">
+                                            <i class="fa-solid fa-pen text-primary"></i> Editar
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item btn-eliminar" href="javascript:void(0)"
+                                            th:attr="data-id=${rol.id}, data-nombre=${rol.nombreRol}">
+                                            <i class="fa-solid fa-trash text-danger"></i> Eliminar
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item"
+                                            th:href="@{/roles/{id}(id=${rol.id})}">
+                                            <i class="fa-solid fa-eye text-info"></i> Ver detalles
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
                         </tr>
                     </tbody>
                 </table>
