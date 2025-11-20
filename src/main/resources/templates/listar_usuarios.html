@@ -20,9 +20,8 @@
                     <i class="fa-solid fa-id-card"></i> LISTA DE USUARIOS
                 </h4>
 
-                <a href="/usuarios/crear" class="btn"
-                    style="background-color: #000; color: white; width: 15%; margin-bottom: 15px; border-left: 5px solid #f3c623;">
-                    <i class="fa-solid fa-plus" style="padding-right: 8px;"></i> NUEVO USUARIO
+                <a href="/usuarios/crear" class="custom-btn-accion">
+                    <i class="fa-solid fa-plus"></i> NUEVO USUARIO
                 </a>
             </div>
 
@@ -86,18 +85,11 @@
                             <td class="text-center">
                                 <!-- Dropdown con ícono de tres puntos -->
                                 <div class="dropdown">
-                                    <button class="btn btn-sm" style="background-color: transparent; border: none; color: #d0a736; font-size: 1.2rem;"
-                                            type="button" data-bs-toggle="dropdown" aria-expanded="false"
-                                            title="Acciones">
-                                        <i class="fa-solid fa-ellipsis-vertical"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end">
-                                        <li>
-                                            <a class="dropdown-item"
-                                               th:href="@{/usuarios/ver/{id}(id=${usuario.documento})}">
-                                               <i class="fa-solid fa-eye text-info"></i> Ver Detalles
-                                            </a>
-                                        </li>
+                                   <button class="btn btn-dark btn-sm rounded-circle" type="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i></button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                        
                                         <li>
                                             <a class="dropdown-item"
                                                th:href="@{/usuarios/editar/{id}(id=${usuario.documento})}">
@@ -109,6 +101,12 @@
                                                th:onclick="'confirmarEliminar(\'' + ${usuario.documento} + '\')'"
                                                style="cursor: pointer;">
                                                <i class="fa-solid fa-trash text-danger"></i> Eliminar
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item"
+                                               th:href="@{/usuarios/ver/{id}(id=${usuario.documento})}">
+                                               <i class="fa-solid fa-eye text-info"></i> Ver Detalles
                                             </a>
                                         </li>
                                     </ul>
@@ -216,16 +214,16 @@
             });
         }
 
-        // Función para confirmar eliminación de usuario
+        // Funcion para confirmar eliminacion de usuario
         async function confirmarEliminar(documento) {
             const result = await Swal.fire({
-                title: '¿Estás seguro?',
-                text: "No podrás deshacer esta acción",
+                title: 'Estas seguro?',
+                text: 'No podras deshacer esta accion',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
                 cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Sí, eliminar',
+                confirmButtonText: 'Si, eliminar',
                 cancelButtonText: 'Cancelar'
             });
 
@@ -233,65 +231,52 @@
                 return;
             }
 
-                    try {
-                        const response = await fetch(`/usuarios/eliminar/${documento}`, {
-                            method: 'POST',
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest',
-                                'Content-Type': 'application/json'
-                            }
-                        });
-
-                        const data = await response.json();
-
-                        if (data.success) {
-                            Swal.fire({
-                                title: '¡Éxito!',
-                                text: data.mensaje,
-                                icon: 'success',
-                                confirmButtonText: 'Aceptar',
-                                confirmButtonColor: '#d0a736'
-                            }).then(() => location.reload());
-                        } else {
-                            Swal.fire({
-                                title: 'Error',
-                                text: data.mensaje,
-                                icon: 'error',
-                                confirmButtonText: 'Aceptar',
-                                confirmButtonColor: '#d33'
-                            });
-                        }
-                    } catch (error) {
-                        Swal.fire({
-                            title: 'Error',
-                            text: 'Ocurrió un problema al intentar eliminar el usuario.',
-                            icon: 'error',
-                            confirmButtonText: 'Aceptar',
-                            confirmButtonColor: '#d33'
-                        });
+            try {
+                const response = await fetch(`/usuarios/eliminar/${documento}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/json'
                     }
                 });
 
-                if (response.ok) {
-                    Swal.fire(
-                        '¡Eliminado!',
-                        'El usuario ha sido eliminado con éxito.',
-                        'success'
-                    ).then(() => location.reload());
-                } else {
-                    const errorText = await response.text();
-                    Swal.fire(
-                        'Error',
-                        `No se pudo eliminar el usuario. Código: ${response.status}`,
-                        'error'
-                    );
+                let data = null;
+                try {
+                    data = await response.json();
+                } catch (parseError) {
+                    data = null;
                 }
+
+                if (data && data.success) {
+                    Swal.fire({
+                        title: 'Exito',
+                        text: data.mensaje || 'El usuario ha sido eliminado.',
+                        icon: 'success',
+                        confirmButtonText: 'Aceptar',
+                        confirmButtonColor: '#d0a736'
+                    }).then(() => location.reload());
+                    return;
+                }
+
+                const mensajeError = (data && data.mensaje)
+                    ? data.mensaje
+                    : `No se pudo eliminar el usuario. Codigo: ${response.status}`;
+
+                Swal.fire({
+                    title: 'Error',
+                    text: mensajeError,
+                    icon: 'error',
+                    confirmButtonText: 'Aceptar',
+                    confirmButtonColor: '#d33'
+                });
             } catch (error) {
-                Swal.fire(
-                    'Error',
-                    'Ocurrió un problema al intentar eliminar.',
-                    'error'
-                );
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Ocurrio un problema al intentar eliminar el usuario.',
+                    icon: 'error',
+                    confirmButtonText: 'Aceptar',
+                    confirmButtonColor: '#d33'
+                });
             }
         }
         /*]]>*/

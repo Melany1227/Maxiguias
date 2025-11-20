@@ -6,8 +6,8 @@
     <title th:text="${producto.id == null ? 'Nuevo Producto' : 'Editar Producto'}"></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/estilos.css}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <style>
 
@@ -26,8 +26,10 @@
                     <i class="fa-solid fa-box"></i>
                     <span th:text="${producto.id == null ? 'Registrar Nuevo Producto' : 'Editar Producto'}"></span>
                 </h4>
-                <a href="/productos" class="btn-black-yellow">
-                    <i class=></i> Volver
+                <a href="/productos"
+                   class="btn"
+                   style="background-color: #000; color: white; border-left: 5px solid #f3c623;">
+                    <i class="fa-solid fa-arrow-left"></i> Volver
                 </a>
             </div>
 
@@ -116,59 +118,15 @@
                 </div>
                 <!-- Botones finales -->
                 <div class="mt-4 d-flex gap-2">
-                    <button type="submit" class="btn-black-yellow">
-                        <i></i> Guardar
-                    </button>
-
-                    <div class="table-responsive">
-                        <table class="mt-2 table table-terminados">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Medida</th>
-                                    <th>Precio Público</th>
-                                    <th>Precio x Mayor</th>
-                                    <th>Precio x Encargo</th>
-                                    <th>% Ganancia x Mayor</th>
-                                    <th>% Ganancia x Encargo</th>
-                                    <th>Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="terminadosTable">
-                                <tr th:each="terminado, iterStat : *{terminados}">
-                                    <td><input type="text" step="0.01"
-                                            th:field="*{terminados[__${iterStat.index}__].medidaTerminadoProducto}"
-                                            class="form-control numero-estricto" required /></td>
-                                    <td><input type="number"
-                                            th:field="*{terminados[__${iterStat.index}__].precioPublico}"
-                                            class="form-control numero-estricto" required /></td>
-                                    <td><input type="number"
-                                            th:field="*{terminados[__${iterStat.index}__].precioPorMayor}"
-                                            class="form-control numero-estricto" required /></td>
-                                    <td><input type="number"
-                                            th:field="*{terminados[__${iterStat.index}__].precioPorEncargo}"
-                                            class="form-control numero-estricto" required /></td>
-                                    <td><input type="text" step="0.01"
-                                            th:field="*{terminados[__${iterStat.index}__].gananciaXMayor}"
-                                            class="form-control numero-estricto" /></td>
-                                    <td><input type="text" step="0.01"
-                                            th:field="*{terminados[__${iterStat.index}__].gananciaXEncargo}"
-                                            class="form-control numero-estricto" /></td>
-                                    <td><button type="button" class="btn btn-danger btn-sm"
-                                            onclick="eliminarFila(this)"><i class="bi bi-x-lg"></i></button></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
                     <!-- Botones finales -->
                     <div class="mt-4 d-flex gap-2">
-                        <button type="submit" class="btn-black-yellow">
-                            <i></i> Guardar
+                        <button type="submit" class="custom-btn-accion">
+                            <i class="fa-solid fa-save"></i> Guardar
                         </button>
-                        <a href="/productos" class="btn-black-yellow">
-                            <i></i> Cancelar
+                        <a href="/productos" class="custom-btn">
+                            <i class="fa-solid fa-times"></i> Cancelar
                         </a>
                     </div>
-            </form>
         </div>
     </div>
 
