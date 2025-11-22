@@ -884,3 +884,39 @@ a[class*="btn"]:hover {
 .sidebar::-webkit-scrollbar-thumb:hover {
     background: rgba(208, 167, 54, 0.8);
 }
+
+
+/* PAGINACIÓN PERSONALIZADA */
+.custom-pagination {
+    display: flex;
+    gap: 8px;
+}
+
+.custom-pagination .page-item .page-link {
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    padding: 6px 0;
+    text-align: center;
+    border: 1px solid #ddd;
+    color: #000;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+}
+
+.custom-pagination .page-item .page-link:hover {
+    background-color: #000;
+    color: #fff;
+    border-color: #000;
+}
+
+.custom-pagination .page-item.active .page-link {
+    background-color: #000;
+    color: #fff;
+    border-color: #000;
+}
+
+.custom-pagination .page-item.disabled .page-link {
+    opacity: 0.4;
+    pointer-events: none;
+}

@@ -45,37 +45,60 @@
                 </div>
             </div>
 
-            <!-- Controles de paginación -->
-            <div class="row mt-4" th:if="${totalPages > 1}">
-                <div class="col-12 text-center">
-                    
-                    <p class="text-dark small mb-2">
-                    Página [[${currentPage + 1}]] de [[${totalPages}]] 
-                    ([[${totalElements}]] productos)
-                    </p>
+            
 
-                    <div class="pagination-modern">
-                    <!-- Botón anterior -->
-                    <a th:if="${currentPage > 0}"
-                        th:href="@{(${rolUsuario} == 'NATURAL' ? '/productos/publico' : '/productos/juridico')(page=${currentPage - 1}, size=${size})}"
-                        title="Anterior">‹</a>
-                    <a th:unless="${currentPage > 0}" class="disabled">‹</a>
 
-                    <!-- Números -->
-                    <a th:each="pageNum : ${#numbers.sequence(T(java.lang.Math).max(0, currentPage - 2), T(java.lang.Math).min(totalPages - 1, currentPage + 2))}"
-                        th:href="@{(${rolUsuario} == 'NATURAL' ? '/productos/publico' : '/productos/juridico')(page=${pageNum}, size=${size})}"
-                        th:text="${pageNum + 1}"
-                        th:classappend="${pageNum == currentPage} ? 'active'">
+            
+<!-- Controles de paginación -->
+<div class="row mt-5" th:if="${totalPages > 1}">
+    <div class="col-12 d-flex flex-column align-items-center">
+
+        <!-- Info -->
+        <p class="text-dark small mb-3">
+            Página [[${currentPage + 1}]] de [[${totalPages}]]
+            ([[${totalElements}]] productos)
+        </p>
+
+        <!-- Paginación -->
+        <nav>
+            <ul class="pagination custom-pagination">
+
+                <!-- Anterior -->
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{(${rolUsuario} == 'NATURAL' ? '/productos/publico' : '/productos/juridico')(page=${currentPage - 1}, size=${size})}">
+                        ‹
                     </a>
+                </li>
 
-                    <!-- Botón siguiente -->
-                    <a th:if="${currentPage < totalPages - 1}"
-                        th:href="@{(${rolUsuario} == 'NATURAL' ? '/productos/publico' : '/productos/juridico')(page=${currentPage + 1}, size=${size})}"
-                        title="Siguiente">›</a>
-                    <a th:unless="${currentPage < totalPages - 1}" class="disabled">›</a>
-                    </div>
-                </div>
-            </div>
+                <!-- Números dinámicos -->
+                <li class="page-item"
+                    th:each="pageNum : ${#numbers.sequence(
+                        T(java.lang.Math).max(0, currentPage - 2),
+                        T(java.lang.Math).min(totalPages - 1, currentPage + 2)
+                    )}"
+                    th:classappend="${pageNum == currentPage} ? 'active'">
+                    <a class="page-link"
+                       th:href="@{(${rolUsuario} == 'NATURAL' ? '/productos/publico' : '/productos/juridico')(page=${pageNum}, size=${size})}"
+                       th:text="${pageNum + 1}">
+                    </a>
+                </li>
+
+                <!-- Siguiente -->
+                <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{(${rolUsuario} == 'NATURAL' ? '/productos/publico' : '/productos/juridico')(page=${currentPage + 1}, size=${size})}">
+                        ›
+                    </a>
+                </li>
+
+            </ul>
+        </nav>
+
+    </div>
+</div>
+
+
 
     <!-- Modal por producto -->
     <div th:each="producto : ${productos}">
