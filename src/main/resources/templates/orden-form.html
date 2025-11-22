@@ -12,13 +12,16 @@
   <div th:replace="menú/sidebar :: sidebar"></div> 
 
   <div class="main-content">
-    <div class="form-container">
-      
+    <a th:href="@{/ordenes}" class="custom-btn">
+                    <i class="fa-solid fa-arrow-left"></i> Volver
+                </a>
+    <div class="form-container">     
         <h4 class="form-title">
           <i class="fa-solid fa-shopping-cart"></i> 
           <span th:if="${editMode}">EDITAR ORDEN #[[${orden.id}]]</span>
           <span th:unless="${editMode}">CREAR ORDEN</span>
         </h4>
+        
 
         <!-- Paso 1: Búsqueda de Usuario (Solo para Administradores) -->
         <div id="paso1" class="step-section" th:if="${(esAdministrador ?: false) && !(editMode ?: false)}">
@@ -322,14 +325,14 @@
             <input type="hidden" id="inputTotalOrden" name="totalFactura" th:value="${(editMode and orden.totalFactura != null) ? orden.totalFactura : ''}">
 
             <div class="col-12 d-flex justify-content-between">
-                <button th:if="${editMode}" type="button" class="btn" style="background-color: #d0a736; color: white;" onclick="window.location.href='/ordenes'">
+                <button th:if="${editMode}" type="button" class="custom-btn" onclick="window.location.href='/ordenes'">
                     <i class="fa-solid fa-arrow-left"></i> Volver a Lista
                 </button>
-                <button th:unless="${editMode}" type="button" class="btn" style="background-color: #d0a736; color: white;"
+                <button th:unless="${editMode}" type="button" class="custom-btn"
                         onclick="volverAPaso1()">
                     <i class="fa-solid fa-arrow-left"></i> Volver
                 </button>
-                <button type="submit" class="custom-btn">
+                <button type="submit" class="custom-btn-accion">
                     <i class="fa-solid fa-save"></i> 
                     <span th:if="${editMode}">ACTUALIZAR ORDEN</span>
                     <span th:unless="${editMode}">GUARDAR ORDEN</span>
