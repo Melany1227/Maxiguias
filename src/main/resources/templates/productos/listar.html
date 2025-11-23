@@ -16,21 +16,34 @@
         <div class="form-container">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4 class="form-title m-0">GESTIÓN DE PRODUCTOS</h4>
+                                    <a href="/productos/nuevo" class="custom-btn-accion">
+                        <i class="fa-solid fa-plus me-2"></i> NUEVO PRODUCTO
+                    </a>
             </div>
-            <!-- Buscador -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <form th:action="@{/productos}" method="get" class="d-flex">
-                        <input type="text" name="keyword" th:value="${keyword}" 
+
+
+            <!-- Barra de búsqueda -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <form th:action="@{/productos}" method="get" class="d-flex gap-2 align-items-center">
+                        <div class="input-group flex-grow-1" style="max-width: 400px;">
+                            <input type="text" name="keyword" th:value="${keyword}" 
                             placeholder="Buscar por código o nombre" 
                             class="form-control me-2"/>
-                        <button type="submit" class="btn btn-dark">Buscar</button>
+                        </div>
+
+                        <button type="submit" class="btn"
+                            style="background-color: #000; color: white; border-left: 3px solid #f3c623;">
+                            <i class="fas fa-search me-1"></i> Buscar
+                        </button>
+
+                        <a href="/productos" class="btn"
+                            style="background-color: #000; color: white; border-left: 3px solid #f3c623;"
+                            th:if="${keyword != null and keyword != ''}">
+                            <i class="fas fa-times me-1"></i> Limpiar
+                        </a>
                     </form>
-                    <a href="/productos/nuevo" class="btn btn-black-yellow text-decoration-none fw-bold mt-2">
-                        <i class="bi bi-plus-circle me-2"></i> NUEVO PRODUCTO
-                    </a>
                 </div>
-            </div>
             <!-- Tabla -->
             <div class="table-responsive mb-3">
                 <table class="table table-hover align-middle text-center">

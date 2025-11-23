@@ -18,12 +18,11 @@
                 <!-- Botón PDF: Solo para FINALIZADA y FACTURADA -->
                 <a th:if="${orden.estado.name() == 'FINALIZADA' || orden.estado.name() == 'FACTURADA'}"
                    th:href="@{/ordenes/pdf/{id}(id=${orden.id})}"
-                   class="btn me-2"
-                   style="background-color: #d0a736; color: white;"
+                   class="custom-btn-accion me-2"
                    title="Descargar PDF">
                     <i class="fa-solid fa-file-pdf"></i> Descargar PDF
                 </a>
-                <a th:href="@{/ordenes}" class="btn" style="background-color: #d0a736; color: white;">
+                <a th:href="@{/ordenes}" class="custom-btn">
                     <i class="fa-solid fa-arrow-left"></i> Volver
                 </a>
             </div>
