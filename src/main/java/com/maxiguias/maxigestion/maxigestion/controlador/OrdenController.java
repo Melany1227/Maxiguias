@@ -327,18 +327,18 @@ public class OrdenController {
     }
 
     @GetMapping("/pdf/{id}")
-    public ResponseEntity<byte[]> descargarOrdenPDF(@PathVariable("id") Long id, HttpSession session) {
+    public String descargarOrdenPDF(@PathVariable("id") Long id, HttpSession session, Model model) {
         try {
             Orden orden = ordenService.obtenerOrdenPorId(id);
             if (orden == null) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                return listarOrdenes(0, 10, null, null, "Orden no encontrada", model, session);
             }
             
             // Obtener usuario logueado para validación de permisos
             Usuario usuarioLogueado = (Usuario) session.getAttribute("usuario");
             
             if (usuarioLogueado == null) {
-                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+                return "redirect:/login?error=Session expired";
             }
             
             // Verificar permisos para usuarios jurídicos
@@ -352,13 +352,47 @@ public class OrdenController {
             // Control de acceso: cliente jurídico solo puede descargar PDF de sus propias órdenes
             if (esClienteJuridico && !esAdministrador) {
                 if (!orden.getUsuario().getDocumento().equals(usuarioLogueado.getDocumento())) {
-                    return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+                    return listarOrdenes(0, 10, null, null, "No tiene permisos para descargar esta orden", model, session);
                 }
             }
             
             // Validar que la orden esté en estado FINALIZADA o FACTURADA para generar PDF
             if (orden.getEstado() != EstadoOrden.FINALIZADA && orden.getEstado() != EstadoOrden.FACTURADA) {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                return listarOrdenes(0, 10, null, null, "Solo se puede generar PDF de órdenes finalizadas o facturadas", model, session);
+            }
+            
+            byte[] pdfBytes = ordenService.generarOrdenPDF(id);
+            
+            // Si llegamos aquí, el PDF se generó exitosamente
+            // Redirigir a un endpoint que descargue el archivo
+            return "redirect:/ordenes/descargar-pdf/" + id;
+            
+        } catch (RuntimeException e) {
+            // Si es el error específico de representante, mostrar mensaje específico
+            if (e.getMessage() != null && e.getMessage().contains("Es necesario configurar un usuario con perfil de REPRESENTANTE")) {
+                return listarOrdenes(0, 10, null, null, "Es necesario configurar un usuario con perfil de REPRESENTANTE en el sistema", model, session);
+            }
+            // Para otros errores RuntimeException
+            return listarOrdenes(0, 10, null, null, "Error interno al generar el PDF", model, session);
+        } catch (Exception e) {
+            // Log del error general
+            e.printStackTrace();
+            return listarOrdenes(0, 10, null, null, "Error inesperado al generar el PDF", model, session);
+        }
+    }
+    
+    @GetMapping("/descargar-pdf/{id}")
+    public ResponseEntity<byte[]> descargarPDF(@PathVariable("id") Long id, HttpSession session) {
+        try {
+            Orden orden = ordenService.obtenerOrdenPorId(id);
+            if (orden == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            
+            // Verificar permisos básicos
+            Usuario usuarioLogueado = (Usuario) session.getAttribute("usuario");
+            if (usuarioLogueado == null) {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
             }
             
             byte[] pdfBytes = ordenService.generarOrdenPDF(id);
@@ -370,6 +404,7 @@ public class OrdenController {
             
             return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
         } catch (Exception e) {
+            e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

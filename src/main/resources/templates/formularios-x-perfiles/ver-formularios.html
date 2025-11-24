@@ -117,12 +117,14 @@
                                             </a>
                                         </li>
                                         <li>
-                                            <form class="dropdown-item p-0 m-0"
+                                            <form class="dropdown-item p-0 m-0 form-desasignar-formulario"
                                                 th:action="@{/formularios-x-perfiles/{perfilId}/eliminar/{formularioId}(perfilId=${perfil.id}, formularioId=${formulario.formulario.id})}"
-                                                method="POST"
-                                                onsubmit="return confirm('¿Está seguro de desasignar este formulario?');">
-                                                <button type="submit"
-                                                    class="dropdown-item text-danger bg-transparent border-0 w-100 text-start">
+                                                method="POST">
+                                                <button type="button"
+                                                    class="dropdown-item text-danger bg-transparent border-0 w-100 text-start btn-desasignar-formulario"
+                                                    th:data-formulario-id="${formulario.formulario.id}"
+                                                    th:data-formulario-nombre="${formulario.formulario.nombreFormulario}"
+                                                    th:data-perfil-nombre="${perfil.nombrePerfil}">
                                                     <i class="fa-solid fa-trash me-2"></i>Desasignar formulario
                                                 </button>
                                             </form>
@@ -159,6 +161,36 @@
                 const valor = checkbox.getAttribute('data-permiso');
                 // Setear como checked si el valor es 'S'
                 checkbox.checked = (valor === 'S');
+            });
+            
+            // Manejar desasignación de formularios con SweetAlert2
+            document.querySelectorAll('.btn-desasignar-formulario').forEach(button => {
+                button.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    
+                    const formularioId = this.getAttribute('data-formulario-id');
+                    const formularioNombre = this.getAttribute('data-formulario-nombre');
+                    const perfilNombre = this.getAttribute('data-perfil-nombre');
+                    
+                    const result = await Swal.fire({
+                        title: '¿Estás seguro?',
+                        html: `<strong>Formulario: ${formularioNombre}</strong><br>
+                               <strong>Perfil: ${perfilNombre}</strong><br><br>
+                               Se desasignará este formulario del perfil.<br>
+                               No podrás deshacer esta acción.`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Sí, desasignar',
+                        cancelButtonText: 'Cancelar'
+                    });
+                    
+                    if (result.isConfirmed) {
+                        // Enviar el formulario
+                        this.closest('form').submit();
+                    }
+                });
             });
         });
     </script>

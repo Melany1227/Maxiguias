@@ -27,8 +27,10 @@ import com.itextpdf.text.pdf.PdfWriter;
 import com.maxiguias.maxigestion.maxigestion.modelo.DetalleOrden;
 import com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden;
 import com.maxiguias.maxigestion.maxigestion.modelo.Orden;
+import com.maxiguias.maxigestion.maxigestion.modelo.Usuario;
 import com.maxiguias.maxigestion.maxigestion.repositorio.DetalleOrdenRepository;
 import com.maxiguias.maxigestion.maxigestion.repositorio.OrdenRepository;
+import com.maxiguias.maxigestion.maxigestion.repositorio.UsuarioRepository;
 
 @Service
 public class OrdenService {
@@ -38,6 +40,9 @@ public class OrdenService {
 
     @Autowired
     private DetalleOrdenRepository detalleOrdenRepository;
+    
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     @Transactional
     public Orden guardarOrden(Orden orden) {
@@ -96,6 +101,16 @@ public class OrdenService {
         if (orden == null) {
             throw new RuntimeException("Orden no encontrada");
         }
+        
+        // Validar que existe un usuario representante configurado
+        Long countRepresentante = usuarioRepository.countByRepresentanteProfile();
+        if (countRepresentante == null || countRepresentante == 0) {
+            throw new RuntimeException("No se puede generar la factura: Es necesario configurar un usuario con perfil de REPRESENTANTE en el sistema.");
+        }
+        
+        // Obtener el usuario representante
+        Usuario representante = usuarioRepository.findRepresentante()
+            .orElseThrow(() -> new RuntimeException("No se puede encontrar el usuario representante configurado"));
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         Document document = new Document();
@@ -133,6 +148,34 @@ public class OrdenService {
 
             document.add(companyTable);
 
+            // Información del representante
+            Paragraph representativeTitle = new Paragraph("INFORMACIÓN DEL REPRESENTANTE", headerFont);
+            representativeTitle.setSpacingBefore(10);
+            representativeTitle.setSpacingAfter(5);
+            document.add(representativeTitle);
+
+            PdfPTable representativeTable = new PdfPTable(2);
+            representativeTable.setWidthPercentage(100);
+            representativeTable.setSpacingAfter(15);
+
+            // Nombre completo del representante
+            String nombreCompletoRepresentante = representante.getNombre() + " " + 
+                    representante.getPrimerApellido() + 
+                    (representante.getSegundoApellido() != null ? " " + representante.getSegundoApellido() : "");
+
+            representativeTable.addCell(createInfoCell("Documento: " + representante.getDocumento(), normalFont));
+            representativeTable.addCell(createInfoCell("Nombre: " + nombreCompletoRepresentante, normalFont));
+            representativeTable.addCell(createInfoCell("Teléfono: " + 
+                    (representante.getTelefono() != null ? representante.getTelefono() : "N/A"), normalFont));
+            representativeTable.addCell(createInfoCell("Correo: " + 
+                    (representante.getCorreo() != null ? representante.getCorreo() : "N/A"), normalFont));
+            representativeTable.addCell(createInfoCell("Ciudad: " + 
+                    (representante.getCiudad() != null ? representante.getCiudad().getNombre() : "N/A"), normalFont));
+            representativeTable.addCell(createInfoCell("Dirección: " + 
+                    (representante.getDireccion() != null ? representante.getDireccion() : "N/A"), normalFont));
+
+            document.add(representativeTable);
+
             // Información de la orden
             Paragraph orderTitle = new Paragraph("INFORMACIÓN DE LA ORDEN", headerFont);
             orderTitle.setSpacingBefore(10);
@@ -144,9 +187,6 @@ public class OrdenService {
             orderTable.setSpacingAfter(15);
 
             orderTable.addCell(createInfoCell("Número de Orden: #" + orden.getId(), normalFont));
-            orderTable.addCell(createInfoCell("Estado: " + orden.getEstado().getDescripcion(), normalFont));
-            orderTable.addCell(createInfoCell("Fecha de Orden: " + 
-                    (orden.getFechaOrden() != null ? orden.getFechaOrden().toString() : "N/A"), normalFont));
             orderTable.addCell(createInfoCell("Fecha de Entrega: " + 
                     (orden.getFechaEntrega() != null ? orden.getFechaEntrega().toString() : "N/A"), normalFont));
             orderTable.addCell(createInfoCell("Descripción de Venta: " + 
@@ -258,6 +298,61 @@ public class OrdenService {
                 firma.setSpacingAfter(10);
                 document.add(firma);
             }
+
+            // Líneas de firma
+            PdfPTable firmasTable = new PdfPTable(2);
+            firmasTable.setWidthPercentage(100);
+            firmasTable.setSpacingBefore(30);
+            firmasTable.setSpacingAfter(20);
+            
+            // Celda para firma del representante
+            PdfPCell firmaRepresentanteCell = new PdfPCell();
+            firmaRepresentanteCell.setBorder(Rectangle.NO_BORDER);
+            firmaRepresentanteCell.setPaddingBottom(10);
+            
+            Paragraph firmaRepresentanteTitle = new Paragraph("Firma del Representante:", normalFont);
+            firmaRepresentanteTitle.setSpacingAfter(30);
+            firmaRepresentanteCell.addElement(firmaRepresentanteTitle);
+            
+            // Línea para la firma del representante
+            Paragraph lineaRepresentante = new Paragraph("_________________________________", normalFont);
+            lineaRepresentante.setAlignment(Element.ALIGN_CENTER);
+            firmaRepresentanteCell.addElement(lineaRepresentante);
+            
+            Paragraph nombreRepresentante = new Paragraph(nombreCompletoRepresentante, smallFont);
+            nombreRepresentante.setAlignment(Element.ALIGN_CENTER);
+            nombreRepresentante.setSpacingBefore(5);
+            firmaRepresentanteCell.addElement(nombreRepresentante);
+            
+            firmasTable.addCell(firmaRepresentanteCell);
+            
+            // Celda para firma del cliente
+            PdfPCell firmaClienteCell = new PdfPCell();
+            firmaClienteCell.setBorder(Rectangle.NO_BORDER);
+            firmaClienteCell.setPaddingBottom(10);
+            
+            Paragraph firmaClienteTitle = new Paragraph("Firma del Cliente:", normalFont);
+            firmaClienteTitle.setSpacingAfter(30);
+            firmaClienteCell.addElement(firmaClienteTitle);
+            
+            // Línea para la firma del cliente
+            Paragraph lineaCliente = new Paragraph("_________________________________", normalFont);
+            lineaCliente.setAlignment(Element.ALIGN_CENTER);
+            firmaClienteCell.addElement(lineaCliente);
+            
+            // Nombre del cliente
+            String nombreCompletoCliente = orden.getUsuario().getNombre() + " " + 
+                    orden.getUsuario().getPrimerApellido() + 
+                    (orden.getUsuario().getSegundoApellido() != null ? " " + orden.getUsuario().getSegundoApellido() : "");
+            
+            Paragraph nombreCliente = new Paragraph(nombreCompletoCliente, smallFont);
+            nombreCliente.setAlignment(Element.ALIGN_CENTER);
+            nombreCliente.setSpacingBefore(5);
+            firmaClienteCell.addElement(nombreCliente);
+            
+            firmasTable.addCell(firmaClienteCell);
+            
+            document.add(firmasTable);
 
             // Nota final
             Paragraph nota = new Paragraph("Este documento es una factura generada automáticamente por el sistema de gestión de órdenes.", smallFont);

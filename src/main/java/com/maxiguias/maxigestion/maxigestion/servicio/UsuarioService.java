@@ -103,6 +103,14 @@ public class UsuarioService {
             }
         }
 
+        // Validar perfil de REPRESENTANTE (solo debe haber uno)
+        if (usuario.getPerfil() != null && "REPRESENTANTE".equals(usuario.getPerfil().getNombrePerfil())) {
+            Long countRepresentante = usuarioRepository.countByRepresentanteProfile();
+            if (countRepresentante != null && countRepresentante > 0) {
+                return "Error: Ya existe un usuario con perfil de REPRESENTANTE. Solo se puede tener uno.";
+            }
+        }
+
         // Encriptar contraseña si existe
         if (usuario.getContrasena() != null && !usuario.getContrasena().trim().isEmpty()) {
             usuario.setContrasena(passwordEncoder.encode(usuario.getContrasena()));
@@ -165,6 +173,17 @@ public class UsuarioService {
 
                 if (tienePrimerApellido || tieneSegundoApellido) {
                     return "Error: Los clientes jurídicos no deben tener apellidos.";
+                }
+            }
+
+            // Validar perfil de REPRESENTANTE (solo debe haber uno)
+            if (usuario.getPerfil() != null && "REPRESENTANTE".equals(usuario.getPerfil().getNombrePerfil())) {
+                // Si el usuario existente no era representante, verificar que no haya otro
+                if (existente.getPerfil() == null || !"REPRESENTANTE".equals(existente.getPerfil().getNombrePerfil())) {
+                    Long countRepresentante = usuarioRepository.countByRepresentanteProfile();
+                    if (countRepresentante != null && countRepresentante > 0) {
+                        return "Error: Ya existe un usuario con perfil de REPRESENTANTE. Solo se puede tener uno.";
+                    }
                 }
             }
             

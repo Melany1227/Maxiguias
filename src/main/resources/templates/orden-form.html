@@ -267,7 +267,7 @@
                             onchange="actualizarPrecioEdicion(this.closest('tr'))">
                       <option value="">Cargando terminados...</option>
                       <option th:value="${detalle.terminado.id}" 
-                              th:text="${'Medida: ' + detalle.terminado.medidaTerminadoProducto + ' - $' + detalle.terminado.precioPublico}"
+                              th:text="${'Medida: ' + detalle.terminado.medidaTerminadoProducto}"
                               selected="selected" style="display: none;"></option>
                     </select>
                   </td>

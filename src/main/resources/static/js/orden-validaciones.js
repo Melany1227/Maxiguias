@@ -120,7 +120,7 @@ async function cargarTerminadosParaFila(fila, productoId, terminadoSeleccionado 
                     precioAMostrar = t.precioPorEncargo || 0;
                 }
                 
-                option.textContent = `Medida: ${t.medidaTerminadoProducto || 'N/A'} - $${precioAMostrar.toLocaleString('es-CO')}`;
+                option.textContent = `Medida: ${t.medidaTerminadoProducto || 'N/A'}`;
                 option.setAttribute("data-info", `Medida: ${t.medidaTerminadoProducto}`);
                 option.setAttribute("data-publico", t.precioPublico);
                 option.setAttribute("data-mayor", t.precioPorMayor);
@@ -332,7 +332,7 @@ document.addEventListener("change", function (e) {
                         precioAMostrar = t.precioPorEncargo || 0;
                     }
                     
-                    option.textContent = `Medida: ${t.medidaTerminadoProducto || 'N/A'} - $${precioAMostrar.toLocaleString('es-CO')}`;
+                    option.textContent = `Medida: ${t.medidaTerminadoProducto || 'N/A'}`;
                     option.setAttribute("data-info", `Medida: ${t.medidaTerminadoProducto}`);
                     option.setAttribute("data-publico", t.precioPublico);
                     option.setAttribute("data-mayor", t.precioPorMayor);
@@ -390,7 +390,7 @@ function actualizarTextoTerminados(fila) {
             }
             
             const medida = medidaInfo ? medidaInfo.replace("Medida: ", "") : "N/A";
-            option.textContent = `Medida: ${medida} - $${parseInt(precioAMostrar).toLocaleString('es-CO')}`;
+            option.textContent = `Medida: ${medida}`;
         }
     });
 }
