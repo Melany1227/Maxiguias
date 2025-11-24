@@ -87,11 +87,11 @@
                             th:text="'$' + ${#numbers.formatDecimal(orden.totalFactura, 1, 2)}"></td>
                         <td style="text-align: center;" th:text="${orden.descripcionVenta}"></td>
                         <td style="text-align: center;">
-                            <div class="dropdown">
+                            <div class="dropdown dropend">
                                 <button class="btn btn-dark btn-sm rounded-circle" type="button"
-                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="true">
                                     <i class="fa-solid fa-ellipsis-vertical"></i></button>
-                                <ul class="dropdown-menu dropdown-menu-end">
+                                <ul class="dropdown-menu dropdown-menu-end" style="min-width: 180px; z-index: 1050;">
                                     <li>
                                         <a th:href="@{/ordenes/verMas/{id}(id=${orden.id})}" class="dropdown-item">
                                             <i class="fa-solid fa-eye me-2"></i> Ver Detalle
