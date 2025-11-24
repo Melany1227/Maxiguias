@@ -11,4 +11,9 @@ public class HomeController {
         model.addAttribute("mensaje", "Hola desde Spring Boot + Thymeleaf + Bootstrap");
         return "index";
     }
+
+    @GetMapping("/ayuda_linea")
+    public String ayudaEnLinea() {
+        return "ayuda_linea";
+    }
 }

@@ -92,10 +92,10 @@ public class FormularioXPerfilController {
     public String asignarFormulario(
             @PathVariable Long perfilId,
             @RequestParam Long formularioId,
-            @RequestParam char crear,
-            @RequestParam char editar,
-            @RequestParam char visualizar,
-            @RequestParam char eliminar,
+            @RequestParam(defaultValue = "N") char crear,
+            @RequestParam(defaultValue = "N") char editar,
+            @RequestParam(defaultValue = "N") char visualizar,
+            @RequestParam(defaultValue = "N") char eliminar,
             RedirectAttributes ra) {
 
         Optional<Perfil> perfil = perfilRepository.findById(perfilId);
@@ -169,10 +169,10 @@ public class FormularioXPerfilController {
     public String actualizarFormulario(
             @PathVariable Long perfilId,
             @PathVariable Long formularioId,
-            @RequestParam char crear,
-            @RequestParam char editar,
-            @RequestParam char visualizar,
-            @RequestParam char eliminar,
+            @RequestParam(defaultValue = "N") char crear,
+            @RequestParam(defaultValue = "N") char editar,
+            @RequestParam(defaultValue = "N") char visualizar,
+            @RequestParam(defaultValue = "N") char eliminar,
             RedirectAttributes ra) {
 
         FormularioXPerfilId id = new FormularioXPerfilId();

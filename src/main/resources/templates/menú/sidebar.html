@@ -21,6 +21,8 @@
             <!-- Todos los usuarios autenticados ven INICIO y PERFIL -->
             <a href="/" class="btn"><i class="bi bi-house-door-fill"></i> INICIO</a>
             <a href="/perfil" class="btn"><i class="bi bi-person-circle"></i> MI PERFIL</a>
+            
+
 
             <!-- Catálogo visible para ADMINISTRADOR y JURIDICO -->
             <a href="/productos/juridico" class="btn"
@@ -34,6 +36,8 @@
                <i class="bi bi-receipt"></i> ÓRDENES
             </a>
 
+            
+
             <!-- Solo ADMINISTRADOR -->
             <div sec:authorize="hasAuthority('ADMINISTRADOR')">
                 <a href="/usuarios" class="btn"><i class="bi bi-people-fill"></i> USUARIOS</a>
@@ -46,7 +50,10 @@
                 <a href="/ciudades" class="btn"><i class="bi bi-building"></i> CIUDADES</a>
                 <a href="/reportes" class="btn"><i class="bi bi-graph-up"></i> REPORTES</a>
             </div>
-
+            <a href="/ayuda_linea" class="btn"
+               sec:authorize="hasAuthority('ADMINISTRADOR') or hasAuthority('JURIDICO')">
+               <i class="bi bi-question-circle"></i> AYUDA EN LÍNEA
+            </a>
             <!-- Cerrar sesión -->
             <form th:action="@{/logout}" method="post" style="display: inline; width: 100%;">
                 <button type="submit" class="btn"><i class="bi bi-box-arrow-right"></i> CERRAR SESIÓN</button>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda en linea</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+</head>
+<body>
+    <div th:replace="menú/sidebar :: sidebar"></div>
+
+    <div class="main-content container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1"><i class="fa-solid fa-circle-question me-2"></i>Ayuda en linea</h2>
+                <p class="text-muted mb-0">Encuentra respuestas rapidas sobre el sistema.</p>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Preguntas frecuentes</h5>
+                <div class="list-group">
+                    <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                        data-bs-toggle="modal" data-bs-target="#ayudaCrearOrdenModal">
+                        <span><i class="fa-solid fa-cart-plus me-2 text-warning"></i>¿Como crear una orden?</span>
+                        <i class="fa-solid fa-chevron-right small text-muted"></i>
+                    </button>
+                    <div sec:authorize="hasAuthority('ADMINISTRADOR')">
+                        <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                            data-bs-toggle="modal" data-bs-target="#ayudaCrearUsuarioModal">
+                            <span><i class="fa-solid fa-user-plus me-2 text-primary"></i>¿Como crear usuarios?</span>
+                            <i class="fa-solid fa-chevron-right small text-muted"></i>
+                        </button>
+                        <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                            data-bs-toggle="modal" data-bs-target="#ayudaCrearProductoModal">
+                            <span><i class="fa-solid fa-box-open me-2 text-success"></i>¿Como crear un producto?</span>
+                            <i class="fa-solid fa-chevron-right small text-muted"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Como crear una orden -->
+    <div class="modal fade" id="ayudaCrearOrdenModal" tabindex="-1" aria-labelledby="ayudaCrearOrdenTitulo" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ayudaCrearOrdenTitulo"><i class="fa-solid fa-circle-question me-2"></i>Como crear una orden</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <ol class="ps-3 mb-3">
+                        <li>Haz clic en el boton <strong>Nueva Orden</strong> en la parte superior derecha de la lista.</li>
+                        <li sec:authorize="hasAuthority('ADMINISTRADOR')">Selecciona el <strong>cliente</strong> y verifica sus datos de contacto.</li>
+                        <li>Elige los <strong>productos/servicios</strong>, cantidades y precios correspondientes.</li>
+                        <li>Define la <strong>fecha de entrega</strong> y la <strong>ciudad</strong> de envio.</li>
+                        <li>Añade una <strong>descripcion</strong> breve de la venta o notas para el equipo.</li>
+                        <li>Selecciona el <strong>estado</strong> inicial (ej. PENDIENTE) y revisa el total calculado.</li>
+                        <li>Presiona <strong>Guardar</strong>. Si todo esta correcto, veras la orden en la lista.</li>
+                    </ol>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Como crear un producto (solo administrador) -->
+    <div class="modal fade" id="ayudaCrearProductoModal" tabindex="-1" aria-labelledby="ayudaCrearProductoTitulo" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ayudaCrearProductoTitulo"><i class="fa-solid fa-box-open me-2"></i>Como crear un producto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <ol class="ps-3 mb-3">
+                        <li>Desde el menu lateral entra a <strong>Productos</strong> y presiona el boton <strong>Nuevo Producto</strong>.</li>
+                        <li>Ingresa <strong>nombre</strong>, <strong>categoria</strong> y <strong>descripcion</strong> breve.</li>
+                        <li>Define <strong>precio</strong>, <strong>cantidad disponible</strong>una imagen y la unidad de medida.</li>
+                        <li>Guarda para registrar el producto. Verifica que aparezca en el listado y que los datos sean correctos.</li>
+                    </ol>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Como crear usuarios (solo administrador) -->
+    <div class="modal fade" id="ayudaCrearUsuarioModal" tabindex="-1" aria-labelledby="ayudaCrearUsuarioTitulo" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ayudaCrearUsuarioTitulo"><i class="fa-solid fa-user-plus me-2"></i>Como crear usuarios</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <ol class="ps-3 mb-3">
+                        <li>En el menu lateral, entra a <strong>Usuarios</strong> y haz clic en <strong>Crear</strong>.</li>
+                        <li>Define el <strong>tipo de usuario</strong> (Natural o Juridico). Para juridico, los campos de apellidos no se diligencian.</li>
+                        <li>Ingresa <strong>documento</strong> y <strong>nombre</strong>. Si es Natural, agrega primer y segundo apellido; si es Juridico, deja apellidos vacios.</li>
+                        <li>Usuarios <strong>Natural</strong> no se debe agregar <strong>usuario</strong> ni <strong>contraseña</strong></li>
+                        <li>Completa <strong>correo</strong>, <strong>telefono</strong>, <strong>departamento</strong> y <strong>ciudad</strong>.</li>
+                        <li>Selecciona el <strong>rol</strong> y perfil si aplica, luego presiona <strong>Guardar</strong>.</li>
+                        <li>Verifica que el usuario aparezca en la lista y que los apellidos no existan para los juridicos.</li>
+                    </ol>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Atajo F1 para abrir la ayuda principal
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'F1') {
+                e.preventDefault();
+                const modal = new bootstrap.Modal(document.getElementById('ayudaCrearOrdenModal'));
+                modal.show();
+            }
+        });
+    </script>
+</body>
+</html>
