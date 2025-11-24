@@ -45,58 +45,54 @@
                 </div>
             </div>
 
-            
+            <!-- Controles de paginación -->
+            <div class="row mt-5" th:if="${totalPages > 1}">
+                <div class="col-12 d-flex flex-column align-items-center">
 
+                    <!-- Info -->
+                    <p class="text-dark small mb-3">
+                        Página [[${currentPage + 1}]] de [[${totalPages}]]
+                        ([[${totalElements}]] productos)
+                    </p>
 
-            
-<!-- Controles de paginación -->
-<div class="row mt-5" th:if="${totalPages > 1}">
-    <div class="col-12 d-flex flex-column align-items-center">
+                    <!-- Paginación -->
+                    <nav>
+                        <ul class="pagination custom-pagination">
 
-        <!-- Info -->
-        <p class="text-dark small mb-3">
-            Página [[${currentPage + 1}]] de [[${totalPages}]]
-            ([[${totalElements}]] productos)
-        </p>
+                            <!-- Anterior -->
+                            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                <a class="page-link"
+                                th:href="@{(${rolUsuario} == 'NATURAL' ? '/productos/publico' : '/productos/juridico')(page=${currentPage - 1}, size=${size})}">
+                                    ‹
+                                </a>
+                            </li>
 
-        <!-- Paginación -->
-        <nav>
-            <ul class="pagination custom-pagination">
+                            <!-- Números dinámicos -->
+                            <li class="page-item"
+                                th:each="pageNum : ${#numbers.sequence(
+                                    T(java.lang.Math).max(0, currentPage - 2),
+                                    T(java.lang.Math).min(totalPages - 1, currentPage + 2)
+                                )}"
+                                th:classappend="${pageNum == currentPage} ? 'active'">
+                                <a class="page-link"
+                                th:href="@{(${rolUsuario} == 'NATURAL' ? '/productos/publico' : '/productos/juridico')(page=${pageNum}, size=${size})}"
+                                th:text="${pageNum + 1}">
+                                </a>
+                            </li>
 
-                <!-- Anterior -->
-                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                    <a class="page-link"
-                       th:href="@{(${rolUsuario} == 'NATURAL' ? '/productos/publico' : '/productos/juridico')(page=${currentPage - 1}, size=${size})}">
-                        ‹
-                    </a>
-                </li>
+                            <!-- Siguiente -->
+                            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                                <a class="page-link"
+                                th:href="@{(${rolUsuario} == 'NATURAL' ? '/productos/publico' : '/productos/juridico')(page=${currentPage + 1}, size=${size})}">
+                                    ›
+                                </a>
+                            </li>
 
-                <!-- Números dinámicos -->
-                <li class="page-item"
-                    th:each="pageNum : ${#numbers.sequence(
-                        T(java.lang.Math).max(0, currentPage - 2),
-                        T(java.lang.Math).min(totalPages - 1, currentPage + 2)
-                    )}"
-                    th:classappend="${pageNum == currentPage} ? 'active'">
-                    <a class="page-link"
-                       th:href="@{(${rolUsuario} == 'NATURAL' ? '/productos/publico' : '/productos/juridico')(page=${pageNum}, size=${size})}"
-                       th:text="${pageNum + 1}">
-                    </a>
-                </li>
+                        </ul>
+                    </nav>
 
-                <!-- Siguiente -->
-                <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
-                    <a class="page-link"
-                       th:href="@{(${rolUsuario} == 'NATURAL' ? '/productos/publico' : '/productos/juridico')(page=${currentPage + 1}, size=${size})}">
-                        ›
-                    </a>
-                </li>
-
-            </ul>
-        </nav>
-
-    </div>
-</div>
+                </div>
+            </div>
 
 
 
