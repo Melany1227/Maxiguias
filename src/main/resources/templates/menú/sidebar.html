@@ -6,14 +6,14 @@
     <div class="sidebar" th:fragment="sidebar">
         <img src="/img/logo.png" alt="Logo MXG">
 
-        <!-- Si NO está autenticado -->
+        <!-- Si NO esta autenticado -->
         <div sec:authorize="!isAuthenticated()">
             <a href="/" class="btn"><i class="bi bi-house-door-fill"></i> INICIO</a>
             <a href="/login" class="btn"><i class="bi bi-box-arrow-in-right"></i> INGRESAR</a>
-            <a href="/productos/publico" class="btn"><i class="bi bi-journal-text"></i> CATÁLOGO</a>
+            <a href="/productos/publico" class="btn"><i class="bi bi-journal-text"></i> CATALOGO</a>
         </div>
 
-        <!-- Si está autenticado -->
+        <!-- Si esta autenticado -->
         <div sec:authorize="isAuthenticated()">
             <p th:text="${nombreUsuarioActual}"
                style="color: white; margin: 10px 0; text-align: center; font-weight: bold;"></p>
@@ -23,20 +23,17 @@
             <a href="/perfil" class="btn"><i class="bi bi-person-circle"></i> MI PERFIL</a>
             
 
-
-            <!-- Catálogo visible para ADMINISTRADOR y JURIDICO -->
+            <!-- Catalogo visible para ADMINISTRADOR y JURIDICO -->
             <a href="/productos/juridico" class="btn"
                sec:authorize="hasAuthority('ADMINISTRADOR') or hasAuthority('JURIDICO')">
-               <i class="bi bi-journal-text"></i> CATÁLOGO
+               <i class="bi bi-journal-text"></i> CATALOGO
             </a>
 
-            <!-- Toma de pedidos/órdenes para ADMINISTRADOR y JURIDICO -->
+            <!-- Toma de pedidos/ordenes para ADMINISTRADOR y JURIDICO -->
             <a href="/ordenes" class="btn"
                sec:authorize="hasAuthority('ADMINISTRADOR') or hasAuthority('JURIDICO')">
-               <i class="bi bi-receipt"></i> ÓRDENES
+               <i class="bi bi-receipt"></i> ORDENES
             </a>
-
-            
 
             <!-- Solo ADMINISTRADOR -->
             <div sec:authorize="hasAuthority('ADMINISTRADOR')">
@@ -52,11 +49,15 @@
             </div>
             <a href="/ayuda_linea" class="btn"
                sec:authorize="hasAuthority('ADMINISTRADOR') or hasAuthority('JURIDICO')">
-               <i class="bi bi-question-circle"></i> AYUDA EN LÍNEA
+               <i class="bi bi-question-circle"></i> AYUDA EN LINEA
             </a>
-            <!-- Cerrar sesión -->
+            <a href="/acerca_de" class="btn">
+               <i class="bi bi-info-circle"></i> ACERCA DE
+            </a>
+
+            <!-- Cerrar sesion -->
             <form th:action="@{/logout}" method="post" style="display: inline; width: 100%;">
-                <button type="submit" class="btn"><i class="bi bi-box-arrow-right"></i> CERRAR SESIÓN</button>
+                <button type="submit" class="btn"><i class="bi bi-box-arrow-right"></i> CERRAR SESION</button>
             </form>
         </div>
     </div>

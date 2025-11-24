@@ -16,4 +16,9 @@ public class HomeController {
     public String ayudaEnLinea() {
         return "ayuda_linea";
     }
+
+    @GetMapping("/acerca_de")
+    public String acercaDe() {
+        return "acerca_de";
+    }
 }
