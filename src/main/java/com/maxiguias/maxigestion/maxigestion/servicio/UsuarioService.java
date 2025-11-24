@@ -164,6 +164,21 @@ public class UsuarioService {
                     return contrasenaValidation;
                 }
             }
+            
+            // Validar si el correo ya existe para otro usuario (solo si se está cambiando el correo)
+            if (usuario.getCorreo() != null && !usuario.getCorreo().trim().isEmpty()) {
+                if (!usuario.getCorreo().equals(existente.getCorreo()) && usuarioRepository.existsByCorreo(usuario.getCorreo())) {
+                    return "Error: Ya existe otro usuario con el correo '" + usuario.getCorreo() + "'.";
+                }
+            }
+            
+            // Validar si el nombre de usuario ya existe para otro usuario (solo si se está cambiando)
+            if (usuario.getNombreUsuario() != null && !usuario.getNombreUsuario().trim().isEmpty()) {
+                if (!usuario.getNombreUsuario().equals(existente.getNombreUsuario()) && usuarioRepository.existsByNombreUsuario(usuario.getNombreUsuario())) {
+                    return "Error: Ya existe otro usuario con el nombre de usuario '" + usuario.getNombreUsuario() + "'.";
+                }
+            }
+            
             String tipo = usuario.getTipoUsuario().getNombre().toUpperCase();
 
             if (tipo.equals("NATURAL")) {

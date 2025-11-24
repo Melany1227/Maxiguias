@@ -13,7 +13,7 @@
 </head>
 
 <body>
-  <div th:replace="menú/sidebar :: sidebar"></div>
+  <div th:replace="~{menú/sidebar :: sidebar}"></div>
 
   <div class="main-content">
     <div class="reportes-container">
@@ -116,7 +116,7 @@
           </div>
 
           <!-- Filtro por mes -->
-          <div th:replace="calendario/calendario2 :: selector-rango-fechas('fechaInicioClientes','fechaFinClientes')">
+          <div th:replace="~{calendario/calendario2 :: selector-rango-fechas('fechaInicioClientes','fechaFinClientes')">
           </div>
 
           <div class="text-end mt-3">
@@ -155,7 +155,7 @@
           </div>
 
           <!-- Filtro por fecha (usar calendario2 con ids explícitos) -->
-          <div th:replace="calendario/calendario2 :: selector-rango-fechas('fechaInicio','fechaFin')"></div>
+          <div th:replace="~{calendario/calendario2 :: selector-rango-fechas('fechaInicio','fechaFin')"></div>
           <div class="text-end mt-3">
             <button class="custom-btn" onclick="generarZipOrdenes()">
               <i class="fas fa-download"></i> Descargar ZIP con PDFs
@@ -181,7 +181,7 @@
         <div class="modal-body">
 
           <!-- Filtro por rango con calendario2 -->
-          <div th:replace="calendario/calendario2 :: selector-rango-fechas('fechaInicioProductos','fechaFinProductos')"></div>
+          <div th:replace="~{calendario/calendario2 :: selector-rango-fechas('fechaInicioProductos','fechaFinProductos')"></div>
 
           <div class="text-end mt-3 d-flex gap-2 justify-content-end">
             <button class="custom-btn" onclick="cargarProductosMasVendidos()">
@@ -278,7 +278,7 @@
             </div>
           </div>
 
-          <div th:replace="calendario/calendario2 :: selector-rango-fechas('fechaInicioVentas','fechaFinVentas')"></div>
+          <div th:replace="~{calendario/calendario2 :: selector-rango-fechas('fechaInicioVentas','fechaFinVentas')"></div>
 
           <div class="text-end mt-3 d-flex gap-2 justify-content-end">
             <button class="custom-btn" onclick="actualizarEstadisticasVentas()">
