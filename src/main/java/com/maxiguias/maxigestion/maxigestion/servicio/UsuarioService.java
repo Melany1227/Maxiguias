@@ -137,6 +137,14 @@ public class UsuarioService {
         if (existente == null) {
             return "Error: Usuario no encontrado";
         } else {
+            // Si tipoUsuario o perfil solo tienen ID, usar los del usuario existente
+            if (usuario.getTipoUsuario() != null && usuario.getTipoUsuario().getNombre() == null) {
+                usuario.setTipoUsuario(existente.getTipoUsuario());
+            }
+            if (usuario.getPerfil() != null && usuario.getPerfil().getNombrePerfil() == null) {
+                usuario.setPerfil(existente.getPerfil());
+            }
+            
             // Validar formato del documento (solo números)
             String documentoValidation = validarFormatoDocumento(usuario.getDocumento());
             if (documentoValidation != null) {
