@@ -445,9 +445,6 @@ public class ReporteController {
             headerFont.setBold(true);
             headerStyle.setFont(headerFont);
 
-            CellStyle percentageStyle = workbook.createCellStyle();
-            percentageStyle.setDataFormat(workbook.createDataFormat().getFormat("0%"));
-
             // Crear fila de encabezado
             Row headerRow = sheet.createRow(0);
             String[] headers = { "Nombre del Producto", "Medida del Producto", "Precio Público", "Precio por Mayor",
@@ -464,24 +461,16 @@ public class ReporteController {
             for (Terminado terminado : terminados) {
                 Row row = sheet.createRow(rowNum++);
 
-                double precioPublico = terminado.getPrecioPublico();
-                double precioMayor = terminado.getPrecioPorMayor();
-                double precioEncargo = terminado.getPrecioPorEncargo();
-
-                double gananciaMayorPct = (precioPublico > 0) ? (precioPublico - precioMayor) / precioPublico : 0;
-                double gananciaEncargoPct = (precioPublico > 0) ? precioEncargo / precioPublico : 0;
+                BigDecimal gananciaMayor = terminado.getGananciaXMayor();
+                BigDecimal gananciaEncargo = terminado.getGananciaXEncargo();
 
                 row.createCell(0).setCellValue(terminado.getProducto().getNombre());
                 row.createCell(1).setCellValue(terminado.getMedidaTerminadoProducto().doubleValue());
                 row.createCell(2).setCellValue(terminado.getPrecioPublico());
                 row.createCell(3).setCellValue(terminado.getPrecioPorMayor());
-                Cell cellGananciaMayor = row.createCell(4);
-                cellGananciaMayor.setCellValue(gananciaMayorPct);
-                cellGananciaMayor.setCellStyle(percentageStyle);
+                row.createCell(4).setCellValue(gananciaMayor != null ? gananciaMayor.doubleValue() : 0);
                 row.createCell(5).setCellValue(terminado.getPrecioPorEncargo());
-                Cell cellGananciaEncargo = row.createCell(6);
-                cellGananciaEncargo.setCellValue(gananciaEncargoPct);
-                cellGananciaEncargo.setCellStyle(percentageStyle);
+                row.createCell(6).setCellValue(gananciaEncargo != null ? gananciaEncargo.doubleValue() : 0);
             }
 
             // Ajustar el ancho de las columnas

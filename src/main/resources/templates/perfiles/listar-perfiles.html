@@ -79,11 +79,13 @@
                                             </a>
                                         </li>
                                         <li>
-                                            <form class="dropdown-item p-0 m-0"
-                                                th:action="@{/perfiles/eliminar/{id}(id=${perfil.id})}" method="POST"
-                                                onsubmit="return confirm('¿Está seguro de eliminar este perfil?');">
-                                                <button type="submit"
-                                                    class="dropdown-item text-danger bg-transparent border-0 w-100 text-start">
+                                            <form class="dropdown-item p-0 m-0 form-eliminar-perfil"
+                                                th:action="@{/perfiles/eliminar/{id}(id=${perfil.id})}" method="POST">
+                                                <button type="button"
+                                                    class="dropdown-item text-danger bg-transparent border-0 w-100 text-start btn-eliminar-perfil"
+                                                    th:data-perfil-id="${perfil.id}"
+                                                    th:data-perfil-nombre="${perfil.nombrePerfil}"
+                                                    th:data-rol-nombre="${perfil.rol.nombreRol}">
                                                     <i class="fa-solid fa-trash me-2"></i> Eliminar perfil
                                                 </button>
                                             </form>
@@ -108,6 +110,37 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Manejar eliminación de perfiles con SweetAlert2
+            document.querySelectorAll('.btn-eliminar-perfil').forEach(button => {
+                button.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    
+                    const perfilId = this.getAttribute('data-perfil-id');
+                    const perfilNombre = this.getAttribute('data-perfil-nombre');
+                    const rolNombre = this.getAttribute('data-rol-nombre');
+                    
+                    const result = await Swal.fire({
+                        title: '¿Estás seguro?',
+                        html: `<strong>Perfil: ${perfilNombre}</strong><br>Rol: ${rolNombre}<br><br>No podrás deshacer esta acción.`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Sí, eliminar',
+                        cancelButtonText: 'Cancelar'
+                    });
+                    
+                    if (result.isConfirmed) {
+                        // Enviar el formulario
+                        this.closest('form').submit();
+                    }
+                });
+            });
+        });
+    </script>
 
 </body>
 

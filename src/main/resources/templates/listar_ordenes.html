@@ -216,7 +216,7 @@
         })
     </script>
 
-    <script th:if="${error}">
+    <script th:if="${error}" th:inline="javascript">
         Swal.fire({
             title: 'Error',
             text: /*[[${error}]]*/ 'Ocurrió un error',

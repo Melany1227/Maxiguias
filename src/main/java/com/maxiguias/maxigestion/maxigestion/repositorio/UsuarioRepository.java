@@ -72,5 +72,12 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>, PagingA
 
        // Métodos para administrador de perfiles
        long countByPerfil_Id(Long perfilId);
+       
+       // Método para validar perfil representante único
+       @Query("SELECT COUNT(u) FROM Usuario u WHERE u.perfil.nombrePerfil = 'REPRESENTANTE'")
+       Long countByRepresentanteProfile();
+       
+       @Query("SELECT u FROM Usuario u WHERE u.perfil.nombrePerfil = 'REPRESENTANTE'")
+       Optional<Usuario> findRepresentante();
 
 }

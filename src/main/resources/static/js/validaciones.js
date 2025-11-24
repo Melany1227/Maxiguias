@@ -204,7 +204,7 @@ if (e.target.name === "productoId") {
                     precioAMostrar = t.precioPorEncargo; // Por defecto encargo para jurídicos
                 }
                 
-                option.textContent = `${t.medidaTerminadoProducto} - $${precioAMostrar.toLocaleString('es-CO')}`;
+                option.textContent = `${t.medidaTerminadoProducto}`;
                 option.setAttribute("data-info", `${t.medidaTerminadoProducto}`);
                 option.setAttribute("data-publico", t.precioPublico);
                 option.setAttribute("data-mayor", t.precioPorMayor);
