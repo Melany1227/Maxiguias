@@ -640,7 +640,9 @@
             return;
           }
 
-          productos.forEach(item => {
+          const topProductos = productos.slice(0, 10);
+
+          topProductos.forEach(item => {
             let nombre, medida, cantidad;
             if (Array.isArray(item)) {
               nombre = item[0] ?? '';
