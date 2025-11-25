@@ -11,7 +11,7 @@
 </head>
 
 <body>
-    <div th:replace="menú/sidebar :: sidebar"></div>
+    <div th:replace="~{menú/sidebar :: sidebar}"></div>
 
     <div class="main-content">
         <div class="form-container">
@@ -76,7 +76,7 @@
                             <td th:text="${usuario.documento}"></td>
                             <td th:text="${usuario.nombre}"></td>
                             <td th:text="${usuario.primerApellido}"></td>
-                            <td th:text="${usuario.segundoApellido} ?: 'N/A'"></td>
+                            <td th:text="${usuario.segundoApellido} ?: ''"></td>
                             <td th:text="${usuario.direccion}"></td>
                             <td th:text="${usuario.telefono}"></td>
                             <td th:text="${usuario.getNombreUsuario} ?: 'N/A'"></td>

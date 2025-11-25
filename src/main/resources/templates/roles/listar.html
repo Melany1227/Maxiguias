@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Lista de Roles</title>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -9,39 +10,52 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     </head>
     <body>
-        <div th:replace="menú/sidebar :: sidebar"></div> 
+        <div th:replace="~{menú/sidebar :: sidebar}"></div> 
 
         <div class="main-content">
-            <div class="form-container">
+            <div class="container-fluid px-3 py-4">
                 <!-- Mensajes de éxito/error -->
                 <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show" role="alert">
                     <i class="fas fa-check-circle"></i> <span th:text="${mensaje}"></span>
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="form-title m-0">
-                        <i class="fa-solid fa-user-shield"></i> LISTA DE ROLES
-                    </h4>
-
-                    <a href="/roles/nuevo" class="custom-btn-accion">
-                        <i class="fa-solid fa-plus" style="padding-right: 8px;"></i> NUEVO ROL
-                    </a>
+                <!-- Header responsive -->
+                <div class="row align-items-center mb-4">
+                    <div class="col-12 col-md-8">
+                        <h4 class="form-title m-0">
+                            <i class="fa-solid fa-user-shield"></i> LISTA DE ROLES
+                        </h4>
+                    </div>
+                    <div class="col-12 col-md-4 mt-3 mt-md-0">
+                        <a href="/roles/nuevo" class="btn custom-btn-accion w-100 w-md-auto">
+                            <i class="fa-solid fa-plus me-2"></i>
+                            <span class="d-none d-sm-inline">NUEVO ROL</span>
+                            <span class="d-sm-none">NUEVO</span>
+                        </a>
+                    </div>
                 </div>
 
-                <table class="table tabla-usuarios">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre del Rol</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="rol : ${roles}">
-                            <td th:text="${rol.id}"></td>
-                            <td th:text="${rol.nombreRol}"></td>
-                            <td>
+                <!-- Tabla responsive -->
+                <div class="table-responsive">
+                    <table class="table tabla-usuarios">
+                        <thead>
+                            <tr>
+                                <th class="d-none d-md-table-cell">ID</th>
+                                <th>Nombre del Rol</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="rol : ${roles}">
+                                <td class="d-none d-md-table-cell" th:text="${rol.id}"></td>
+                                <td>
+                                    <div>
+                                        <strong th:text="${rol.nombreRol}"></strong>
+                                        <small class="text-muted d-block d-md-none">ID: [[${rol.id}]]</small>
+                                    </div>
+                                </td>
+                                <td class="text-center">
                             <div class="dropdown">
                                 <button class="btn btn-dark btn-sm rounded-circle" type="button"
                                     data-bs-toggle="dropdown" aria-expanded="false">
@@ -68,9 +82,10 @@
                                 </ul>
                             </div>
                         </td>
-                        </tr>
-                    </tbody>
-                </table>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
                 <!-- Mensaje cuando no hay roles -->
                 <div th:if="${#lists.isEmpty(roles)}" class="text-center mt-4">

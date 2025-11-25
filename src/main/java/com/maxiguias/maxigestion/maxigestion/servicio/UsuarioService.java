@@ -137,6 +137,14 @@ public class UsuarioService {
         if (existente == null) {
             return "Error: Usuario no encontrado";
         } else {
+            // Si tipoUsuario o perfil solo tienen ID, usar los del usuario existente
+            if (usuario.getTipoUsuario() != null && usuario.getTipoUsuario().getNombre() == null) {
+                usuario.setTipoUsuario(existente.getTipoUsuario());
+            }
+            if (usuario.getPerfil() != null && usuario.getPerfil().getNombrePerfil() == null) {
+                usuario.setPerfil(existente.getPerfil());
+            }
+            
             // Validar formato del documento (solo números)
             String documentoValidation = validarFormatoDocumento(usuario.getDocumento());
             if (documentoValidation != null) {
@@ -156,6 +164,21 @@ public class UsuarioService {
                     return contrasenaValidation;
                 }
             }
+            
+            // Validar si el correo ya existe para otro usuario (solo si se está cambiando el correo)
+            if (usuario.getCorreo() != null && !usuario.getCorreo().trim().isEmpty()) {
+                if (!usuario.getCorreo().equals(existente.getCorreo()) && usuarioRepository.existsByCorreo(usuario.getCorreo())) {
+                    return "Error: Ya existe otro usuario con el correo '" + usuario.getCorreo() + "'.";
+                }
+            }
+            
+            // Validar si el nombre de usuario ya existe para otro usuario (solo si se está cambiando)
+            if (usuario.getNombreUsuario() != null && !usuario.getNombreUsuario().trim().isEmpty()) {
+                if (!usuario.getNombreUsuario().equals(existente.getNombreUsuario()) && usuarioRepository.existsByNombreUsuario(usuario.getNombreUsuario())) {
+                    return "Error: Ya existe otro usuario con el nombre de usuario '" + usuario.getNombreUsuario() + "'.";
+                }
+            }
+            
             String tipo = usuario.getTipoUsuario().getNombre().toUpperCase();
 
             if (tipo.equals("NATURAL")) {

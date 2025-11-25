@@ -13,7 +13,7 @@
 
 <body>
 
-    <div th:replace="menú/sidebar :: sidebar"></div>
+    <div th:replace="~{menú/sidebar :: sidebar}"></div>
 
     <div class="main-content">
         <div class="form-container">
@@ -24,6 +24,9 @@
 
             <form th:action="${esEdicion} ? @{/usuarios/actualizar} : @{/usuarios}" th:object="${usuario}" method="post"
                 class="row g-3">
+                
+                <!-- Campo oculto para el documento en edición (ya que está deshabilitado) -->
+                <input type="hidden" th:field="*{documento}" th:if="${esEdicion}">
 
 
                 <div class="col-md-6">
@@ -97,11 +100,17 @@
                     <label class="form-icon-label">
                         <i class="fa-solid fa-user"></i> Tipo de Usuario *
                     </label>
-                    <select th:field="*{tipoUsuario}" class="form-control" required th:disabled="${esEdicion}">
-                        <option value="">Seleccione</option>
-                        <option th:each="tipo : ${tiposUsuario}" th:value="${tipo.id}" th:text="${tipo.nombre}">
-                        </option>
-                    </select>
+                    <div th:if="${!esEdicion}">
+                        <select th:field="*{tipoUsuario}" class="form-control" required>
+                            <option value="">Seleccione</option>
+                            <option th:each="tipo : ${tiposUsuario}" th:value="${tipo.id}" th:text="${tipo.nombre}">
+                            </option>
+                        </select>
+                    </div>
+                    <div th:if="${esEdicion}">
+                        <input type="text" th:value="${usuario.tipoUsuario.nombre}" class="form-control" readonly>
+                        <input type="hidden" name="tipoUsuario.id" th:value="${usuario.tipoUsuario.id}">
+                    </div>
                     <small th:if="!${esEdicion}" class="form-text text-muted d-block mt-2">
                         <i class="fa-solid fa-info-circle"></i>
                         <strong>Nota importante:</strong> Si registra un cliente <strong>Natural</strong>, no debe ingresar usuario ni contraseña.
@@ -110,11 +119,17 @@
                     <label class="form-icon-label">
                         <i class="fa-solid fa-user"></i> Perfil *
                     </label>
-                    <select th:field="*{perfil}" class="form-control" required th:disabled="${esEdicion}">
-                        <option value="">Seleccione</option>
-                        <option th:each="perfil : ${perfiles}" th:value="${perfil.id}" th:text="${perfil.nombrePerfil}">
-                        </option>
-                    </select>
+                    <div th:if="${!esEdicion}">
+                        <select th:field="*{perfil}" class="form-control" required>
+                            <option value="">Seleccione</option>
+                            <option th:each="perfil : ${perfiles}" th:value="${perfil.id}" th:text="${perfil.nombrePerfil}">
+                            </option>
+                        </select>
+                    </div>
+                    <div th:if="${esEdicion}">
+                        <input type="text" th:value="${usuario.perfil.nombrePerfil}" class="form-control" readonly>
+                        <input type="hidden" name="perfil.id" th:value="${usuario.perfil.id}">
+                    </div>
 
                     <label class="form-icon-label">
                         <i class="fa-solid fa-map"></i> Departamento *

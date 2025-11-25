@@ -2,25 +2,24 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo de Productos</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/estilos.css}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
 </head>
 
 <body>
-
     <!-- Sidebar -->
-    <div th:replace="menú/sidebar :: sidebar"></div> 
+    <div th:replace="~{menú/sidebar :: sidebar}"></div> 
 
     <!-- Contenido principal -->
     <div class="main-content">
         <div class="container my-5">
             <h2 class="text-center mb-5">Catálogo de Productos</h2>
-            <div class="row g-2">
+            <div class="row g-2 justify-content-center">
                 <!-- Iterar productos -->
-                <div class="col-md-4" th:each="producto : ${productos}">
+                <div class="col-12 col-sm-6 col-md-4" th:each="producto : ${productos}">
                     <div class="card h-100">
                         <img th:src="${producto.imagen != null and !producto.imagen.isEmpty() ? @cloudinaryService.getImageUrl(producto.imagen) : 'https://via.placeholder.com/400x300/cccccc/666666?text=Sin+Imagen'}" 
                              class="card-img-top" 
@@ -38,7 +37,8 @@
                             <button class="btn btn-dark px-4 py-2 mt-2" 
                                     data-bs-toggle="modal" 
                                     th:data-bs-target="'#modal'+${producto.id}">
-                                Ver más
+                                <span class="d-none d-sm-inline">Ver más</span>
+                                <i class="bi bi-eye d-sm-none"></i>
                             </button>
                         </div>
                     </div>
@@ -63,12 +63,13 @@
                             <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
                                 <a class="page-link"
                                 th:href="@{(${rolUsuario} == 'NATURAL' ? '/productos/publico' : '/productos/juridico')(page=${currentPage - 1}, size=${size})}">
-                                    ‹
+                                    <span class="d-none d-sm-inline">‹</span>
+                                    <i class="bi bi-chevron-left d-sm-none"></i>
                                 </a>
                             </li>
 
-                            <!-- Números dinámicos -->
-                            <li class="page-item"
+                            <!-- Números dinámicos - solo en desktop -->
+                            <li class="page-item d-none d-sm-block"
                                 th:each="pageNum : ${#numbers.sequence(
                                     T(java.lang.Math).max(0, currentPage - 2),
                                     T(java.lang.Math).min(totalPages - 1, currentPage + 2)
@@ -80,11 +81,17 @@
                                 </a>
                             </li>
 
+                            <!-- Página actual solo en mobile -->
+                            <li class="page-item active d-sm-none">
+                                <span class="page-link" th:text="${currentPage + 1}"></span>
+                            </li>
+
                             <!-- Siguiente -->
                             <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
                                 <a class="page-link"
                                 th:href="@{(${rolUsuario} == 'NATURAL' ? '/productos/publico' : '/productos/juridico')(page=${currentPage + 1}, size=${size})}">
-                                    ›
+                                    <span class="d-none d-sm-inline">›</span>
+                                    <i class="bi bi-chevron-right d-sm-none"></i>
                                 </a>
                             </li>
 
@@ -99,53 +106,70 @@
     <!-- Modal por producto -->
     <div th:each="producto : ${productos}">
         <div class="modal fade" th:id="'modal'+${producto.id}" tabindex="-1">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" th:text="${producto.nombre}"></h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                 <div class="modal-body">
+                    <div class="modal-body">
 
-                    <!-- Imagen del producto con ajuste proporcional -->
-                    <img th:src="${producto.imagen != null and !producto.imagen.isEmpty() ? 
-                                 @cloudinaryService.getImageUrl(producto.imagen) : 
-                                 'https://via.placeholder.com/600x400/cccccc/666666?text=Sin+Imagen'}"
-                         class="img-fluid rounded mb-3"
-                         th:alt="${producto.nombre}"
-                         style="max-width: 100%; height: auto; max-height: 400px; object-fit: contain; margin: 0 auto; display: block;"
-                         onerror="if(this.src!='https://via.placeholder.com/600x400/cccccc/666666?text=Error'){this.src='https://via.placeholder.com/600x400/cccccc/666666?text=Error'}">
+                        <!-- Imagen del producto con ajuste proporcional -->
+                        <img th:src="${producto.imagen != null and !producto.imagen.isEmpty() ? 
+                                     @cloudinaryService.getImageUrl(producto.imagen) : 
+                                     'https://via.placeholder.com/600x400/cccccc/666666?text=Sin+Imagen'}"
+                             class="img-fluid rounded mb-3"
+                             th:alt="${producto.nombre}"
+                             style="max-width: 100%; height: auto; max-height: 300px; object-fit: contain; margin: 0 auto; display: block;"
+                             onerror="if(this.src!='https://via.placeholder.com/600x400/cccccc/666666?text=Error'){this.src='https://via.placeholder.com/600x400/cccccc/666666?text=Error'}">
 
-                    <table class="table table-hover align-middle tabla-detalle-producto">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Medida</th>
-                                <th th:if="${rolUsuario == 'NATURAL' or rolUsuario == 'ADMINISTRADOR'}">Precio Público</th>
-                                <th th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}">Precio x Mayor</th>
-                                <th th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}">Precio x Encargo</th>
-                                <th th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}">Ganancia x Mayor</th>
-                                <th th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}">Ganancia x Encargo</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="t : ${producto.terminados}">
-                                <td th:text="${t.medidaTerminadoProducto}"></td>
+                        <!-- Tabla responsive -->
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle tabla-detalle-producto">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th class="text-nowrap">Medida</th>
+                                        <th th:if="${rolUsuario == 'NATURAL' or rolUsuario == 'ADMINISTRADOR'}">
+                                            <span class="d-none d-sm-inline">Precio Público</span>
+                                            <span class="d-sm-none">P. Público</span>
+                                        </th>
+                                        <th th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}">
+                                            <span class="d-none d-sm-inline">Precio x Mayor</span>
+                                            <span class="d-sm-none">P. Mayor</span>
+                                        </th>
+                                        <th th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}">
+                                            <span class="d-none d-sm-inline">Precio x Encargo</span>
+                                            <span class="d-sm-none">P. Encargo</span>
+                                        </th>
+                                        <th th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}">
+                                            <span class="d-none d-sm-inline">Ganancia x Mayor</span>
+                                            <span class="d-sm-none">G. Mayor</span>
+                                        </th>
+                                        <th th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}">
+                                            <span class="d-none d-sm-inline">Ganancia x Encargo</span>
+                                            <span class="d-sm-none">G. Encargo</span>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="t : ${producto.terminados}">
+                                        <td class="text-nowrap" th:text="${t.medidaTerminadoProducto}"></td>
 
-                                <!-- Vista para público -->
-                                <td th:if="${rolUsuario == 'NATURAL' or rolUsuario == 'ADMINISTRADOR'}" th:text="'$' + ${t.precioPublico}"></td>
+                                        <!-- Vista para público -->
+                                        <td th:if="${rolUsuario == 'NATURAL' or rolUsuario == 'ADMINISTRADOR'}" th:text="'$' + ${t.precioPublico}"></td>
 
-                                <!-- Vista para jurídico y administrador -->
-                                <td th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}" th:text="'$' + ${t.precioPorMayor}"></td>
-                                <td th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}" th:text="'$' + ${t.precioPorEncargo}"></td>
-                                <td th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}" th:text="${t.gananciaXMayor != null ? t.gananciaXMayor + '%' : '-'}"></td>
-                                <td th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}" th:text="${t.gananciaXEncargo != null ? t.gananciaXEncargo + '%' : '-'}"></td>
-                            </tr>
-                        </tbody>
-                        
-                    </table>
-                </div>
+                                        <!-- Vista para jurídico y administrador -->
+                                        <td th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}" th:text="'$' + ${t.precioPorMayor}"></td>
+                                        <td th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}" th:text="'$' + ${t.precioPorEncargo}"></td>
+                                        <td th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}" th:text="${t.gananciaXMayor != null ? t.gananciaXMayor + '%' : '-'}"></td>
+                                        <td th:if="${rolUsuario == 'JURIDICO' or rolUsuario == 'ADMINISTRADOR'}" th:text="${t.gananciaXEncargo != null ? t.gananciaXEncargo + '%' : '-'}"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                     <div class="modal-footer">
-                        <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button class="btn btn-secondary w-100 w-md-auto" data-bs-dismiss="modal">Cerrar</button>
                     </div>
                 </div>
             </div>
