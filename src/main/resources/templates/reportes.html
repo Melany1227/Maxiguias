@@ -35,14 +35,24 @@
           </p>
         </div>
 
-        <!-- Reporte de Órdenes -->
+        <!-- Reporte de Facturas -->
         <div class="reporte-card" onclick="mostrarInformeOrdenes()">
           <div class="reporte-icon">
             <i class="fas fa-shopping-cart"></i>
           </div>
-          <h3>Informe de facturas mensuales</h3>
-          <p>Visualiza y descarga información de facturas con PDFs por mes</p>
+          <h3>Informe de facturas</h3>
+          <p>Visualiza y descarga información de facturas con PDFs</p>
         </div>
+
+        <!-- Reporte de Órdenes  -->
+        <div class="reporte-card" onclick="mostrarReporteOrdenes()">
+          <div class="reporte-icon">
+            <i class="fas fa-clipboard-list"></i>
+          </div>
+          <h3>Informe de Órdenes</h3>
+          <p>Exporta un listado de órdenes con sus detalles principales</p>
+        </div>
+
 
         <!-- Reporte de Productos Más Vendidos -->
         <div class="reporte-card" onclick="mostrarProductosMasVendidos()">
@@ -71,7 +81,7 @@
           <div class="reporte-icon">
             <i class="fas fa-file-invoice-dollar"></i>
           </div>
-          <h3>Informe de ventas mensuales</h3>
+          <h3>Informe de Ventas</h3>
           <p>Órdenes facturadas y finalizadas por fecha</p>
         </div>
       </div>
@@ -285,6 +295,42 @@
               <i class="fas fa-search"></i> Buscar
             </button>
             <button class="custom-btn" onclick="exportarExcelVentas()">
+              <i class="fas fa-file-excel"></i> Exportar Excel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Reporte de Órdenes-->
+  <div class="modal fade" id="reporteOrdenesModal" tabindex="-1" aria-labelledby="reporteOrdenesModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="reporteOrdenesModalLabel">
+            <i class="fas fa-clipboard-list"></i> Reporte de Órdenes
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="estadisticas-grid">
+            <div class="estadistica-card total">
+              <h5>Total Órdenes</h5>
+              <div class="estadistica-numero" id="totalReporteOrdenes">0</div>
+            </div>
+          </div>
+
+          <div
+            th:replace="~{calendario/calendario2 :: selector-rango-fechas('fechaInicioReporteOrdenes','fechaFinReporteOrdenes')}">
+          </div>
+
+          <div class="text-end mt-3 d-flex gap-2 justify-content-end">
+            <button class="custom-btn" onclick="actualizarEstadisticasReporteOrdenes()">
+              <i class="fas fa-search"></i> Buscar
+            </button>
+            <button class="custom-btn" onclick="exportarExcelReporteOrdenes()">
               <i class="fas fa-file-excel"></i> Exportar Excel
             </button>
           </div>
@@ -535,6 +581,8 @@
       const clientesModal = document.getElementById('informeClientesModal');
       const productosModal = document.getElementById('productosMasVendidosModal');
 
+      const reporteOrdenesModal = document.getElementById('reporteOrdenesModal');
+
       if (ordenesModal && ordenesModal.classList.contains('show')) {
         actualizarEstadisticasOrdenes();
       } else if (ventasModal && ventasModal.classList.contains('show')) {
@@ -543,6 +591,8 @@
         actualizarEstadisticasClientes();
       } else if (productosModal && productosModal.classList.contains('show')) {
         cargarProductosMasVendidos();
+      } else if (reporteOrdenesModal && reporteOrdenesModal.classList.contains('show')) {
+        actualizarEstadisticasReporteOrdenes();
       }
     }
 
@@ -773,6 +823,54 @@
 
     function exportarCatalogoJuridicos() {
       window.open("/reportes/exportar-catalogo-juridicos", "_blank");
+    }
+  </script>
+
+  <script>
+    // ========== FUNCIONES PARA REPORTE DE ORDENES ==========
+    function mostrarReporteOrdenes() {
+      fetch("/reportes/estadisticas-reporte-ordenes")
+        .then(r => r.json())
+        .then(data => {
+          document.getElementById("totalReporteOrdenes").textContent = data.total || 0;
+        })
+        .catch(() => {
+          document.getElementById("totalReporteOrdenes").textContent = 0;
+        });
+
+      const modal = new bootstrap.Modal(document.getElementById("reporteOrdenesModal"));
+      modal.show();
+    }
+
+    function actualizarEstadisticasReporteOrdenes() {
+      const inicio = document.getElementById("fechaInicioReporteOrdenes").value;
+      const fin = document.getElementById("fechaFinReporteOrdenes").value;
+      let url = "/reportes/estadisticas-reporte-ordenes";
+      if (inicio && fin) {
+        url += `?fechaInicio=${encodeURIComponent(inicio)}&fechaFin=${encodeURIComponent(fin)}`;
+      }
+      fetch(url)
+        .then(r => r.json())
+        .then(data => {
+          document.getElementById("totalReporteOrdenes").textContent = data.total || 0;
+        });
+    }
+
+    function exportarExcelReporteOrdenes() {
+      if (!hayDatosEnElemento("totalReporteOrdenes")) {
+        mostrarAlertaSinDatos();
+        return;
+      }
+      if (!rangoFechasValido("fechaInicioReporteOrdenes", "fechaFinReporteOrdenes")) {
+        return;
+      }
+      const inicio = document.getElementById("fechaInicioReporteOrdenes").value;
+      const fin = document.getElementById("fechaFinReporteOrdenes").value;
+      let url = "/reportes/exportar-excel-reporte-ordenes";
+      if (inicio && fin) {
+        url += `?fechaInicio=${encodeURIComponent(inicio)}&fechaFin=${encodeURIComponent(fin)}`;
+      }
+      window.location.href = url;
     }
   </script>
 </body>

@@ -168,7 +168,7 @@
 
                             <div class="mb-3">
                                 <label class="form-label fw-bold"><i class="fa-solid fa-location-dot me-2"></i>Ciudad *</label>
-                                <select id="ciudadSelect" class="form-control" required name="ciudad.id">
+                                <select id="ciudadSelect" class="form-control" required name="ciudadId">
                                     <option value="">Seleccione primero un departamento</option>
                                     <option th:each="ciudad : ${ciudades}"
                                             th:value="${ciudad.id}"
