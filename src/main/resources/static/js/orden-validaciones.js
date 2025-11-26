@@ -74,6 +74,73 @@ async function actualizarTodasLasOpcionesProducto() {
     }
 }
 
+async function actualizarOpcionesProductoOtrasFilas(filaActual) {
+    const filas = document.querySelectorAll("#tablaDetalle tbody tr");
+    for (const fila of filas) {
+        if (fila !== filaActual) {
+            await actualizarOpcionesProducto(fila);
+        }
+    }
+}
+
+async function actualizarDisponibilidadProductos() {
+    const filas = document.querySelectorAll("#tablaDetalle tbody tr");
+    
+    console.log("🔍 Actualizando disponibilidad de productos para", filas.length, "filas");
+    
+    // Cache para evitar múltiples peticiones del mismo producto
+    const terminadosCache = new Map();
+    
+    for (const fila of filas) {
+        const productoSelect = fila.querySelector("select[name='productoId']");
+        const terminadoSelect = fila.querySelector("select[name='terminadoId']");
+        const productoActual = productoSelect.value;
+        const terminadoActual = terminadoSelect.value;
+        
+        console.log("🔍 Verificando fila con producto actual:", productoActual, "terminado actual:", terminadoActual);
+        
+        // Recorrer todas las opciones y verificar disponibilidad
+        for (const option of productoSelect.options) {
+            if (option.value === "") continue; // Skip placeholder option
+            
+            const productoId = option.value;
+            
+            // Usar cache para evitar peticiones repetidas
+            if (!terminadosCache.has(productoId)) {
+                try {
+                    const response = await fetch(`/terminados/por-producto/${productoId}`);
+                    const terminados = await response.json();
+                    terminadosCache.set(productoId, terminados);
+                    console.log("📥 Cargados", terminados.length, "terminados para producto", productoId);
+                } catch (error) {
+                    console.error(`Error cargando terminados para producto ${productoId}:`, error);
+                    terminadosCache.set(productoId, []);
+                }
+            }
+            
+            const terminados = terminadosCache.get(productoId);
+            const tieneDisponibles = terminados.some(terminado => 
+                !esCombinacionDuplicada(productoId, terminado.id.toString(), fila)
+            );
+            
+            console.log("✅ Producto", productoId, "tiene disponibles:", tieneDisponibles);
+            
+            // Habilitar/deshabilitar la opción basado en disponibilidad
+            option.disabled = !tieneDisponibles;
+            
+            // Si el producto actual se volvió no disponible, resetear (pero no en modo edición inicial)
+            if (productoId === productoActual && !tieneDisponibles && !fila.hasAttribute('data-detalle-id')) {
+                productoSelect.value = "";
+                terminadoSelect.innerHTML = "<option value=''>Seleccione un terminado</option>";
+                actualizarDescripcion(fila);
+                actualizarPrecio(fila);
+            }
+        }
+    }
+    
+    console.log("✅ Actualización de disponibilidad completada");
+}
+
 function actualizarClienteInfo() {
     if (window.usuarioSeleccionadoGlobal) {
         window.tipoClienteGlobal = window.usuarioSeleccionadoGlobal.tipoUsuario.nombre.toUpperCase();
@@ -120,8 +187,8 @@ async function cargarTerminadosParaFila(fila, productoId, terminadoSeleccionado 
                     precioAMostrar = t.precioPorEncargo || 0;
                 }
                 
-                option.textContent = `Medida: ${t.medidaTerminadoProducto || 'N/A'}`;
-                option.setAttribute("data-info", `Medida: ${t.medidaTerminadoProducto}`);
+                option.textContent = `Medida: ${t.medidaTerminadoProducto || 'N/A'} cm`;
+                option.setAttribute("data-info", `Medida: ${t.medidaTerminadoProducto} cm`);
                 option.setAttribute("data-publico", t.precioPublico);
                 option.setAttribute("data-mayor", t.precioPorMayor);
                 option.setAttribute("data-encargo", t.precioPorEncargo);
@@ -198,11 +265,13 @@ function agregarFila() {
     nuevaFila.querySelectorAll("select").forEach(select => {
         if (select.name === "productoId") {
             select.selectedIndex = 0;
+            select.title = "Seleccionar producto"; // Asegurar título para accesibilidad
             // Cambiar a función de edición para nuevas filas
             select.onchange = function() { cambiarProductoEdicion(this); };
         } else if (select.name === "terminadoId") {
             select.innerHTML = "<option value=''>Seleccione un terminado</option>";
             select.selectedIndex = 0;
+            select.title = "Seleccionar terminado"; // Asegurar título para accesibilidad
             // Agregar evento para actualizar precio
             select.onchange = function() { actualizarPrecio(this.closest('tr')); };
         }
@@ -224,7 +293,8 @@ function agregarFila() {
     nuevaFila.removeAttribute('data-detalle-id');
     
     tabla.appendChild(nuevaFila);
-    actualizarOpcionesProducto(nuevaFila);
+    // Actualizar disponibilidad después de agregar nueva fila
+    setTimeout(() => actualizarDisponibilidadProductos(), 100);
     calcularTotalOrden();
     
     console.log('➕ Nueva fila agregada en modo edición con tipo cliente:', window.tipoClienteGlobal);
@@ -234,7 +304,7 @@ function eliminarFila() {
     const tabla = document.getElementById("tablaDetalle").querySelector("tbody");
     if (tabla.rows.length > 1) {
         tabla.deleteRow(tabla.rows.length - 1);
-        setTimeout(() => actualizarTodasLasOpcionesProducto(), 100);
+        setTimeout(() => actualizarDisponibilidadProductos(), 100);
         calcularTotalOrden();
     }
 }
@@ -271,8 +341,8 @@ function eliminarFilaEspecifica(botonEliminar) {
         if (result.isConfirmed) {
             tabla.deleteRow(filaIndex);
 
-            // Actualizar opciones de productos después de eliminar
-            setTimeout(() => actualizarTodasLasOpcionesProducto(), 100);
+            // Actualizar disponibilidad de productos después de eliminar
+            setTimeout(() => actualizarDisponibilidadProductos(), 100);
             calcularTotalOrden();
 
             // Mostrar confirmación de eliminación
@@ -311,6 +381,10 @@ document.addEventListener("change", function (e) {
     const fila = e.target.closest("tr");
 
     if (e.target.name === "productoId") {
+        // Solo ejecutar si no hay un handler específico asignado
+        if (e.target.onchange && e.target.onchange.toString().includes('cambiarProductoEdicion')) {
+            return; // Dejar que el handler específico maneje esto
+        }
         const productoId = e.target.value;
         const selectTerminado = fila.querySelector(".select-terminado");
 
@@ -332,8 +406,8 @@ document.addEventListener("change", function (e) {
                         precioAMostrar = t.precioPorEncargo || 0;
                     }
                     
-                    option.textContent = `Medida: ${t.medidaTerminadoProducto || 'N/A'}`;
-                    option.setAttribute("data-info", `Medida: ${t.medidaTerminadoProducto}`);
+                    option.textContent = `Medida: ${t.medidaTerminadoProducto || 'N/A'} cm`;
+                    option.setAttribute("data-info", `Medida: ${t.medidaTerminadoProducto} cm`);
                     option.setAttribute("data-publico", t.precioPublico);
                     option.setAttribute("data-mayor", t.precioPorMayor);
                     option.setAttribute("data-encargo", t.precioPorEncargo);
@@ -371,7 +445,8 @@ document.addEventListener("change", function (e) {
         actualizarDescripcion(fila);
         actualizarPrecio(fila);
 
-        setTimeout(() => actualizarTodasLasOpcionesProducto(), 100);
+        // Actualizar disponibilidad de productos sin recargar completamente
+        setTimeout(() => actualizarDisponibilidadProductos(), 100);
     }
 });
 
@@ -389,8 +464,8 @@ function actualizarTextoTerminados(fila) {
                 precioAMostrar = encargo;
             }
             
-            const medida = medidaInfo ? medidaInfo.replace("Medida: ", "") : "N/A";
-            option.textContent = `Medida: ${medida}`;
+            const medida = medidaInfo ? medidaInfo.replace("Medida: ", "").replace(" cm", "") : "N/A";
+            option.textContent = `Medida: ${medida} cm`;
         }
     });
 }
@@ -581,6 +656,8 @@ document.addEventListener('DOMContentLoaded', function () {
     
     // Cargar terminados para filas en modo edición
     const filasEdicion = document.querySelectorAll("tr[data-detalle-id]");
+    const cargasTerminados = [];
+    
     filasEdicion.forEach(fila => {
         const terminadoSelect = fila.querySelector("select[name='terminadoId']");
         const productoSelect = fila.querySelector("select[name='productoId']");
@@ -590,13 +667,23 @@ document.addEventListener('DOMContentLoaded', function () {
             const terminadoId = terminadoSelect.getAttribute("data-selected");
             
             if (productoId) {
-                cargarTerminadosParaFila(fila, productoId, terminadoId);
+                const promesaCarga = cargarTerminadosParaFila(fila, productoId, terminadoId);
+                cargasTerminados.push(promesaCarga);
             }
         }
     });
     
-    // Solo calcular total si no hay filas en modo edición
-    if (filasEdicion.length === 0) {
+    // Después de cargar todos los terminados, actualizar disponibilidad
+    if (filasEdicion.length > 0) {
+        Promise.all(cargasTerminados).then(() => {
+            // Dar tiempo para que se carguen todos los terminados
+            setTimeout(() => {
+                actualizarDisponibilidadProductos();
+                calcularTotalOrden();
+            }, 200);
+        });
+    } else {
+        // Solo calcular total si no hay filas en modo edición
         calcularTotalOrden();
     }
 });

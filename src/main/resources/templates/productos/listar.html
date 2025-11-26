@@ -185,7 +185,7 @@
                                 </thead>
                                 <tbody>
                                     <tr th:each="t : ${producto.terminados}">
-                                        <td th:text="${t.medidaTerminadoProducto}"></td>
+                                        <td th:text="${t.medidaTerminadoProducto + ' cm'}"></td>
                                         <td th:text="${t.precioPublico}"></td>
                                         <td th:text="${t.precioPorMayor}"></td>
                                         <td th:text="${t.precioPorEncargo}"></td>
