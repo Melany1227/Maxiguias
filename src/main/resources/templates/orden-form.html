@@ -127,8 +127,22 @@
                       <small>Documento: <span th:text="${orden.usuario.documento}"></span></small><br>
                       <small>Tipo: <span th:text="${orden.usuario.tipoUsuario.nombre}"></span></small>
                     </div>
+                    <div th:if="${!editMode and (esClienteJuridico ?: false)}">
+                      <div class="alert alert-success mb-0">
+                        <strong th:text="${usuarioLogueado?.primerApellido != null ? usuarioLogueado?.nombre + ' ' + usuarioLogueado?.primerApellido : usuarioLogueado?.nombre ?: 'N/A'}"></strong><br>
+                        <small>Documento: <span th:text="${usuarioLogueado?.documento ?: 'N/A'}"></span></small><br>
+                        <small>Tipo: <span th:text="${usuarioLogueado?.tipoUsuario?.nombre ?: 'JURIDICO'}"></span></small>
+                      </div>
+                    </div>
                   </div>
                 </div>
+                <div id="clienteJuridicoData"
+                     th:if="${esClienteJuridico ?: false}"
+                     th:data-documento="${usuarioLogueado?.documento ?: ''}"
+                     th:data-nombre="${usuarioLogueado?.nombre ?: ''}"
+                     th:data-primer-apellido="${usuarioLogueado?.primerApellido ?: ''}"
+                     th:data-tipo="${usuarioLogueado?.tipoUsuario?.nombre ?: 'JURIDICO'}"
+                     style="display:none;"></div>
 
                 <div th:if="${editMode}" class="mt-3">
                   <label class="form-icon-label"><i class="fa-solid fa-cogs"></i> Estado</label>
@@ -598,9 +612,64 @@
       }
     }
     
+    function obtenerDatosClienteJuridico() {
+      const juridicoData = document.getElementById('clienteJuridicoData');
+      if (!juridicoData) {
+        return null;
+      }
+      
+      const dataset = juridicoData.dataset || {};
+      const tipo = (dataset.tipo && dataset.tipo.trim()) ? dataset.tipo : 'JURIDICO';
+      
+      return {
+        documento: dataset.documento || '',
+        nombre: dataset.nombre || '',
+        primerApellido: dataset.primerApellido || '',
+        tipo: tipo
+      };
+    }
+
     function continuarAPaso2ParaJuridico() {
       const infoClienteJuridicoDiv = document.getElementById('infoClienteJuridico');
       const paso2Div = document.getElementById('paso2');
+      const datosClienteDiv = document.getElementById('datosCliente');
+      const usuarioDocumentoInput = document.getElementById('usuarioDocumento');
+      const datosJuridico = obtenerDatosClienteJuridico();
+      
+      if (datosJuridico) {
+        const documento = datosJuridico.documento;
+        const nombre = datosJuridico.nombre;
+        const primerApellido = datosJuridico.primerApellido;
+        const tipo = datosJuridico.tipo;
+        
+        const nombreCompleto = primerApellido ? `${nombre} ${primerApellido}` : nombre;
+        
+        if (usuarioDocumentoInput && documento) {
+          usuarioDocumentoInput.value = documento;
+        }
+        
+        if (datosClienteDiv && nombre) {
+          datosClienteDiv.innerHTML = `
+            <div class="alert alert-success">
+              <strong>${nombreCompleto}</strong><br>
+              <small>Documento: ${documento || 'N/A'}</small><br>
+              <small>Tipo: ${tipo}</small>
+            </div>
+          `;
+        }
+        
+        window.usuarioSeleccionadoGlobal = {
+          documento: documento,
+          nombre: nombre,
+          primerApellido: primerApellido,
+          tipoUsuario: { nombre: tipo }
+        };
+        window.tipoClienteGlobal = tipo.toUpperCase();
+        
+        if (typeof actualizarClienteInfo === 'function') {
+          actualizarClienteInfo();
+        }
+      }
       
       if (infoClienteJuridicoDiv) infoClienteJuridicoDiv.style.display = 'none';
       if (paso2Div) paso2Div.style.display = 'block';
@@ -666,10 +735,16 @@
       
       // Si es cliente jurídico, configurar tipo global
       if (typeof esClienteJuridico !== 'undefined' && esClienteJuridico) {
-        window.tipoClienteGlobal = "JURIDICO";
-        window.usuarioSeleccionadoGlobal = {
-          tipoUsuario: { nombre: "JURIDICO" }
-        };
+        const datosJuridico = obtenerDatosClienteJuridico();
+        if (datosJuridico) {
+          window.tipoClienteGlobal = datosJuridico.tipo.toUpperCase();
+          window.usuarioSeleccionadoGlobal = {
+            documento: datosJuridico.documento,
+            nombre: datosJuridico.nombre,
+            primerApellido: datosJuridico.primerApellido,
+            tipoUsuario: { nombre: datosJuridico.tipo }
+          };
+        }
       }
       
       console.log('✅ Búsqueda de usuarios inicializada');
@@ -844,10 +919,16 @@
       
       // Si es cliente jurídico, establecer el tipo globalmente
       if (typeof esClienteJuridico !== 'undefined' && esClienteJuridico) {
-        window.tipoClienteGlobal = "JURIDICO";
-        window.usuarioSeleccionadoGlobal = {
-          tipoUsuario: { nombre: "JURIDICO" }
-        };
+        const datosJuridico = obtenerDatosClienteJuridico();
+        if (datosJuridico) {
+          window.tipoClienteGlobal = datosJuridico.tipo.toUpperCase();
+          window.usuarioSeleccionadoGlobal = {
+            documento: datosJuridico.documento,
+            nombre: datosJuridico.nombre,
+            primerApellido: datosJuridico.primerApellido,
+            tipoUsuario: { nombre: datosJuridico.tipo }
+          };
+        }
       }
       
       // Inicializar modo edición

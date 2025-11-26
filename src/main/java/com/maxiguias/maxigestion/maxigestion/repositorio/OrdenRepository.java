@@ -20,13 +20,13 @@ public interface OrdenRepository extends JpaRepository<Orden, Long>, PagingAndSo
        Long countBy();
 
        // Métodos para reportes con filtro por mes
-       @Query("SELECT COUNT(o) FROM Orden o WHERE o.fechaOrden >= :inicio AND o.fechaOrden <= :fin")
-       Long countByFechaOrdenBetween(
+       @Query("SELECT COUNT(o) FROM Orden o WHERE o.fechaEntrega >= :inicio AND o.fechaEntrega <= :fin")
+       Long countByFechaEntregaBetween(
                      @Param("inicio") LocalDateTime inicio,
                      @Param("fin") LocalDateTime fin);
 
-       @Query("SELECT o FROM Orden o WHERE o.fechaOrden >= :inicio AND o.fechaOrden <= :fin")
-       List<Orden> findByFechaOrdenBetween(
+       @Query("SELECT o FROM Orden o WHERE o.fechaEntrega >= :inicio AND o.fechaEntrega <= :fin")
+       List<Orden> findByFechaEntregaBetween(
                      @Param("inicio") LocalDateTime inicio,
                      @Param("fin") LocalDateTime fin);
 

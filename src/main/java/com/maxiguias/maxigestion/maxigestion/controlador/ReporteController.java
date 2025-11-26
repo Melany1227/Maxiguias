@@ -217,8 +217,9 @@ public class ReporteController {
         Map<String, Long> estadisticas = new HashMap<>();
 
         if (fechaInicio != null && fechaFin != null) {
-            Long totalOrdenes = ordenRepository.countByFechaOrdenBetween(fechaInicio.atStartOfDay(),
-                    fechaFin.atTime(23, 59, 59));
+            LocalDateTime inicio = fechaInicio.atStartOfDay();
+            LocalDateTime fin = fechaFin.atTime(LocalTime.MAX);
+            Long totalOrdenes = ordenRepository.countByFechaEntregaBetween(inicio, fin);
             estadisticas.put("total", totalOrdenes);
         } else {
             estadisticas.put("total", ordenRepository.count());
@@ -233,9 +234,14 @@ public class ReporteController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin,
             HttpServletResponse response) throws IOException {
 
-        List<Orden> ordenes = (fechaInicio != null && fechaFin != null)
-                ? ordenRepository.findByFechaOrdenBetween(fechaInicio.atStartOfDay(), fechaFin.atTime(23, 59, 59))
-                : ordenRepository.findAll();
+        List<Orden> ordenes;
+        if (fechaInicio != null && fechaFin != null) {
+            LocalDateTime inicio = fechaInicio.atStartOfDay();
+            LocalDateTime fin = fechaFin.atTime(LocalTime.MAX);
+            ordenes = ordenRepository.findByFechaEntregaBetween(inicio, fin);
+        } else {
+            ordenes = ordenRepository.findAll();
+        }
 
         // Validación si no se encuentran registros
         if (ordenes.isEmpty()) {
@@ -279,7 +285,7 @@ public class ReporteController {
 
         if (fechaInicio != null && fechaFin != null) {
             LocalDateTime inicio = fechaInicio.atStartOfDay();
-            LocalDateTime fin = fechaFin.atTime(23, 59, 59);
+            LocalDateTime fin = fechaFin.atTime(LocalTime.MAX);
 
             totalProductosVendidos = detalleOrdenRepository.countTotalProductosVendidosEntreFechas(inicio, fin);
             productosVendidos = detalleOrdenRepository.findProductosMasVendidosEntreFechas(inicio, fin);
@@ -313,9 +319,9 @@ public class ReporteController {
         List<Object[]> productosVendidos;
 
         if (fechaInicio != null && fechaFin != null) {
-            productosVendidos = detalleOrdenRepository.findProductosMasVendidosEntreFechas(
-                    fechaInicio.atStartOfDay(),
-                    fechaFin.atTime(23, 59, 59));
+            LocalDateTime inicio = fechaInicio.atStartOfDay();
+            LocalDateTime fin = fechaFin.atTime(LocalTime.MAX);
+            productosVendidos = detalleOrdenRepository.findProductosMasVendidosEntreFechas(inicio, fin);
         } else {
             productosVendidos = detalleOrdenRepository.findProductosMasVendidos();
         }
