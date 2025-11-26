@@ -289,8 +289,13 @@ public class ReporteController {
             productosVendidos = detalleOrdenRepository.findProductosMasVendidos();
         }
 
+        List<ProductoVendidoDTO> productosDTO = convertirAProductosVendidosDTO(productosVendidos);
+        if (productosDTO.size() > 10) {
+            productosDTO = productosDTO.subList(0, 10);
+        }
+
         estadisticas.put("total", totalProductosVendidos != null ? totalProductosVendidos : 0);
-        estadisticas.put("productos", convertirAProductosVendidosDTO(productosVendidos));
+        estadisticas.put("productos", productosDTO);
 
         return estadisticas;
     }

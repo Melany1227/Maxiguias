@@ -11,7 +11,7 @@
 </head>
 
 <body>
-    <div th:replace="menú/sidebar :: sidebar"></div>
+    <div th:replace="~{menú/sidebar :: sidebar}"></div>
 
     <div class="main-content">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -87,11 +87,11 @@
                             th:text="'$' + ${#numbers.formatDecimal(orden.totalFactura, 1, 2)}"></td>
                         <td style="text-align: center;" th:text="${orden.descripcionVenta}"></td>
                         <td style="text-align: center;">
-                            <div class="dropdown">
+                            <div class="dropdown dropend">
                                 <button class="btn btn-dark btn-sm rounded-circle" type="button"
-                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="true">
                                     <i class="fa-solid fa-ellipsis-vertical"></i></button>
-                                <ul class="dropdown-menu dropdown-menu-end">
+                                <ul class="dropdown-menu dropdown-menu-end" style="min-width: 180px; z-index: 1050;">
                                     <li>
                                         <a th:href="@{/ordenes/verMas/{id}(id=${orden.id})}" class="dropdown-item">
                                             <i class="fa-solid fa-eye me-2"></i> Ver Detalle
@@ -122,51 +122,54 @@
             </table>
         </div>
 
-        <!-- Información y controles de paginación -->
-        <div class="row mt-4" th:if="${totalPages > 1}">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center">
-                    <!-- Información de paginación -->
-                    <div class="pagination-info">
-                        <span class="badge bg-secondary fs-6 px-3 py-2">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Página [[${currentPage + 1}]] de [[${totalPages}]]
-                            ([[${totalElements}]] órdenes en total)
-                        </span>
-                    </div>
+        <div class="row mt-5" th:if="${totalPages > 1}">
+        <div class="col-12 d-flex flex-column align-items-center">
 
-                    <!-- Controles de navegación -->
-                    <nav aria-label="Navegación de páginas">
-                        <div class="pagination-controls d-flex align-items-center gap-2">
-                            <!-- Botón Anterior -->
-                            <a th:href="@{/ordenes(page=${currentPage - 1}, size=${size}, filtroCliente=${filtroCliente})}"
-                                th:class="${currentPage == 0} ? 'btn btn-outline-secondary disabled' : 'btn'"
-                                style="background-color: #000; color: white; border-left: 3px solid #f3c623;"
-                                th:if="${currentPage > 0}">
-                                <i class="fas fa-chevron-left me-1"></i> Anterior
-                            </a>
+        <!-- Información -->
+        <p class="text-dark small mb-3">
+            Página [[${currentPage + 1}]] de [[${totalPages}]]
+            ([[${totalElements}]] órdenes en total)
+        </p>
 
-                            <!-- Números de página en botones bonitos -->
-                            <div class="btn-group" role="group">
-                                <a th:each="pageNum : ${#numbers.sequence(T(java.lang.Math).max(0, currentPage - 2), T(java.lang.Math).min(totalPages - 1, currentPage + 2))}"
-                                    th:href="@{/ordenes(page=${pageNum}, size=${size}, filtroCliente=${filtroCliente})}"
-                                    th:class="${pageNum == currentPage} ? 'btn active-page' : 'btn page-btn'"
-                                    th:style="${pageNum == currentPage} ? 'background-color: #f3c623; color: #000; font-weight: bold; border: 2px solid #000;' : 'background-color: #000; color: white; border: 1px solid #f3c623;'"
-                                    th:text="${pageNum + 1}">1</a>
-                            </div>
+            <!-- Paginación -->
+            <nav>
+                <ul class="pagination custom-pagination">
 
-                            <!-- Botón Siguiente -->
-                            <a th:href="@{/ordenes(page=${currentPage + 1}, size=${size}, filtroCliente=${filtroCliente})}"
-                                th:class="${currentPage >= totalPages - 1} ? 'btn btn-outline-secondary disabled' : 'btn'"
-                                style="background-color: #000; color: white; border-left: 3px solid #f3c623;"
-                                th:if="${currentPage < totalPages - 1}">
-                                Siguiente <i class="fas fa-chevron-right ms-1"></i>
-                            </a>
-                        </div>
-                    </nav>
-                </div>
-            </div>
+                    <!-- Botón Anterior -->
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link"
+                            th:href="@{/ordenes(page=${currentPage - 1}, size=${size}, filtroCliente=${filtroCliente})}">
+                            ‹
+                        </a>
+                    </li>
+
+                    <!-- Números dinámicos -->
+                    <li class="page-item"
+                        th:each="pageNum : ${#numbers.sequence(
+                            T(java.lang.Math).max(0, currentPage - 2),
+                            T(java.lang.Math).min(totalPages - 1, currentPage + 2)
+                        )}"
+                        th:classappend="${pageNum == currentPage} ? 'active'">
+                        <a class="page-link"
+                            th:href="@{/ordenes(page=${pageNum}, size=${size}, filtroCliente=${filtroCliente})}"
+                            th:text="${pageNum + 1}">
+                        </a>
+                    </li>
+
+                    <!-- Botón Siguiente -->
+                    <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                        <a class="page-link"
+                            th:href="@{/ordenes(page=${currentPage + 1}, size=${size}, filtroCliente=${filtroCliente})}">
+                            ›
+                        </a>
+                    </li>
+
+                </ul>
+            </nav>
+
         </div>
+    </div>
+
 
         <!-- Mensaje cuando solo hay una página -->
         <div class="text-center mt-3" th:if="${totalPages <= 1 && totalElements > 0}">
