@@ -33,9 +33,7 @@
 
         <!-- Paso 1: Búsqueda de Usuario (Solo para Administradores) -->
         <div id="paso1" class="step-section" th:if="${(esAdministrador ?: false) && !(editMode ?: false)}">
-          <h5 class="text-primary mb-3">
-            <i class="fa-solid fa-search"></i> Buscar Cliente
-          </h5>
+            
           <div class="row">
             <div class="col-md-8">
               <label class="form-icon-label"><i class="fa-solid fa-user"></i> Buscar Cliente</label>
@@ -131,16 +129,26 @@
                     <span th:unless="${editMode}">Seleccionado</span>:
                   </h6>
                   <div id="datosCliente">
+                    <!-- Información para modo edición -->
                     <div th:if="${editMode}">
-                      <strong th:text="${orden.usuario.primerApellido != null ? orden.usuario.nombre + ' ' + orden.usuario.primerApellido : orden.usuario.nombre}"></strong><br>
-                      <small>Documento: <span th:text="${orden.usuario.documento}"></span></small><br>
-                      <small>Tipo: <span th:text="${orden.usuario.tipoUsuario.nombre}"></span></small>
+                      <div class="alert alert-info mb-0">
+                        <strong th:text="${orden.usuario.primerApellido != null ? orden.usuario.nombre + ' ' + orden.usuario.primerApellido : orden.usuario.nombre}"></strong><br>
+                        <small>Documento: <span th:text="${orden.usuario.documento}"></span></small><br>
+                        <small>Tipo: <span th:text="${orden.usuario.tipoUsuario.nombre}"></span></small>
+                      </div>
                     </div>
+                    <!-- Información para cliente jurídico en nueva orden -->
                     <div th:if="${!editMode and (esClienteJuridico ?: false)}">
                       <div class="alert alert-success mb-0">
                         <strong th:text="${usuarioLogueado?.primerApellido != null ? usuarioLogueado?.nombre + ' ' + usuarioLogueado?.primerApellido : usuarioLogueado?.nombre ?: 'N/A'}"></strong><br>
                         <small>Documento: <span th:text="${usuarioLogueado?.documento ?: 'N/A'}"></span></small><br>
                         <small>Tipo: <span th:text="${usuarioLogueado?.tipoUsuario?.nombre ?: 'JURIDICO'}"></span></small>
+                      </div>
+                    </div>
+                    <!-- Mensaje para nueva orden cuando no es cliente jurídico ni hay selección -->
+                    <div th:if="${!editMode and !(esClienteJuridico ?: false)}">
+                      <div class="alert alert-warning mb-0">
+                        <em>Seleccione un cliente en el paso anterior</em>
                       </div>
                     </div>
                   </div>
