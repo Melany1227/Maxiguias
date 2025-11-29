@@ -59,17 +59,17 @@
                     <a href="/ciudades" class="btn"><i class="bi bi-building"></i> CIUDADES</a>
                     <a href="/reportes" class="btn"><i class="bi bi-graph-up"></i> REPORTES</a>
                 </div>
-                <a href="/ayuda_linea" class="btn"
+                <a href="/ayuda_linea" class="btn" style="text-align: left; justify-content: flex-start;"
                    sec:authorize="hasAuthority('ADMINISTRADOR') or hasAuthority('JURIDICO')">
                    <i class="bi bi-question-circle"></i> AYUDA EN LÍNEA
                 </a>
-                <a href="/acerca_de" class="btn">
+                <a href="/acerca_de" class="btn" style="text-align: left; justify-content: flex-start;">
                    <i class="bi bi-info-circle"></i> ACERCA DE
                 </a>
 
                 <!-- Cerrar sesión -->
                 <form th:action="@{/logout}" method="post" style="display: inline; width: 100%;">
-                    <button type="submit" class="btn"><i class="bi bi-box-arrow-right"></i> CERRAR SESIÓN</button>
+                    <button type="submit" class="btn" style="text-align: left; justify-content: flex-start;"><i class="bi bi-box-arrow-right"></i> CERRAR SESIÓN</button>
                 </form>
             </div>
         </div>
