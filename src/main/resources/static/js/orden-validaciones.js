@@ -234,9 +234,20 @@ function cargarTerminadosEdicion(productoSelect) {
 
 function aumentar(btn) {
     const input = btn.previousElementSibling;
-    input.value = parseInt(input.value) + 1;
-    const fila = btn.closest("tr");
-    actualizarPrecio(fila);
+    const valorActual = parseInt(input.value);
+    if (valorActual < 50) {
+        input.value = valorActual + 1;
+        const fila = btn.closest("tr");
+        actualizarPrecio(fila);
+    } else {
+        Swal.fire({
+            title: 'Límite alcanzado',
+            text: 'La cantidad máxima permitida por producto es de 50 unidades.',
+            icon: 'warning',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#d0a736'
+        });
+    }
 }
 
 function disminuir(btn) {
@@ -617,9 +628,20 @@ function actualizarPrecioEdicion(fila) {
 
 function aumentarEdicion(btn) {
     const input = btn.previousElementSibling;
-    input.value = parseInt(input.value) + 1;
-    const fila = btn.closest("tr");
-    actualizarPrecio(fila);
+    const valorActual = parseInt(input.value);
+    if (valorActual < 50) {
+        input.value = valorActual + 1;
+        const fila = btn.closest("tr");
+        actualizarPrecio(fila);
+    } else {
+        Swal.fire({
+            title: 'Límite alcanzado',
+            text: 'La cantidad máxima permitida por producto es de 50 unidades.',
+            icon: 'warning',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#d0a736'
+        });
+    }
 }
 
 function disminuirEdicion(btn) {

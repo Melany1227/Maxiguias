@@ -262,7 +262,7 @@
                   <td>
                     <div class="input-group justify-content-center align-items-center">
                       <button type="button" class="btn btn-outline-secondary btn-sm" onclick="disminuir(this)">-</button>
-                      <input type="number" class="form-control text-center" name="cantidad" value="1" min="1" required style="max-width: 70px; margin-bottom: 0px;">
+                      <input type="number" class="form-control text-center" name="cantidad" value="1" min="1" max="50" required style="max-width: 70px; margin-bottom: 0px;" title="Máximo 50 unidades por producto">
                       <button type="button" class="btn btn-outline-secondary btn-sm" onclick="aumentar(this)">+</button>
                     </div>
                   </td>
@@ -305,7 +305,7 @@
                   <td>
                     <div class="input-group justify-content-center align-items-center">
                       <button type="button" class="btn btn-outline-secondary btn-sm" onclick="disminuirEdicion(this)">-</button>
-                      <input type="number" class="form-control text-center" name="cantidad" th:value="${detalle.cantidad}" min="1" required style="max-width: 70px; margin-bottom: 0px;" onchange="actualizarPrecioEdicion(this.closest('tr'))">
+                      <input type="number" class="form-control text-center" name="cantidad" th:value="${detalle.cantidad}" min="1" max="50" required style="max-width: 70px; margin-bottom: 0px;" onchange="actualizarPrecioEdicion(this.closest('tr'))" title="Máximo 50 unidades por producto">
                       <button type="button" class="btn btn-outline-secondary btn-sm" onclick="aumentarEdicion(this)">+</button>
                     </div>
                   </td>
@@ -899,10 +899,23 @@
           return false;
         }
 
-        if (!cantidadInput.value || cantidadInput.value === "" || parseInt(cantidadInput.value) <= 0) {
+        const cantidad = parseInt(cantidadInput.value);
+        if (!cantidadInput.value || cantidadInput.value === "" || cantidad <= 0) {
           Swal.fire({
             title: 'Campo incompleto',
             text: 'La cantidad debe ser mayor a 0 en todas las filas.',
+            icon: 'warning',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#d0a736'
+          });
+          event.preventDefault();
+          return false;
+        }
+
+        if (cantidad > 50) {
+          Swal.fire({
+            title: 'Cantidad excesiva',
+            text: 'La cantidad máxima permitida por producto es de 50 unidades.',
             icon: 'warning',
             confirmButtonText: 'Aceptar',
             confirmButtonColor: '#d0a736'

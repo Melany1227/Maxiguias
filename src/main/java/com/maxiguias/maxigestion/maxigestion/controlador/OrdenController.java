@@ -200,6 +200,13 @@ public class OrdenController {
             return "redirect:/ordenes/nueva?error=La fecha de entrega debe ser mayor a la fecha actual";
         }
 
+        // Validar límite de cantidad máxima por producto (50 unidades)
+        for (int i = 0; i < cantidades.size(); i++) {
+            if (cantidades.get(i) > 50) {
+                return "redirect:/ordenes/nueva?error=La cantidad máxima permitida por producto es de 50 unidades";
+            }
+        }
+
         Orden ordenGuardada = ordenService.guardarOrden(orden);
 
         for (int i = 0; i < terminadosId.size(); i++) {
@@ -280,6 +287,7 @@ public class OrdenController {
         model.addAttribute("totalElements", ordenesPage.getTotalElements());
         model.addAttribute("size", size);
         model.addAttribute("filtroCliente", filtroCliente);
+        model.addAttribute("esClienteJuridico", esClienteJuridico);
         
         // Agregar mensajes de confirmación
         if (mensaje != null) {
@@ -449,11 +457,9 @@ public class OrdenController {
             }
         }
         
-        // Control de acceso: cliente jurídico solo puede editar sus propias órdenes
+        // Control de acceso: cliente jurídico NO puede editar ninguna orden
         if (esClienteJuridico && !esAdministrador) {
-            if (!orden.getUsuario().getDocumento().equals(usuarioLogueado.getDocumento())) {
-                return "redirect:/ordenes?error=No tiene permisos para editar esta orden";
-            }
+            return "redirect:/ordenes?error=Los usuarios jurídicos no pueden editar órdenes";
         }
         
         model.addAttribute("orden", orden);
@@ -509,11 +515,9 @@ public class OrdenController {
                                 usuarioLogueado.getPerfil().getRol() != null &&
                                 "ADMINISTRADOR".equals(usuarioLogueado.getPerfil().getRol().getNombreRol());
         
-        // Control de acceso: cliente jurídico solo puede actualizar sus propias órdenes
+        // Control de acceso: cliente jurídico NO puede actualizar ninguna orden
         if (esClienteJuridico && !esAdministrador) {
-            if (!orden.getUsuario().getDocumento().equals(usuarioLogueado.getDocumento())) {
-                return "redirect:/ordenes?error=No tiene permisos para actualizar esta orden";
-            }
+            return "redirect:/ordenes?error=Los usuarios jurídicos no pueden editar órdenes";
         }
 
         // Determinar si la orden está facturada (edición restringida)
@@ -537,6 +541,13 @@ public class OrdenController {
             // Validar que la fecha de entrega sea mayor a la fecha actual
             if (ordenActualizada.getFechaEntrega() != null && ordenActualizada.getFechaEntrega().isBefore(LocalDateTime.now())) {
                 return "redirect:/ordenes/editar/" + id + "?error=La fecha de entrega debe ser mayor a la fecha actual";
+            }
+
+            // Validar límite de cantidad máxima por producto (50 unidades)
+            for (int i = 0; i < cantidades.size(); i++) {
+                if (cantidades.get(i) > 50) {
+                    return "redirect:/ordenes/editar/" + id + "?error=La cantidad máxima permitida por producto es de 50 unidades";
+                }
             }
             
             orden.setFechaEntrega(ordenActualizada.getFechaEntrega());

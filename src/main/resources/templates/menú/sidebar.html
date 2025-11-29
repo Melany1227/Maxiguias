@@ -60,12 +60,12 @@
                     <a href="/reportes" class="btn"><i class="bi bi-graph-up"></i> REPORTES</a>
                 </div>
                 <a href="/ayuda_linea" class="btn"
-               sec:authorize="hasAuthority('ADMINISTRADOR') or hasAuthority('JURIDICO')">
-               <i class="bi bi-question-circle"></i> AYUDA EN LINEA
-            </a>
-            <a href="/acerca_de" class="btn">
-               <i class="bi bi-info-circle"></i> ACERCA DE
-            </a>
+                   sec:authorize="hasAuthority('ADMINISTRADOR') or hasAuthority('JURIDICO')">
+                   <i class="bi bi-question-circle"></i> AYUDA EN LÍNEA
+                </a>
+                <a href="/acerca_de" class="btn">
+                   <i class="bi bi-info-circle"></i> ACERCA DE
+                </a>
 
                 <!-- Cerrar sesión -->
                 <form th:action="@{/logout}" method="post" style="display: inline; width: 100%;">
@@ -126,13 +126,13 @@
                         <a href="/reportes" class="btn d-block w-100 mb-2" style="color: #d0a736; text-align: left;"><i class="bi bi-graph-up"></i> REPORTES</a>
                     </div>
 
-                    <a href="/ayuda_linea" class="btn"
-               sec:authorize="hasAuthority('ADMINISTRADOR') or hasAuthority('JURIDICO')">
-               <i class="bi bi-question-circle"></i> AYUDA EN LINEA
-            </a>
-            <a href="/acerca_de" class="btn">
-               <i class="bi bi-info-circle"></i> ACERCA DE
-            </a>
+                    <a href="/ayuda_linea" class="btn d-block w-100 mb-2" style="color: #d0a736; text-align: left;"
+                       sec:authorize="hasAuthority('ADMINISTRADOR') or hasAuthority('JURIDICO')">
+                       <i class="bi bi-question-circle"></i> AYUDA EN LÍNEA
+                    </a>
+                    <a href="/acerca_de" class="btn d-block w-100 mb-2" style="color: #d0a736; text-align: left;">
+                       <i class="bi bi-info-circle"></i> ACERCA DE
+                    </a>
                     <!-- Cerrar sesión -->
                     <form th:action="@{/logout}" method="post" class="w-100">
                         <button type="submit" class="btn d-block w-100 mb-2" style="color: #d0a736; text-align: left; background: none; border: none;"><i class="bi bi-box-arrow-right"></i> CERRAR SESIÓN</button>
