@@ -391,11 +391,17 @@ public class OrdenService {
 
     private void addWatermark(PdfWriter writer, Document document) {
         try {
-            // Obtener el path del logo desde el classpath
-            String logoPath = getClass().getClassLoader().getResource("static/img/logo.png").getPath();
+            // Obtener el logo desde el classpath como InputStream
+            java.io.InputStream logoInputStream = getClass().getClassLoader().getResourceAsStream("static/img/logo.png");
             
-            // Crear la imagen desde el archivo
-            Image watermarkImage = Image.getInstance(logoPath);
+            if (logoInputStream == null) {
+                System.err.println("Logo no encontrado en el classpath: static/img/logo.png");
+                return;
+            }
+            
+            // Crear la imagen desde el InputStream
+            Image watermarkImage = Image.getInstance(logoInputStream.readAllBytes());
+            logoInputStream.close();
             
             // Configurar el tamaño de la marca de agua (más grande y ovalada)
             float imageWidth = 350f;  // Más ancho para forma ovalada
