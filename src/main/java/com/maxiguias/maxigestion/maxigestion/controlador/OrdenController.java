@@ -200,6 +200,20 @@ public class OrdenController {
             return "redirect:/ordenes/nueva?error=La fecha de entrega debe ser mayor a la fecha actual";
         }
 
+        // Validar que las listas tengan el mismo tamaño
+        if (terminadosId.size() != cantidades.size() || 
+            terminadosId.size() != valores.size() ||
+            terminadosId.size() != descripciones.size()) {
+            return "redirect:/ordenes/nueva?error=Error en los datos del formulario";
+        }
+
+        // Validar que las descripciones no estén vacías
+        for (int i = 0; i < descripciones.size(); i++) {
+            if (descripciones.get(i) == null || descripciones.get(i).trim().isEmpty()) {
+                return "redirect:/ordenes/nueva?error=La descripción del detalle de la orden es obligatoria";
+            }
+        }
+
         // Validar límite de cantidad máxima por producto (50 unidades)
         for (int i = 0; i < cantidades.size(); i++) {
             if (cantidades.get(i) > 50) {
@@ -219,6 +233,7 @@ public class OrdenController {
             detalle.setCantidad(cantidades.get(i));
             detalle.setValor(valores.get(i));
             detalle.setDescripcion(descripciones.get(i));
+            
             ordenService.guardarDetalles(detalle);
         }
 
@@ -538,6 +553,20 @@ public class OrdenController {
         } else {
             // Para órdenes PENDIENTE y EN_PROCESO, edición completa
             
+            // Validar que las listas tengan el mismo tamaño
+            if (terminadosId.size() != cantidades.size() || 
+                terminadosId.size() != valores.size() ||
+                terminadosId.size() != descripciones.size()) {
+                return "redirect:/ordenes/editar/" + id + "?error=Error en los datos del formulario";
+            }
+
+            // Validar que las descripciones no estén vacías
+            for (int i = 0; i < descripciones.size(); i++) {
+                if (descripciones.get(i) == null || descripciones.get(i).trim().isEmpty()) {
+                    return "redirect:/ordenes/editar/" + id + "?error=La descripción del detalle de la orden es obligatoria";
+                }
+            }
+
             // Validar que la fecha de entrega sea mayor a la fecha actual
             if (ordenActualizada.getFechaEntrega() != null && ordenActualizada.getFechaEntrega().isBefore(LocalDateTime.now())) {
                 return "redirect:/ordenes/editar/" + id + "?error=La fecha de entrega debe ser mayor a la fecha actual";
@@ -569,6 +598,7 @@ public class OrdenController {
                 detalle.setCantidad(cantidades.get(i));
                 detalle.setValor(valores.get(i));
                 detalle.setDescripcion(descripciones.get(i));
+                
                 ordenService.guardarDetalles(detalle);
             }
         }
