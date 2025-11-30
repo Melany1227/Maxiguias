@@ -97,9 +97,10 @@
                                             <i class="fa-solid fa-eye me-2"></i> Ver Detalle
                                         </a>
                                     </li>
-                                    <!-- Editar: Solo para PENDIENTE, EN_PROCESO y FACTURADA - No mostrar si usuario logueado es jurídico -->
+                                    <!-- Editar: Para administradores (PENDIENTE, EN_PROCESO y FACTURADA) - Para jurídicos solo PENDIENTE -->
                                     <li th:if="${(orden.estado.name() == 'PENDIENTE' || orden.estado.name() == 'EN_PROCESO' || orden.estado.name() == 'FACTURADA') 
-                                                 and !(esClienteJuridico ?: false)}">
+                                                 and !(esClienteJuridico ?: false)} 
+                                         or ${(esClienteJuridico ?: false) and orden.estado.name() == 'PENDIENTE'}">
                                         <a th:href="@{/ordenes/editar/{id}(id=${orden.id})}" class="dropdown-item"
                                             th:title="${orden.estado.name() == 'FACTURADA'} ? 'Solo se puede cambiar el estado' : 'Editar orden'">
                                             <i class="fa-solid fa-edit me-2"></i>

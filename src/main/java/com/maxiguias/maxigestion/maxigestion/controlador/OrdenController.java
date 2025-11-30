@@ -472,9 +472,17 @@ public class OrdenController {
             }
         }
         
-        // Control de acceso: cliente jurídico NO puede editar ninguna orden
+        // Control de acceso: cliente jurídico solo puede editar sus órdenes en estado PENDIENTE
         if (esClienteJuridico && !esAdministrador) {
-            return "redirect:/ordenes?error=Los usuarios jurídicos no pueden editar órdenes";
+            // Verificar que la orden pertenece al usuario logueado
+            if (!orden.getUsuario().getDocumento().equals(usuarioLogueado.getDocumento())) {
+                return "redirect:/ordenes?error=No tiene permisos para editar esta orden";
+            }
+            
+            // Solo permitir edición si la orden está en estado PENDIENTE
+            if (orden.getEstado() != EstadoOrden.PENDIENTE) {
+                return "redirect:/ordenes?error=Solo puede editar órdenes en estado Pendiente";
+            }
         }
         
         model.addAttribute("orden", orden);
@@ -530,9 +538,17 @@ public class OrdenController {
                                 usuarioLogueado.getPerfil().getRol() != null &&
                                 "ADMINISTRADOR".equals(usuarioLogueado.getPerfil().getRol().getNombreRol());
         
-        // Control de acceso: cliente jurídico NO puede actualizar ninguna orden
+        // Control de acceso: cliente jurídico solo puede actualizar sus órdenes en estado PENDIENTE
         if (esClienteJuridico && !esAdministrador) {
-            return "redirect:/ordenes?error=Los usuarios jurídicos no pueden editar órdenes";
+            // Verificar que la orden pertenece al usuario logueado
+            if (!orden.getUsuario().getDocumento().equals(usuarioLogueado.getDocumento())) {
+                return "redirect:/ordenes?error=No tiene permisos para editar esta orden";
+            }
+            
+            // Solo permitir actualización si la orden está en estado PENDIENTE
+            if (orden.getEstado() != EstadoOrden.PENDIENTE) {
+                return "redirect:/ordenes?error=Solo puede editar órdenes en estado Pendiente";
+            }
         }
 
         // Determinar si la orden está facturada (edición restringida)
@@ -582,7 +598,12 @@ public class OrdenController {
             orden.setFechaEntrega(ordenActualizada.getFechaEntrega());
             orden.setDescripcionVenta(ordenActualizada.getDescripcionVenta());
             orden.setTotalFactura(ordenActualizada.getTotalFactura());
-            orden.setEstado(ordenActualizada.getEstado());
+            
+            // Solo actualizar el estado si no es cliente jurídico
+            if (!esClienteJuridico) {
+                orden.setEstado(ordenActualizada.getEstado());
+            }
+            // Si es cliente jurídico, mantener el estado actual (no cambiar)
             
             Orden ordenGuardada = ordenService.guardarOrden(orden);
             
