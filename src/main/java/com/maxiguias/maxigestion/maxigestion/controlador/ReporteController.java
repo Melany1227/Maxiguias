@@ -217,14 +217,15 @@ public class ReporteController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
         Map<String, Long> estadisticas = new HashMap<>();
+		List<EstadoOrden> estados = List.of(EstadoOrden.FACTURADA, EstadoOrden.FINALIZADA);
 
         if (fechaInicio != null && fechaFin != null) {
             LocalDateTime inicio = fechaInicio.atStartOfDay();
             LocalDateTime fin = fechaFin.atTime(LocalTime.MAX);
-            Long totalOrdenes = ordenRepository.countByFechaEntregaBetween(inicio, fin);
+            Long totalOrdenes = ordenRepository.countByEstadoInAndFechaEntregaBetween(estados, inicio, fin);
             estadisticas.put("total", totalOrdenes);
         } else {
-            estadisticas.put("total", ordenRepository.count());
+            estadisticas.put("total", ordenRepository.countByEstadoIn(estados));
         }
 
         return estadisticas;
@@ -237,12 +238,13 @@ public class ReporteController {
             HttpServletResponse response) throws IOException {
 
         List<Orden> ordenes;
+		List<EstadoOrden> estados = List.of(EstadoOrden.FACTURADA, EstadoOrden.FINALIZADA);
         if (fechaInicio != null && fechaFin != null) {
             LocalDateTime inicio = fechaInicio.atStartOfDay();
             LocalDateTime fin = fechaFin.atTime(LocalTime.MAX);
-            ordenes = ordenRepository.findByFechaEntregaBetween(inicio, fin);
+            ordenes = ordenRepository.findByEstadoInAndFechaEntregaBetween(estados, inicio, fin);
         } else {
-            ordenes = ordenRepository.findAll();
+            ordenes = ordenRepository.findByEstadoIn(estados);
         }
 
         // Validación si no se encuentran registros
