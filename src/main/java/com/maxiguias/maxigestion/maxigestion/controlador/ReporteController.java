@@ -15,6 +15,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.time.format.DateTimeFormatter;
 import com.maxiguias.maxigestion.maxigestion.modelo.EstadoOrden;
 import com.maxiguias.maxigestion.maxigestion.modelo.Orden;
 import com.maxiguias.maxigestion.maxigestion.modelo.Usuario;
@@ -217,8 +219,9 @@ public class ReporteController {
         Map<String, Long> estadisticas = new HashMap<>();
 
         if (fechaInicio != null && fechaFin != null) {
-            Long totalOrdenes = ordenRepository.countByFechaOrdenBetween(fechaInicio.atStartOfDay(),
-                    fechaFin.atTime(23, 59, 59));
+            LocalDateTime inicio = fechaInicio.atStartOfDay();
+            LocalDateTime fin = fechaFin.atTime(LocalTime.MAX);
+            Long totalOrdenes = ordenRepository.countByFechaEntregaBetween(inicio, fin);
             estadisticas.put("total", totalOrdenes);
         } else {
             estadisticas.put("total", ordenRepository.count());
@@ -233,9 +236,14 @@ public class ReporteController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin,
             HttpServletResponse response) throws IOException {
 
-        List<Orden> ordenes = (fechaInicio != null && fechaFin != null)
-                ? ordenRepository.findByFechaOrdenBetween(fechaInicio.atStartOfDay(), fechaFin.atTime(23, 59, 59))
-                : ordenRepository.findAll();
+        List<Orden> ordenes;
+        if (fechaInicio != null && fechaFin != null) {
+            LocalDateTime inicio = fechaInicio.atStartOfDay();
+            LocalDateTime fin = fechaFin.atTime(LocalTime.MAX);
+            ordenes = ordenRepository.findByFechaEntregaBetween(inicio, fin);
+        } else {
+            ordenes = ordenRepository.findAll();
+        }
 
         // Validación si no se encuentran registros
         if (ordenes.isEmpty()) {
@@ -279,7 +287,7 @@ public class ReporteController {
 
         if (fechaInicio != null && fechaFin != null) {
             LocalDateTime inicio = fechaInicio.atStartOfDay();
-            LocalDateTime fin = fechaFin.atTime(23, 59, 59);
+            LocalDateTime fin = fechaFin.atTime(LocalTime.MAX);
 
             totalProductosVendidos = detalleOrdenRepository.countTotalProductosVendidosEntreFechas(inicio, fin);
             productosVendidos = detalleOrdenRepository.findProductosMasVendidosEntreFechas(inicio, fin);
@@ -289,8 +297,13 @@ public class ReporteController {
             productosVendidos = detalleOrdenRepository.findProductosMasVendidos();
         }
 
+        List<ProductoVendidoDTO> productosDTO = convertirAProductosVendidosDTO(productosVendidos);
+        if (productosDTO.size() > 10) {
+            productosDTO = productosDTO.subList(0, 10);
+        }
+
         estadisticas.put("total", totalProductosVendidos != null ? totalProductosVendidos : 0);
-        estadisticas.put("productos", convertirAProductosVendidosDTO(productosVendidos));
+        estadisticas.put("productos", productosDTO);
 
         return estadisticas;
     }
@@ -308,9 +321,9 @@ public class ReporteController {
         List<Object[]> productosVendidos;
 
         if (fechaInicio != null && fechaFin != null) {
-            productosVendidos = detalleOrdenRepository.findProductosMasVendidosEntreFechas(
-                    fechaInicio.atStartOfDay(),
-                    fechaFin.atTime(23, 59, 59));
+            LocalDateTime inicio = fechaInicio.atStartOfDay();
+            LocalDateTime fin = fechaFin.atTime(LocalTime.MAX);
+            productosVendidos = detalleOrdenRepository.findProductosMasVendidosEntreFechas(inicio, fin);
         } else {
             productosVendidos = detalleOrdenRepository.findProductosMasVendidos();
         }
@@ -593,6 +606,112 @@ public class ReporteController {
                     row.createCell(8).setCellValue(orden.getFirmaDigital() != null ? orden.getFirmaDigital() : "");
                     // columnas de detalle quedan vacías
                 }
+            }
+
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            workbook.write(response.getOutputStream());
+        }
+    }
+
+    // ========== REPORTE DE ORDENES (EXCEL) ==========
+
+    @GetMapping("/estadisticas-reporte-ordenes")
+    @ResponseBody
+    public Map<String, Object> obtenerEstadisticasReporteOrdenes(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
+
+        Map<String, Object> estadisticas = new HashMap<>();
+        Long total;
+
+        if (fechaInicio != null && fechaFin != null) {
+            LocalDateTime inicio = fechaInicio.atStartOfDay();
+            LocalDateTime fin = fechaFin.atTime(LocalTime.MAX);
+            total = ordenRepository.countByFechaEntregaBetween(inicio, fin);
+        } else {
+            total = ordenRepository.count();
+        }
+
+        estadisticas.put("total", total != null ? total : 0);
+        return estadisticas;
+    }
+
+    @GetMapping("/exportar-excel-reporte-ordenes")
+    public void exportarExcelReporteOrdenes(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin,
+            HttpServletResponse response) throws IOException {
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        String fileName = "reporte_ordenes_" + LocalDate.now() + ".xlsx";
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+
+        List<Orden> ordenes;
+
+        if (fechaInicio != null && fechaFin != null) {
+            LocalDateTime inicio = fechaInicio.atStartOfDay();
+            LocalDateTime fin = fechaFin.atTime(LocalTime.MAX);
+            ordenes = ordenRepository.findByFechaEntregaBetween(inicio, fin);
+        } else {
+            ordenes = ordenRepository.findAll();
+        }
+
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Reporte de Órdenes");
+
+            // Estilo encabezado
+            CellStyle headerStyle = workbook.createCellStyle();
+            headerStyle.setFillForegroundColor(IndexedColors.GOLD.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+            headerStyle.setAlignment(HorizontalAlignment.CENTER);
+
+            // Encabezados
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {
+                    "N° Orden", "Cliente", "Documento Usuario", "Fecha de Entrega",
+                    "Ciudad Cliente", "Estado", "Total", "Descripción"
+            };
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            int rowNum = 1;
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+            for (Orden orden : ordenes) {
+                Row row = sheet.createRow(rowNum++);
+
+                String nombreCliente = orden.getUsuario() != null ? orden.getUsuario().getNombre() : "";
+                if (orden.getUsuario() != null && orden.getUsuario().getPrimerApellido() != null) {
+                    nombreCliente += " " + orden.getUsuario().getPrimerApellido();
+                }
+
+                row.createCell(0).setCellValue(orden.getId() != null ? orden.getId() : 0);
+                row.createCell(1).setCellValue(nombreCliente);
+                row.createCell(2).setCellValue(orden.getUsuario() != null && orden.getUsuario().getDocumento() != null
+                        ? orden.getUsuario().getDocumento().toString() : "");
+                row.createCell(3).setCellValue(orden.getFechaEntrega() != null
+                        ? orden.getFechaEntrega().format(dateFormatter) : "Sin fecha");
+                row.createCell(4).setCellValue(orden.getUsuario() != null && orden.getUsuario().getCiudad() != null
+                        ? orden.getUsuario().getCiudad().getNombre() : "Sin ciudad");
+                row.createCell(5).setCellValue(orden.getEstado() != null ? orden.getEstado().getDescripcion() : "Sin Estado");
+                row.createCell(6).setCellValue(orden.getTotalFactura() != null ? orden.getTotalFactura().doubleValue() : 0);
+                row.createCell(7).setCellValue(orden.getDescripcionVenta() != null ? orden.getDescripcionVenta() : "");
+            }
+
+            // Estilo para la celda del total
+            CellStyle totalStyle = workbook.createCellStyle();
+            totalStyle.setDataFormat(workbook.createDataFormat().getFormat("$#,##0.00"));
+            for (int i = 1; i <= ordenes.size(); i++) {
+                sheet.getRow(i).getCell(6).setCellStyle(totalStyle);
             }
 
             for (int i = 0; i < headers.length; i++) {

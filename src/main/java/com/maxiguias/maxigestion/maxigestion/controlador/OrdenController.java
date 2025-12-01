@@ -200,6 +200,27 @@ public class OrdenController {
             return "redirect:/ordenes/nueva?error=La fecha de entrega debe ser mayor a la fecha actual";
         }
 
+        // Validar que las listas tengan el mismo tamaño
+        if (terminadosId.size() != cantidades.size() || 
+            terminadosId.size() != valores.size() ||
+            terminadosId.size() != descripciones.size()) {
+            return "redirect:/ordenes/nueva?error=Error en los datos del formulario";
+        }
+
+        // Validar que las descripciones no estén vacías
+        for (int i = 0; i < descripciones.size(); i++) {
+            if (descripciones.get(i) == null || descripciones.get(i).trim().isEmpty()) {
+                return "redirect:/ordenes/nueva?error=La descripción del detalle de la orden es obligatoria";
+            }
+        }
+
+        // Validar límite de cantidad máxima por producto (50 unidades)
+        for (int i = 0; i < cantidades.size(); i++) {
+            if (cantidades.get(i) > 50) {
+                return "redirect:/ordenes/nueva?error=La cantidad máxima permitida por producto es de 50 unidades";
+            }
+        }
+
         Orden ordenGuardada = ordenService.guardarOrden(orden);
 
         for (int i = 0; i < terminadosId.size(); i++) {
@@ -212,6 +233,7 @@ public class OrdenController {
             detalle.setCantidad(cantidades.get(i));
             detalle.setValor(valores.get(i));
             detalle.setDescripcion(descripciones.get(i));
+            
             ordenService.guardarDetalles(detalle);
         }
 
@@ -280,6 +302,7 @@ public class OrdenController {
         model.addAttribute("totalElements", ordenesPage.getTotalElements());
         model.addAttribute("size", size);
         model.addAttribute("filtroCliente", filtroCliente);
+        model.addAttribute("esClienteJuridico", esClienteJuridico);
         
         // Agregar mensajes de confirmación
         if (mensaje != null) {
@@ -449,10 +472,16 @@ public class OrdenController {
             }
         }
         
-        // Control de acceso: cliente jurídico solo puede editar sus propias órdenes
+        // Control de acceso: cliente jurídico solo puede editar sus órdenes en estado PENDIENTE
         if (esClienteJuridico && !esAdministrador) {
+            // Verificar que la orden pertenece al usuario logueado
             if (!orden.getUsuario().getDocumento().equals(usuarioLogueado.getDocumento())) {
                 return "redirect:/ordenes?error=No tiene permisos para editar esta orden";
+            }
+            
+            // Solo permitir edición si la orden está en estado PENDIENTE
+            if (orden.getEstado() != EstadoOrden.PENDIENTE) {
+                return "redirect:/ordenes?error=Solo puede editar órdenes en estado Pendiente";
             }
         }
         
@@ -509,10 +538,16 @@ public class OrdenController {
                                 usuarioLogueado.getPerfil().getRol() != null &&
                                 "ADMINISTRADOR".equals(usuarioLogueado.getPerfil().getRol().getNombreRol());
         
-        // Control de acceso: cliente jurídico solo puede actualizar sus propias órdenes
+        // Control de acceso: cliente jurídico solo puede actualizar sus órdenes en estado PENDIENTE
         if (esClienteJuridico && !esAdministrador) {
+            // Verificar que la orden pertenece al usuario logueado
             if (!orden.getUsuario().getDocumento().equals(usuarioLogueado.getDocumento())) {
-                return "redirect:/ordenes?error=No tiene permisos para actualizar esta orden";
+                return "redirect:/ordenes?error=No tiene permisos para editar esta orden";
+            }
+            
+            // Solo permitir actualización si la orden está en estado PENDIENTE
+            if (orden.getEstado() != EstadoOrden.PENDIENTE) {
+                return "redirect:/ordenes?error=Solo puede editar órdenes en estado Pendiente";
             }
         }
 
@@ -534,15 +569,41 @@ public class OrdenController {
         } else {
             // Para órdenes PENDIENTE y EN_PROCESO, edición completa
             
+            // Validar que las listas tengan el mismo tamaño
+            if (terminadosId.size() != cantidades.size() || 
+                terminadosId.size() != valores.size() ||
+                terminadosId.size() != descripciones.size()) {
+                return "redirect:/ordenes/editar/" + id + "?error=Error en los datos del formulario";
+            }
+
+            // Validar que las descripciones no estén vacías
+            for (int i = 0; i < descripciones.size(); i++) {
+                if (descripciones.get(i) == null || descripciones.get(i).trim().isEmpty()) {
+                    return "redirect:/ordenes/editar/" + id + "?error=La descripción del detalle de la orden es obligatoria";
+                }
+            }
+
             // Validar que la fecha de entrega sea mayor a la fecha actual
             if (ordenActualizada.getFechaEntrega() != null && ordenActualizada.getFechaEntrega().isBefore(LocalDateTime.now())) {
                 return "redirect:/ordenes/editar/" + id + "?error=La fecha de entrega debe ser mayor a la fecha actual";
+            }
+
+            // Validar límite de cantidad máxima por producto (50 unidades)
+            for (int i = 0; i < cantidades.size(); i++) {
+                if (cantidades.get(i) > 50) {
+                    return "redirect:/ordenes/editar/" + id + "?error=La cantidad máxima permitida por producto es de 50 unidades";
+                }
             }
             
             orden.setFechaEntrega(ordenActualizada.getFechaEntrega());
             orden.setDescripcionVenta(ordenActualizada.getDescripcionVenta());
             orden.setTotalFactura(ordenActualizada.getTotalFactura());
-            orden.setEstado(ordenActualizada.getEstado());
+            
+            // Solo actualizar el estado si no es cliente jurídico
+            if (!esClienteJuridico) {
+                orden.setEstado(ordenActualizada.getEstado());
+            }
+            // Si es cliente jurídico, mantener el estado actual (no cambiar)
             
             Orden ordenGuardada = ordenService.guardarOrden(orden);
             
@@ -558,6 +619,7 @@ public class OrdenController {
                 detalle.setCantidad(cantidades.get(i));
                 detalle.setValor(valores.get(i));
                 detalle.setDescripcion(descripciones.get(i));
+                
                 ordenService.guardarDetalles(detalle);
             }
         }

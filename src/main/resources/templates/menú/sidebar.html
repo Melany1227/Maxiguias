@@ -24,6 +24,7 @@
                 <a href="/login" class="btn"><i class="bi bi-box-arrow-in-right"></i> INGRESAR</a>
                 <a href="/productos/publico" class="btn"><i class="bi bi-journal-text"></i> CATÁLOGO</a>
             </div>
+            
 
             <!-- Si está autenticado -->
             <div sec:authorize="isAuthenticated()">
@@ -52,16 +53,23 @@
                     <a href="/productos" class="btn"><i class="bi bi-box-seam"></i> PRODUCTOS</a>
                     <a href="/formularios" class="btn"><i class="bi bi-file-text"></i> FORMULARIOS</a>
                     <a href="/perfiles" class="btn"><i class="bi bi-person-badge"></i> PERFILES</a>
-                    <a href="/formularios-x-perfiles" class="btn"><i class="bi bi-lock"></i> FORMULARIOS X PERFILES</a>
+                    <a href="/formularios-x-perfiles" class="btn" style="text-align: left; justify-content: flex-start;"><i class="bi bi-lock"></i> PERMISOS</a>
                     <a href="/roles" class="btn"><i class="bi bi-shield-lock"></i> ROLES</a>
                     <a href="/departamentos" class="btn"><i class="bi bi-map"></i> DEPARTAMENTOS</a>
                     <a href="/ciudades" class="btn"><i class="bi bi-building"></i> CIUDADES</a>
                     <a href="/reportes" class="btn"><i class="bi bi-graph-up"></i> REPORTES</a>
                 </div>
+                <a href="/ayuda_linea" class="btn" style="text-align: left; justify-content: flex-start;"
+                   sec:authorize="hasAuthority('ADMINISTRADOR') or hasAuthority('JURIDICO')">
+                   <i class="bi bi-question-circle"></i> AYUDA EN LÍNEA
+                </a>
+                <a href="/acerca_de" class="btn" style="text-align: left; justify-content: flex-start;">
+                   <i class="bi bi-info-circle"></i> ACERCA DE
+                </a>
 
                 <!-- Cerrar sesión -->
                 <form th:action="@{/logout}" method="post" style="display: inline; width: 100%;">
-                    <button type="submit" class="btn"><i class="bi bi-box-arrow-right"></i> CERRAR SESIÓN</button>
+                    <button type="submit" class="btn" style="text-align: left; justify-content: flex-start;"><i class="bi bi-box-arrow-right"></i> CERRAR SESIÓN</button>
                 </form>
             </div>
         </div>
@@ -111,13 +119,20 @@
                         <a href="/productos" class="btn d-block w-100 mb-2" style="color: #d0a736; text-align: left;"><i class="bi bi-box-seam"></i> PRODUCTOS</a>
                         <a href="/formularios" class="btn d-block w-100 mb-2" style="color: #d0a736; text-align: left;"><i class="bi bi-file-text"></i> FORMULARIOS</a>
                         <a href="/perfiles" class="btn d-block w-100 mb-2" style="color: #d0a736; text-align: left;"><i class="bi bi-person-badge"></i> PERFILES</a>
-                        <a href="/formularios-x-perfiles" class="btn d-block w-100 mb-2" style="color: #d0a736; text-align: left;"><i class="bi bi-lock"></i> FORMULARIOS X PERFILES</a>
+                        <a href="/formularios-x-perfiles" class="btn d-block w-100 mb-2" style="color: #d0a736; text-align: left;"><i class="bi bi-lock"></i> PERMISOS</a>
                         <a href="/roles" class="btn d-block w-100 mb-2" style="color: #d0a736; text-align: left;"><i class="bi bi-shield-lock"></i> ROLES</a>
                         <a href="/departamentos" class="btn d-block w-100 mb-2" style="color: #d0a736; text-align: left;"><i class="bi bi-map"></i> DEPARTAMENTOS</a>
                         <a href="/ciudades" class="btn d-block w-100 mb-2" style="color: #d0a736; text-align: left;"><i class="bi bi-building"></i> CIUDADES</a>
                         <a href="/reportes" class="btn d-block w-100 mb-2" style="color: #d0a736; text-align: left;"><i class="bi bi-graph-up"></i> REPORTES</a>
                     </div>
 
+                    <a href="/ayuda_linea" class="btn d-block w-100 mb-2" style="color: #d0a736; text-align: left;"
+                       sec:authorize="hasAuthority('ADMINISTRADOR') or hasAuthority('JURIDICO')">
+                       <i class="bi bi-question-circle"></i> AYUDA EN LÍNEA
+                    </a>
+                    <a href="/acerca_de" class="btn d-block w-100 mb-2" style="color: #d0a736; text-align: left;">
+                       <i class="bi bi-info-circle"></i> ACERCA DE
+                    </a>
                     <!-- Cerrar sesión -->
                     <form th:action="@{/logout}" method="post" class="w-100">
                         <button type="submit" class="btn d-block w-100 mb-2" style="color: #d0a736; text-align: left; background: none; border: none;"><i class="bi bi-box-arrow-right"></i> CERRAR SESIÓN</button>

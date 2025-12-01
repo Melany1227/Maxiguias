@@ -159,20 +159,25 @@ public class OrdenService {
             representativeTable.setSpacingAfter(15);
 
             // Nombre completo del representante
-            String nombreCompletoRepresentante = representante.getNombre() + " " + 
-                    representante.getPrimerApellido() + 
-                    (representante.getSegundoApellido() != null ? " " + representante.getSegundoApellido() : "");
+            String nombreCompletoRepresentante = buildFullName(
+                representante.getNombre(), 
+                representante.getPrimerApellido(), 
+                representante.getSegundoApellido()
+            );
 
             representativeTable.addCell(createInfoCell("Documento: " + representante.getDocumento(), normalFont));
             representativeTable.addCell(createInfoCell("Nombre: " + nombreCompletoRepresentante, normalFont));
-            representativeTable.addCell(createInfoCell("Teléfono: " + 
-                    (representante.getTelefono() != null ? representante.getTelefono() : "N/A"), normalFont));
-            representativeTable.addCell(createInfoCell("Correo: " + 
-                    (representante.getCorreo() != null ? representante.getCorreo() : "N/A"), normalFont));
-            representativeTable.addCell(createInfoCell("Ciudad: " + 
-                    (representante.getCiudad() != null ? representante.getCiudad().getNombre() : "N/A"), normalFont));
-            representativeTable.addCell(createInfoCell("Dirección: " + 
-                    (representante.getDireccion() != null ? representante.getDireccion() : "N/A"), normalFont));
+            String telefonoRepresentante = safeString(representante.getTelefono().toString());
+            representativeTable.addCell(createInfoCell("Teléfono: " + (telefonoRepresentante.isEmpty() ? "N/A" : telefonoRepresentante), normalFont));
+            
+            String correoRepresentante = safeString(representante.getCorreo());
+            representativeTable.addCell(createInfoCell("Correo: " + (correoRepresentante.isEmpty() ? "N/A" : correoRepresentante), normalFont));
+            
+            String ciudadRepresentante = representante.getCiudad() != null ? safeString(representante.getCiudad().getNombre()) : "";
+            representativeTable.addCell(createInfoCell("Ciudad: " + (ciudadRepresentante.isEmpty() ? "N/A" : ciudadRepresentante), normalFont));
+            
+            String direccionRepresentante = safeString(representante.getDireccion());
+            representativeTable.addCell(createInfoCell("Dirección: " + (direccionRepresentante.isEmpty() ? "N/A" : direccionRepresentante), normalFont));
 
             document.add(representativeTable);
 
@@ -187,10 +192,12 @@ public class OrdenService {
             orderTable.setSpacingAfter(15);
 
             orderTable.addCell(createInfoCell("Número de Orden: #" + orden.getId(), normalFont));
-            orderTable.addCell(createInfoCell("Fecha de Entrega: " + 
-                    (orden.getFechaEntrega() != null ? orden.getFechaEntrega().toString() : "N/A"), normalFont));
-            orderTable.addCell(createInfoCell("Descripción de Venta: " + 
-                    (orden.getDescripcionVenta() != null ? orden.getDescripcionVenta() : "N/A"), normalFont));
+            
+            String fechaEntrega = orden.getFechaEntrega() != null ? orden.getFechaEntrega().toString() : "N/A";
+            orderTable.addCell(createInfoCell("Fecha de Entrega: " + fechaEntrega, normalFont));
+            
+            String descripcionVenta = safeString(orden.getDescripcionVenta());
+            orderTable.addCell(createInfoCell("Descripción de Venta: " + (descripcionVenta.isEmpty() ? "N/A" : descripcionVenta), normalFont));
 
             document.add(orderTable);
 
@@ -205,21 +212,35 @@ public class OrdenService {
             customerTable.setSpacingAfter(15);
 
             // Nombre completo del cliente
-            String nombreCompleto = orden.getUsuario().getNombre() + " " + 
-                    orden.getUsuario().getPrimerApellido() + 
-                    (orden.getUsuario().getSegundoApellido() != null ? " " + orden.getUsuario().getSegundoApellido() : "");
+            String nombreCompletoCliente = buildFullName(
+                orden.getUsuario().getNombre(), 
+                orden.getUsuario().getPrimerApellido(), 
+                orden.getUsuario().getSegundoApellido()
+            );
 
-            customerTable.addCell(createInfoCell("Nombre: " + nombreCompleto, normalFont));
+            customerTable.addCell(createInfoCell("Nombre: " + nombreCompletoCliente, normalFont));
             customerTable.addCell(createInfoCell("Documento: " + orden.getUsuario().getDocumento(), normalFont));
-            customerTable.addCell(createInfoCell("Teléfono: " + 
-                    (orden.getUsuario().getTelefono() != null ? orden.getUsuario().getTelefono() : "N/A"), normalFont));
-            customerTable.addCell(createInfoCell("Correo Electrónico: " + 
-                    (orden.getUsuario().getCorreo() != null ? orden.getUsuario().getCorreo() : "N/A"), normalFont));
-            customerTable.addCell(createInfoCell("Dirección: " + 
-                    (orden.getUsuario().getDireccion() != null ? orden.getUsuario().getDireccion() : "N/A"), normalFont));
-            customerTable.addCell(createInfoCell("Ciudad: " + orden.getUsuario().getCiudad().getNombre() + " - " + orden.getUsuario().getCiudad().getDepartamento().getNombre(), normalFont));
-            customerTable.addCell(createInfoCell("Fecha de Registro: " + 
-                    (orden.getUsuario().getFechaRegistro() != null ? orden.getUsuario().getFechaRegistro().toString() : "N/A"), normalFont));
+            
+            String telefonoCliente = safeString(orden.getUsuario().getTelefono().toString());
+            customerTable.addCell(createInfoCell("Teléfono: " + (telefonoCliente.isEmpty() ? "N/A" : telefonoCliente), normalFont));
+            
+            String correoCliente = safeString(orden.getUsuario().getCorreo());
+            customerTable.addCell(createInfoCell("Correo Electrónico: " + (correoCliente.isEmpty() ? "N/A" : correoCliente), normalFont));
+            
+            String direccionCliente = safeString(orden.getUsuario().getDireccion());
+            customerTable.addCell(createInfoCell("Dirección: " + (direccionCliente.isEmpty() ? "N/A" : direccionCliente), normalFont));
+            
+            String ciudadCompleta = "";
+            if (orden.getUsuario().getCiudad() != null) {
+                String ciudad = safeString(orden.getUsuario().getCiudad().getNombre());
+                String departamento = orden.getUsuario().getCiudad().getDepartamento() != null ? 
+                    safeString(orden.getUsuario().getCiudad().getDepartamento().getNombre()) : "";
+                ciudadCompleta = ciudad + (departamento.isEmpty() ? "" : " - " + departamento);
+            }
+            customerTable.addCell(createInfoCell("Ciudad: " + (ciudadCompleta.isEmpty() ? "N/A" : ciudadCompleta), normalFont));
+            
+            String fechaRegistro = orden.getUsuario().getFechaRegistro() != null ? orden.getUsuario().getFechaRegistro().toString() : "N/A";
+            customerTable.addCell(createInfoCell("Fecha de Registro: " + fechaRegistro, normalFont));
 
             document.add(customerTable);
 
@@ -253,17 +274,27 @@ public class OrdenService {
                 subtotal = subtotal.add(total);
 
                 // Nombre del producto (si existe terminado)
-                String nombreProducto = detalle.getTerminado() != null && detalle.getTerminado().getProducto() != null 
-                    ? detalle.getTerminado().getProducto().getNombre() 
-                    : "Producto personalizado";
+                String nombreProducto = "";
+                if (detalle.getTerminado() != null && detalle.getTerminado().getProducto() != null) {
+                    nombreProducto = safeString(detalle.getTerminado().getProducto().getNombre());
+                }
+                if (nombreProducto.isEmpty()) {
+                    nombreProducto = "Producto personalizado";
+                }
 
                 // Medida del producto (si existe)
-                String medida = detalle.getTerminado() != null && detalle.getTerminado().getMedidaTerminadoProducto() != null
-                    ? detalle.getTerminado().getMedidaTerminadoProducto().toString()
-                    : "N/A";
+                String medida = "";
+                if (detalle.getTerminado() != null && detalle.getTerminado().getMedidaTerminadoProducto() != null) {
+                    medida = detalle.getTerminado().getMedidaTerminadoProducto().toString();
+                }
+                if (medida.isEmpty()) {
+                    medida = "N/A";
+                }
 
                 productosTable.addCell(createDataCell(nombreProducto, normalFont));
-                productosTable.addCell(createDataCell(detalle.getDescripcion() != null ? detalle.getDescripcion() : "N/A", normalFont));
+                
+                String descripcionDetalle = safeString(detalle.getDescripcion());
+                productosTable.addCell(createDataCell(descripcionDetalle.isEmpty() ? "N/A" : descripcionDetalle, normalFont));
                 productosTable.addCell(createDataCell(medida, normalFont));
                 productosTable.addCell(createDataCell(String.valueOf(detalle.getCantidad()), normalFont));
                 productosTable.addCell(createDataCell("$" + detalle.getValor().toString(), normalFont));
@@ -288,13 +319,14 @@ public class OrdenService {
             document.add(resumenTable);
 
             // Pie de página con información adicional
-            if (orden.getFirmaDigital() != null && !orden.getFirmaDigital().isEmpty()) {
+            String firmaDigital = safeString(orden.getFirmaDigital());
+            if (!firmaDigital.isEmpty()) {
                 Paragraph firmaTitle = new Paragraph("FIRMA DIGITAL", headerFont);
                 firmaTitle.setSpacingBefore(20);
                 firmaTitle.setSpacingAfter(5);
                 document.add(firmaTitle);
 
-                Paragraph firma = new Paragraph(orden.getFirmaDigital(), smallFont);
+                Paragraph firma = new Paragraph(firmaDigital, smallFont);
                 firma.setSpacingAfter(10);
                 document.add(firma);
             }
@@ -319,7 +351,8 @@ public class OrdenService {
             lineaRepresentante.setAlignment(Element.ALIGN_CENTER);
             firmaRepresentanteCell.addElement(lineaRepresentante);
             
-            Paragraph nombreRepresentante = new Paragraph(nombreCompletoRepresentante, smallFont);
+            // Usar el nombre completo ya construido sin nulls
+            Paragraph nombreRepresentante = new Paragraph(nombreCompletoRepresentante.isEmpty() ? "N/A" : nombreCompletoRepresentante, smallFont);
             nombreRepresentante.setAlignment(Element.ALIGN_CENTER);
             nombreRepresentante.setSpacingBefore(5);
             firmaRepresentanteCell.addElement(nombreRepresentante);
@@ -340,12 +373,8 @@ public class OrdenService {
             lineaCliente.setAlignment(Element.ALIGN_CENTER);
             firmaClienteCell.addElement(lineaCliente);
             
-            // Nombre del cliente
-            String nombreCompletoCliente = orden.getUsuario().getNombre() + " " + 
-                    orden.getUsuario().getPrimerApellido() + 
-                    (orden.getUsuario().getSegundoApellido() != null ? " " + orden.getUsuario().getSegundoApellido() : "");
-            
-            Paragraph nombreCliente = new Paragraph(nombreCompletoCliente, smallFont);
+            // Usar el nombre completo del cliente ya construido sin nulls (reutilizamos la variable ya creada)
+            Paragraph nombreCliente = new Paragraph(nombreCompletoCliente.isEmpty() ? "N/A" : nombreCompletoCliente, smallFont);
             nombreCliente.setAlignment(Element.ALIGN_CENTER);
             nombreCliente.setSpacingBefore(5);
             firmaClienteCell.addElement(nombreCliente);
@@ -389,13 +418,45 @@ public class OrdenService {
         return cell;
     }
 
+    // Método helper para evitar mostrar null en el PDF
+    private String safeString(String value) {
+        return (value != null && !value.trim().isEmpty()) ? value.trim() : "";
+    }
+
+    // Método helper para crear nombres completos sin null
+    private String buildFullName(String nombre, String primerApellido, String segundoApellido) {
+        StringBuilder fullName = new StringBuilder();
+        
+        if (nombre != null && !nombre.trim().isEmpty()) {
+            fullName.append(nombre.trim());
+        }
+        
+        if (primerApellido != null && !primerApellido.trim().isEmpty()) {
+            if (fullName.length() > 0) fullName.append(" ");
+            fullName.append(primerApellido.trim());
+        }
+        
+        if (segundoApellido != null && !segundoApellido.trim().isEmpty()) {
+            if (fullName.length() > 0) fullName.append(" ");
+            fullName.append(segundoApellido.trim());
+        }
+        
+        return fullName.toString();
+    }
+
     private void addWatermark(PdfWriter writer, Document document) {
         try {
-            // Obtener el path del logo desde el classpath
-            String logoPath = getClass().getClassLoader().getResource("static/img/logo.png").getPath();
+            // Obtener el logo desde el classpath como InputStream
+            java.io.InputStream logoInputStream = getClass().getClassLoader().getResourceAsStream("static/img/logo.png");
             
-            // Crear la imagen desde el archivo
-            Image watermarkImage = Image.getInstance(logoPath);
+            if (logoInputStream == null) {
+                System.err.println("Logo no encontrado en el classpath: static/img/logo.png");
+                return;
+            }
+            
+            // Crear la imagen desde el InputStream
+            Image watermarkImage = Image.getInstance(logoInputStream.readAllBytes());
+            logoInputStream.close();
             
             // Configurar el tamaño de la marca de agua (más grande y ovalada)
             float imageWidth = 350f;  // Más ancho para forma ovalada

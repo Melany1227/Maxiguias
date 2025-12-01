@@ -153,7 +153,7 @@
                                 </thead>
                                 <tbody>
                                     <tr th:each="t : ${producto.terminados}">
-                                        <td class="text-nowrap" th:text="${t.medidaTerminadoProducto}"></td>
+                                        <td class="text-nowrap" th:text="${t.medidaTerminadoProducto + ' cm'}"></td>
 
                                         <!-- Vista para público -->
                                         <td th:if="${rolUsuario == 'NATURAL' or rolUsuario == 'ADMINISTRADOR'}" th:text="'$' + ${t.precioPublico}"></td>

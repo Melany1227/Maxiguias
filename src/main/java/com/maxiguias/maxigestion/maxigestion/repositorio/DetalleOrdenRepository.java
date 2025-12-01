@@ -23,7 +23,7 @@ public interface DetalleOrdenRepository extends JpaRepository<DetalleOrden, Deta
        Long countTotalProductosVendidos();
 
        // Total de productos vendidos rango fechas (nuevo)
-       @Query("SELECT SUM(d.cantidad) FROM DetalleOrden d WHERE d.orden.fechaOrden BETWEEN :inicio AND :fin")
+       @Query("SELECT SUM(d.cantidad) FROM DetalleOrden d WHERE d.orden.fechaEntrega BETWEEN :inicio AND :fin")
        Long countTotalProductosVendidosEntreFechas(
                      @Param("inicio") LocalDateTime inicio,
                      @Param("fin") LocalDateTime fin);
@@ -46,7 +46,7 @@ public interface DetalleOrdenRepository extends JpaRepository<DetalleOrden, Deta
                          JOIN d.terminado t
                          JOIN t.producto p
                          JOIN d.orden o
-                         WHERE o.fechaOrden BETWEEN :inicio AND :fin
+                         WHERE o.fechaEntrega BETWEEN :inicio AND :fin
                          GROUP BY p.nombre, t.medidaTerminadoProducto
                          ORDER BY SUM(d.cantidad) DESC
                      """)
