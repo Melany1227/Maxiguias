@@ -61,4 +61,9 @@ public interface OrdenRepository extends JpaRepository<Orden, Long>, PagingAndSo
 
        List<Orden> findByEstadoInAndFechaOrdenBetween(List<EstadoOrden> estados, LocalDateTime inicio, LocalDateTime fin);
 
+       Long countByEstadoInAndFechaEntregaBetween(List<EstadoOrden> estados, LocalDateTime inicio, LocalDateTime fin);
+
+       List<Orden> findByEstadoInAndFechaEntregaBetween(List<EstadoOrden> estados, LocalDateTime inicio, LocalDateTime fin);
+
+
 }
