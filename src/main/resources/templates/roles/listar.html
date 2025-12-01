@@ -123,64 +123,65 @@
         </script>
         
         <script>
-            // Event listener para botones de eliminar
-            document.addEventListener('DOMContentLoaded', function() {
-                document.querySelectorAll('.btn-eliminar').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const id = this.getAttribute('data-id');
-                        const nombreRol = this.getAttribute('data-nombre');
-                        confirmarEliminar(id, nombreRol);
-                    });
+        // Event listener para botones de eliminar
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.btn-eliminar').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const nombreRol = this.getAttribute('data-nombre');
+                    confirmarEliminar(id, nombreRol);
                 });
             });
+        });
 
-            // Función para confirmar eliminación de rol
-            async function confirmarEliminar(id, nombreRol) {
-                const result = await Swal.fire({
-                    title: '¿Estás seguro?',
-                    html: `<strong>Rol: ${nombreRol}</strong><br><br>No podrás deshacer esta acción.<br><br><strong>⚠️ Advertencia:</strong> Si este rol está siendo usado por algún perfil, la eliminación podría fallar.`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Sí, eliminar',
-                    cancelButtonText: 'Cancelar'
+        // Función para confirmar eliminación de rol
+        async function confirmarEliminar(id, nombreRol) {
+            const result = await Swal.fire({
+                title: '¿Estás seguro?',
+                html: `<strong>Rol: ${nombreRol}</strong><br><br>No podrás deshacer esta acción.<br><br><strong>⚠️ Advertencia:</strong> Si este rol está siendo usado por algún perfil, la eliminación podría fallar.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#b8922f',
+                cancelButtonColor: '#0A0A0A',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!result.isConfirmed) return;
+
+            try {
+                const response = await fetch(`/roles/${id}/eliminar`, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
 
-                if (!result.isConfirmed) {
-                    return; 
-                }
-
-                try {
-                    const response = await fetch(`/roles/${id}/eliminar`, {
-                        method: 'POST',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                        }
+                if (response.ok) {
+                    Swal.fire({
+                        title: '¡Eliminado!',
+                        text: 'El rol ha sido eliminado con éxito.',
+                        icon: 'success',
+                        confirmButtonColor: '#0A0A0A',  // negro
+                        confirmButtonText: 'OK'
+                    }).then(() => location.reload());
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'No se puede eliminar el rol porque está asignado a un usuario.',
+                        icon: 'error',
+                        confirmButtonColor: '#0A0A0A'
                     });
-
-                    if (response.ok) {
-                        Swal.fire(
-                            '¡Eliminado!',
-                            'El rol ha sido eliminado con éxito.',
-                            'success'
-                        ).then(() => location.reload());
-                    } else {
-                        const errorText = await response.text();
-                        Swal.fire(
-                            'Error',
-                            `No se pudo eliminar el rol. Código: ${response.status}`,
-                            'error'
-                        );
-                    }
-                } catch (error) {
-                    Swal.fire(
-                        'Error',
-                        'Ocurrió un problema al intentar eliminar.',
-                        'error'
-                    );
                 }
+            } catch (error) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Ocurrió un problema al intentar eliminar.',
+                    icon: 'error',
+                    confirmButtonColor: '#0A0A0A'
+                });
             }
-        </script>
+        }
+    </script>
+
+        
     </body>
 </html>

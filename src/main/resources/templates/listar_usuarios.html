@@ -202,8 +202,8 @@
                 text: 'No podras deshacer esta accion',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
+                confirmButtonColor: '#b8922f',
+                cancelButtonColor: '#0A0A0A',
                 confirmButtonText: 'Si, eliminar',
                 cancelButtonText: 'Cancelar'
             });
@@ -234,7 +234,7 @@
                         text: data.mensaje || 'El usuario ha sido eliminado.',
                         icon: 'success',
                         confirmButtonText: 'Aceptar',
-                        confirmButtonColor: '#d0a736'
+                        confirmButtonColor: '#b8922f'
                     }).then(() => location.reload());
                     return;
                 }
@@ -248,7 +248,7 @@
                     text: mensajeError,
                     icon: 'error',
                     confirmButtonText: 'Aceptar',
-                    confirmButtonColor: '#d33'
+                    confirmButtonColor: '#b8922f'
                 });
             } catch (error) {
                 Swal.fire({
@@ -256,7 +256,7 @@
                     text: 'Ocurrio un problema al intentar eliminar el usuario.',
                     icon: 'error',
                     confirmButtonText: 'Aceptar',
-                    confirmButtonColor: '#d33'
+                    confirmButtonColor: '#b8922f'
                 });
             }
         }

@@ -51,7 +51,7 @@
                                     <td>
                                         <span th:if="${ciudad.departamento != null}">
                                             <a th:href="@{/departamentos/{id}(id=${ciudad.departamento.id})}" 
-                                               class="btn btn-outline-primary btn-sm">
+                                               class="btn btn-outline-warning">
                                                 <i class="fas fa-map"></i> <span th:text="${ciudad.departamento.nombre}"></span>
                                             </a>
                                         </span>
@@ -83,7 +83,7 @@
                                 <!-- Enlace para ver otras ciudades del mismo departamento -->
                                 <div class="mt-3">
                                     <a th:href="@{/departamentos/{id}(id=${ciudad.departamento.id})}" 
-                                       class="btn btn-outline-info btn-sm">
+                                       class="btn btn-outline-warning">
                                         <i class="fas fa-list"></i> Ver ciudades de <span th:text="${ciudad.departamento.nombre}"></span>
                                     </a>
                                 </div>
@@ -112,14 +112,14 @@
                                 <a th:href="@{/ciudades/{id}/editar(id=${ciudad.id})}" class="btn btn-outline-warning">
                                     <i class="fas fa-pen"></i> Editar Ciudad
                                 </a>
-                                <a href="/ciudades/nuevo" class="btn btn-outline-success">
+                                <a href="/ciudades/nuevo" class="btn btn-outline-warning">
                                     <i class="fas fa-plus"></i> Agregar Nueva Ciudad
                                 </a>
-                                <a href="/departamentos" class="btn btn-outline-info">
+                                <a href="/departamentos" class="btn btn-outline-warning">
                                     <i class="fas fa-map"></i> Ver Departamentos
                                 </a>
                                 <button type="button" 
-                                        class="btn btn-outline-danger btn-eliminar"
+                                        class="btn btn-dark btn-eliminar"
                                         th:data-id="${ciudad.id}"
                                         th:data-nombre="${ciudad.nombre}">
                                     <i class="fas fa-trash"></i> Eliminar Ciudad
@@ -158,17 +158,16 @@
         })
     </script>
     
-    <script>
-        // Event listener para botón de eliminar
+     <script>
+        // Event listener para botones de eliminar
         document.addEventListener('DOMContentLoaded', function() {
-            const btnEliminar = document.querySelector('.btn-eliminar');
-            if (btnEliminar) {
-                btnEliminar.addEventListener('click', function() {
+            document.querySelectorAll('.btn-eliminar').forEach(button => {
+                button.addEventListener('click', function() {
                     const id = this.getAttribute('data-id');
                     const nombre = this.getAttribute('data-nombre');
                     confirmarEliminar(id, nombre);
                 });
-            }
+            });
         });
 
         // Función para confirmar eliminación de ciudad
@@ -178,43 +177,45 @@
                 html: `<strong>Ciudad: ${nombre}</strong><br><br>No podrás deshacer esta acción.`,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
+                confirmButtonColor: '#b8922f',  // dorado
+                cancelButtonColor: '#0A0A0A',   // negro
                 confirmButtonText: 'Sí, eliminar',
                 cancelButtonText: 'Cancelar'
             });
 
-            if (!result.isConfirmed) {
-                return; 
-            }
+            if (!result.isConfirmed) return;
 
             try {
                 const response = await fetch(`/ciudades/${id}/eliminar`, {
                     method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                    }
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
 
                 if (response.ok) {
-                    Swal.fire(
-                        '¡Eliminado!',
-                        'La ciudad ha sido eliminada con éxito.',
-                        'success'
-                    ).then(() => window.location.href = '/ciudades');
+                    Swal.fire({
+                        title: '¡Eliminado!',
+                        text: 'La ciudad ha sido eliminada con éxito.',
+                        icon: 'success',
+                        confirmButtonColor: '#0A0A0A', 
+                        confirmButtonText: 'OK'
+                    }).then(() => location.reload());
+
                 } else {
-                    Swal.fire(
-                        'Error',
-                        `No se pudo eliminar la ciudad. Código: ${response.status}`,
-                        'error'
-                    );
+                    Swal.fire({
+                        title: 'Error',
+                        text: `No se pudo eliminar la ciudad. Código: ${response.status}`,
+                        icon: 'error',
+                        confirmButtonColor: '#0A0A0A', // negro
+                    });
                 }
+
             } catch (error) {
-                Swal.fire(
-                    'Error',
-                    'Ocurrió un problema al intentar eliminar.',
-                    'error'
-                );
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Ocurrió un problema al intentar eliminar.',
+                    icon: 'error',
+                    confirmButtonColor: '#0A0A0A', // negro
+                });
             }
         }
     </script>

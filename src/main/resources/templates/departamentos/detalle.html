@@ -56,7 +56,7 @@
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="mb-0"><i class="fas fa-city"></i> Ciudades Asociadas</h5>
-                            <span class="badge bg-info" th:text="${departamento.ciudades != null ? #lists.size(departamento.ciudades) : 0}"></span>
+                            <span class="badge bg-dark text-whit" th:text="${departamento.ciudades != null ? #lists.size(departamento.ciudades) : 0}"></span>
                         </div>
                         <div class="card-body">
                             <div th:if="${departamento.ciudades != null and not #lists.isEmpty(departamento.ciudades)}">
@@ -67,7 +67,7 @@
                                     </li>
                                 </ul>
                                 <div class="mt-3">
-                                    <a href="/ciudades" class="btn btn-outline-info btn-sm">
+                                    <a href="/ciudades" class="btn btn-outline-black btn-sm">
                                         <i class="fas fa-list"></i> Ver todas las ciudades
                                     </a>
                                 </div>
@@ -75,7 +75,7 @@
                             <div th:if="${departamento.ciudades == null or #lists.isEmpty(departamento.ciudades)}" class="text-center text-muted">
                                 <i class="fas fa-info-circle"></i><br>
                                 <small>No hay ciudades asociadas a este departamento.</small><br>
-                                <a href="/ciudades/nuevo" class="btn btn-outline-primary btn-sm mt-2">
+                                <a href="/ciudades/nuevo" class="btn btn-outline-warning btn-sm mt-2">
                                     <i class="fas fa-plus"></i> Agregar ciudad
                                 </a>
                             </div>
@@ -96,11 +96,11 @@
                                 <a th:href="@{/departamentos/{id}/editar(id=${departamento.id})}" class="btn btn-outline-warning">
                                     <i class="fas fa-pen"></i> Editar Departamento
                                 </a>
-                                <a href="/ciudades/nuevo" class="btn btn-outline-success">
+                                <a href="/ciudades/nuevo" class="btn btn-outline-warning">
                                     <i class="fas fa-plus"></i> Agregar Ciudad
                                 </a>
                                 <button type="button" 
-                                        class="btn btn-outline-danger btn-eliminar"
+                                        class="btn btn-dark btn-eliminar"
                                         th:data-id="${departamento.id}"
                                         th:data-nombre="${departamento.nombre}">
                                     <i class="fas fa-trash"></i> Eliminar Departamento
@@ -140,64 +140,66 @@
     </script>
     
     <script>
-        // Event listener para botón de eliminar
-        document.addEventListener('DOMContentLoaded', function() {
-            const btnEliminar = document.querySelector('.btn-eliminar');
-            if (btnEliminar) {
-                btnEliminar.addEventListener('click', function() {
-                    const id = this.getAttribute('data-id');
-                    const nombre = this.getAttribute('data-nombre');
-                    confirmarEliminar(id, nombre);
-                });
-            }
+    // Event listener para botón de eliminar
+    document.addEventListener('DOMContentLoaded', function() {
+        const btnEliminar = document.querySelector('.btn-eliminar');
+        if (btnEliminar) {
+            btnEliminar.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                const nombre = this.getAttribute('data-nombre');
+                confirmarEliminar(id, nombre);
+            });
+        }
+    });
+
+    // Función para confirmar eliminación de departamento
+    async function confirmarEliminar(id, nombre) {
+        const result = await Swal.fire({
+            title: '¿Estás seguro?',
+            html: `<strong>Departamento: ${nombre}</strong><br><br>No podrás deshacer esta acción.<br><br><strong>⚠️ Advertencia:</strong> No se puede eliminar el departamento porque tiene ciudades asociadas.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#b8922f', // dorado
+            cancelButtonColor: '#0A0A0A',  // negro
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
         });
 
-        // Función para confirmar eliminación de departamento
-        async function confirmarEliminar(id, nombre) {
-            const result = await Swal.fire({
-                title: '¿Estás seguro?',
-                html: `<strong>Departamento: ${nombre}</strong><br><br>No podrás deshacer esta acción.<br><br><strong>⚠️ Advertencia:</strong> Si este departamento tiene ciudades asociadas, la eliminación podría fallar.`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar'
+        if (!result.isConfirmed) return;
+
+        try {
+            const response = await fetch(`/departamentos/${id}/eliminar`, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
 
-            if (!result.isConfirmed) {
-                return; 
-            }
-
-            try {
-                const response = await fetch(`/departamentos/${id}/eliminar`, {
-                    method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                    }
+            if (response.ok) {
+                // ALERTA DE ÉXITO CON COLORES PERSONALIZADOS
+                Swal.fire({
+                    title: '¡Eliminado!',
+                    text: 'El departamento ha sido eliminado con éxito.',
+                    icon: 'success',
+                    confirmButtonColor: '#0A0A0A', // el color que tú necesitas
+                    confirmButtonText: 'OK'
+                }).then(() => window.location.href = '/departamentos');
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: `No se puede eliminar el departamento porque tiene ciudades asociadas`,
+                    icon: 'error',
+                    confirmButtonColor: '#0A0A0A'
                 });
-
-                if (response.ok) {
-                    Swal.fire(
-                        '¡Eliminado!',
-                        'El departamento ha sido eliminado con éxito.',
-                        'success'
-                    ).then(() => window.location.href = '/departamentos');
-                } else {
-                    Swal.fire(
-                        'Error',
-                        `No se pudo eliminar el departamento. Código: ${response.status}`,
-                        'error'
-                    );
-                }
-            } catch (error) {
-                Swal.fire(
-                    'Error',
-                    'Ocurrió un problema al intentar eliminar.',
-                    'error'
-                );
             }
+        } catch (error) {
+            Swal.fire({
+                title: 'Error',
+                text: 'Ocurrió un problema al intentar eliminar.',
+                icon: 'error',
+                confirmButtonColor: '#0A0A0A'
+            });
         }
-    </script>
+    }
+</script>
+
 </body>
 </html>
