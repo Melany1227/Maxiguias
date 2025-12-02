@@ -844,24 +844,29 @@
     // Variables específicas para modo edición
     const ordenData = {
       usuario: {
-        nombre: /*[[${orden.usuario.nombre}]]*/ '',
-        primerApellido: /*[[${orden.usuario.primerApellido}]]*/ '',
-        documento: /*[[${orden.usuario.documento}]]*/ '',
+        nombre: '[[${orden.usuario.nombre}]]' || '',
+        primerApellido: '[[${orden.usuario.primerApellido}]]' || '',
+        documento: '[[${orden.usuario.documento}]]' || '',
         tipoUsuario: {
-          nombre: /*[[${orden.usuario.tipoUsuario.nombre}]]*/ ''
+          nombre: '[[${orden.usuario.tipoUsuario.nombre}]]' || ''
         }
       }
     };
     
     console.log("OrdenData cargado desde servidor:", ordenData);
+    console.log("🔍 Debug ordenData.usuario:", ordenData.usuario);
+    console.log("🔍 Debug tipoUsuario:", ordenData.usuario?.tipoUsuario);
+    console.log("🔍 Debug nombre tipoUsuario:", ordenData.usuario?.tipoUsuario?.nombre);
     
     // Hacer ordenData disponible globalmente
     window.ordenData = ordenData;
     
     // Inicializar tipoClienteGlobal inmediatamente en modo edición
-    if (ordenData && ordenData.usuario && ordenData.usuario.tipoUsuario) {
+    if (ordenData && ordenData.usuario && ordenData.usuario.tipoUsuario && ordenData.usuario.tipoUsuario.nombre) {
       window.tipoClienteGlobal = ordenData.usuario.tipoUsuario.nombre.toUpperCase();
       console.log('🚀 Inicialización temprana - Tipo cliente:', window.tipoClienteGlobal);
+    } else {
+      console.log('❌ No se pudo inicializar tipoClienteGlobal - datos faltantes');
     }
   </script>
   <!-- Script de inicialización específico para la página -->

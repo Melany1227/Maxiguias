@@ -141,13 +141,65 @@ async function actualizarDisponibilidadProductos() {
     console.log("✅ Actualización de disponibilidad completada");
 }
 
+// Función helper para determinar si una orden es de cliente jurídico
+function esOrdenDeClienteJuridico() {
+    // Verificar si estamos en modo edición buscando filas con data-detalle-id
+    const hayFilasEdicion = document.querySelector("tr[data-detalle-id]") !== null;
+    
+    if (hayFilasEdicion) {
+        // En modo edición, intentar usar ordenData primero
+        if (window.ordenData && window.ordenData.usuario && window.ordenData.usuario.tipoUsuario) {
+            const tipoOrden = window.ordenData.usuario.tipoUsuario.nombre.toUpperCase();
+            console.log('🔍 esOrdenDeClienteJuridico() - Usando ordenData:', tipoOrden);
+            return tipoOrden === "JURIDICO";
+        }
+        
+        // Fallback 1: usar tipoClienteGlobal si está disponible
+        if (window.tipoClienteGlobal) {
+            console.log('🔍 esOrdenDeClienteJuridico() - Fallback tipoClienteGlobal:', window.tipoClienteGlobal);
+            return window.tipoClienteGlobal === "JURIDICO";
+        }
+        
+        // Fallback 2: verificar en DOM
+        const clienteInfo = document.querySelector("#datosCliente");
+        if (clienteInfo) {
+            const tipoTexto = clienteInfo.textContent || "";
+            if (tipoTexto.includes("JURIDICO")) {
+                console.log('🔍 esOrdenDeClienteJuridico() - Detectado JURIDICO en DOM');
+                return true;
+            }
+            if (tipoTexto.includes("NATURAL")) {
+                console.log('🔍 esOrdenDeClienteJuridico() - Detectado NATURAL en DOM');
+                return false;
+            }
+        }
+        
+        console.log('⚠️ esOrdenDeClienteJuridico() - No se pudo determinar tipo en modo edición');
+        return false; // Por seguridad, permitir recálculos si no podemos determinarlo
+    } else {
+        // En modo creación, usar el tipoClienteGlobal
+        const esJuridico = window.tipoClienteGlobal === "JURIDICO";
+        console.log('🔍 esOrdenDeClienteJuridico() - Modo creación:', esJuridico);
+        return esJuridico;
+    }
+}
+
 function actualizarClienteInfo() {
     if (window.usuarioSeleccionadoGlobal) {
         window.tipoClienteGlobal = window.usuarioSeleccionadoGlobal.tipoUsuario.nombre.toUpperCase();
         
         document.querySelectorAll("#tablaDetalle tbody tr").forEach(fila => {
             actualizarTextoTerminados(fila);
-            actualizarPrecio(fila);
+            
+            // Para filas en modo edición de órdenes de clientes jurídicos, no recalcular precios automáticamente
+            const esFilaEdicion = fila.hasAttribute('data-detalle-id');
+            const valorInput = fila.querySelector("input[name='valor']");
+            const tieneValorExistente = valorInput && valorInput.value && valorInput.value !== '0' && valorInput.value !== '';
+            
+            if (!(esFilaEdicion && esOrdenDeClienteJuridico() && tieneValorExistente)) {
+                // Solo actualizar precio si no es fila de edición de orden de cliente jurídico con valor existente
+                actualizarPrecio(fila);
+            }
         });
         
         calcularTotalOrden();
@@ -202,10 +254,21 @@ async function cargarTerminadosParaFila(fila, productoId, terminadoSeleccionado 
         });
         
         if (terminadoSeleccionado) {
-            // Actualizar precio automáticamente cuando se selecciona un terminado
+            // En modo edición, solo recalcular el total, NO el precio individual
+            const esFilaEdicion = fila.hasAttribute('data-detalle-id');
+            const valorInput = fila.querySelector("input[name='valor']");
+            const tieneValorExistente = valorInput && valorInput.value && valorInput.value !== '0' && valorInput.value !== '';
+            
             setTimeout(() => {
-                actualizarPrecio(fila);
-                calcularTotalOrden();
+                if (esFilaEdicion && esOrdenDeClienteJuridico() && tieneValorExistente) {
+                    console.log('🔒 Carga inicial: Preservando precio de BD para orden de cliente jurídico');
+                    // Solo recalcular total, mantener precio original de BD
+                    calcularTotalOrden();
+                } else {
+                    // Para nuevas filas o clientes naturales, actualizar precio normalmente
+                    actualizarPrecio(fila);
+                    calcularTotalOrden();
+                }
             }, 100);
         }
         
@@ -228,7 +291,17 @@ function cargarTerminadosEdicion(productoSelect) {
     } else {
         const terminadoSelect = fila.querySelector("select[name='terminadoId']");
         terminadoSelect.innerHTML = "<option value=''>Seleccione un terminado</option>";
-        actualizarPrecio(fila);
+        
+        // Solo actualizar precio si no es edición de cliente jurídico con valor existente
+        const esFilaEdicion = fila.hasAttribute('data-detalle-id');
+        const valorInput = fila.querySelector("input[name='valor']");
+        const tieneValorExistente = valorInput && valorInput.value && valorInput.value !== '0' && valorInput.value !== '';
+        
+        if (!(esFilaEdicion && esOrdenDeClienteJuridico() && tieneValorExistente)) {
+            actualizarPrecio(fila);
+        } else {
+            calcularTotalOrden();
+        }
     }
 }
 
@@ -532,14 +605,34 @@ function actualizarPrecio(fila) {
 
     let precioFinal = 0;
 
+    // Verificar si estamos en modo edición ANTES de usar esFilaEdicion
+    const esFilaEdicionLocal = fila.hasAttribute('data-detalle-id');
+    
     if (publico && encargo && mayor) {
-        if (window.tipoClienteGlobal === "NATURAL") {
+        // Determinar el tipo de cliente correcto para el cálculo
+        let tipoClienteParaCalculo = window.tipoClienteGlobal;
+        
+        // En modo edición o si detectamos contexto de cliente jurídico, usar el tipo apropiado
+        if (window.ordenData && window.ordenData.usuario && window.ordenData.usuario.tipoUsuario && window.ordenData.usuario.tipoUsuario.nombre) {
+            tipoClienteParaCalculo = window.ordenData.usuario.tipoUsuario.nombre.toUpperCase();
+            console.log('💡 Usando tipo de cliente de la orden para cálculo:', tipoClienteParaCalculo);
+        } else if (esOrdenDeClienteJuridico()) {
+            tipoClienteParaCalculo = "JURIDICO";
+            console.log('💡 Detectado contexto de cliente jurídico para cálculo');
+        }
+        
+        console.log('🧮 Calculando precio con tipo:', tipoClienteParaCalculo, 'cantidad:', cantidad);
+        
+        if (tipoClienteParaCalculo === "NATURAL") {
             precioFinal = parseFloat(publico);
-        } else if (window.tipoClienteGlobal === "JURIDICO") {
+            console.log('💰 Cliente NATURAL - Precio público:', precioFinal);
+        } else if (tipoClienteParaCalculo === "JURIDICO") {
             if (cantidad <= 2) {
                 precioFinal = parseFloat(encargo);
+                console.log('💰 Cliente JURIDICO (<=2) - Precio por encargo:', precioFinal);
             } else {
                 precioFinal = parseFloat(mayor);
+                console.log('💰 Cliente JURIDICO (>2) - Precio por mayor:', precioFinal);
             }
         } else {
             // Fallback: si no se puede determinar el tipo, usar precio público por defecto
@@ -550,8 +643,30 @@ function actualizarPrecio(fila) {
 
     console.log('🎯 Precio final calculado:', precioFinal);
 
-    // Actualizar precio siempre que tengamos un precio válido
-    if (precioFinal > 0) {
+    const tieneValorExistente = valorInput.value && valorInput.value !== '0' && valorInput.value !== '';
+    
+    console.log('🔍 Debug modo edición:');
+    console.log('- Es fila de edición:', esFilaEdicionLocal);
+    console.log('- Es orden de cliente jurídico:', esOrdenDeClienteJuridico());
+    console.log('- Tiene valor existente:', tieneValorExistente, '(valor actual:', valorInput.value, ')');
+    console.log('- tipoClienteGlobal:', window.tipoClienteGlobal);
+    
+    if (window.ordenData && window.ordenData.usuario) {
+        console.log('- Tipo usuario de la orden:', window.ordenData.usuario.tipoUsuario.nombre);
+    }
+
+    // Verificar si se está cambiando de terminado/producto
+    const terminadoOriginal = fila.getAttribute('data-detalle-id');
+    const terminadoActual = terminadoSelect.value;
+    const seCambioTerminado = terminadoOriginal && terminadoActual && terminadoOriginal !== terminadoActual;
+    
+    // Para órdenes de clientes jurídicos en modo edición, preservar precios existentes 
+    // SOLO si no se está cambiando el terminado
+    if (esFilaEdicionLocal && esOrdenDeClienteJuridico() && tieneValorExistente && !seCambioTerminado) {
+        console.log('🔒 Preservando precio original para orden de cliente jurídico en edición (sin cambio de terminado)');
+        // No actualizar el precio, mantener el valor original
+    } else if (precioFinal > 0) {
+        // Actualizar precio normalmente para nuevas filas, cambios de terminado, o cuando no hay valor existente
         valorInput.value = precioFinal;
         console.log('✅ Precio actualizado en el input');
     } else if (!valorInput.value || valorInput.value === '0') {
@@ -583,11 +698,6 @@ function calcularTotalOrden() {
     }
 }
 
-document.addEventListener("input", function (e) {
-    if (e.target.name === "cantidad" || e.target.name === "valor") {
-        calcularTotalOrden();
-    }
-});
 
 document.addEventListener("change", function (e) {
     if (e.target.name === "terminadoId") {
@@ -632,7 +742,9 @@ function aumentarEdicion(btn) {
     if (valorActual < 50) {
         input.value = valorActual + 1;
         const fila = btn.closest("tr");
-        actualizarPrecio(fila);
+        
+        // Disparar evento input para que lo maneje el event listener principal
+        input.dispatchEvent(new Event('input', { bubbles: true }));
     } else {
         Swal.fire({
             title: 'Límite alcanzado',
@@ -649,15 +761,36 @@ function disminuirEdicion(btn) {
     if (parseInt(input.value) > 1) {
         input.value = parseInt(input.value) - 1;
         const fila = btn.closest("tr");
-        actualizarPrecio(fila);
+        
+        // Disparar evento input para que lo maneje el event listener principal
+        input.dispatchEvent(new Event('input', { bubbles: true }));
     }
 }
 
 document.addEventListener("input", function (e) {
     if (e.target.name === "cantidad") {
         const fila = e.target.closest("tr");
-        actualizarPrecio(fila);
+        
+        // Para órdenes de clientes jurídicos en modo edición, no recalcular precio al cambiar cantidad
+        const esFilaEdicion = fila.hasAttribute('data-detalle-id');
+        const valorInput = fila.querySelector("input[name='valor']");
+        const terminadoSelect = fila.querySelector("select[name='terminadoId']");
+        const tieneValorExistente = valorInput && valorInput.value && valorInput.value !== '0' && valorInput.value !== '';
+        const hayTerminadoSeleccionado = terminadoSelect && terminadoSelect.value && terminadoSelect.value !== '';
+        
+        // Solo bloquear el recálculo si es edición de jurídico con valor existente Y hay terminado seleccionado
+        const debeBloquearRecalculo = esFilaEdicion && esOrdenDeClienteJuridico() && tieneValorExistente && hayTerminadoSeleccionado;
+        
+        if (!debeBloquearRecalculo) {
+            // Actualizar precio normalmente
+            actualizarPrecio(fila);
+        } else {
+            // Solo recalcular total sin cambiar precio individual
+            calcularTotalOrden();
+        }
     }
+    
+    // Siempre recalcular total cuando cambie cantidad o valor
     if (e.target.name === "cantidad" || e.target.name === "valor") {
         calcularTotalOrden();
     }
