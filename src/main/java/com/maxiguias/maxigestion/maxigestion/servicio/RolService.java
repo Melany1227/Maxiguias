@@ -25,6 +25,10 @@ public class RolService {
         return rolRepository.findById(id);
     }
 
+    public Optional<Rol> obtenerRolPorNombre(String nombre) {
+        return rolRepository.findByNombreRol(nombre);
+    }
+
     public Rol guardarRol(Rol rol) {
         return rolRepository.save(rol);
     }

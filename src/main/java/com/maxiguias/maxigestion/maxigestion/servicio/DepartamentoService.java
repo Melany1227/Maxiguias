@@ -25,6 +25,10 @@ public class DepartamentoService {
         return departamentoRepository.findById(id);
     }
 
+    public Optional<Departamento> obtenerDepartamentoPorNombre(String nombre) {
+        return departamentoRepository.findByNombre(nombre);
+    }
+
     public Departamento guardarDepartamento(Departamento departamento) {
         return departamentoRepository.save(departamento);
     }

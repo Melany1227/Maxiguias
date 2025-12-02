@@ -62,6 +62,10 @@ public class DepartamentoController {
 
     @PostMapping
     public String crearDepartamento(@ModelAttribute Departamento departamento, RedirectAttributes redirectAttributes) {
+        if (departamentoService.obtenerDepartamentoPorNombre(departamento.getNombre()).isPresent()) {
+            redirectAttributes.addFlashAttribute("error", "El departamento ya existe, intenta con otro nombre");
+            return "redirect:/departamentos/nuevo";
+        }
         departamentoService.guardarDepartamento(departamento);
         redirectAttributes.addFlashAttribute("mensaje", "Departamento creado exitosamente");
         return "redirect:/departamentos";
@@ -69,6 +73,11 @@ public class DepartamentoController {
 
     @PostMapping("/{id}")
     public String actualizarDepartamento(@PathVariable Integer id, @ModelAttribute Departamento departamento, RedirectAttributes redirectAttributes) {
+        Optional<Departamento> existente = departamentoService.obtenerDepartamentoPorNombre(departamento.getNombre());
+        if (existente.isPresent() && !existente.get().getId().equals(id)) {
+            redirectAttributes.addFlashAttribute("error", "El departamento ya existe, intenta con otro nombre");
+            return "redirect:/departamentos/" + id + "/editar";
+        }
         departamento.setId(id);
         departamentoService.guardarDepartamento(departamento);
         redirectAttributes.addFlashAttribute("mensaje", "Departamento actualizado exitosamente");

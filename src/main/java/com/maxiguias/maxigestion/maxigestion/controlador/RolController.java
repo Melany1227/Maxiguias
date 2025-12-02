@@ -62,6 +62,12 @@ public class RolController {
 
     @PostMapping
     public String crearRol(@ModelAttribute Rol rol, RedirectAttributes redirectAttributes) {
+        // Validación para evitar duplicados
+        if (rolService.obtenerRolPorNombre(rol.getNombreRol()).isPresent()) {
+            redirectAttributes.addFlashAttribute("error", "Rol ya existente, intenta con otro");
+            return "redirect:/roles/nuevo";
+        }
+
         rolService.guardarRol(rol);
         redirectAttributes.addFlashAttribute("mensaje", "Rol creado exitosamente");
         return "redirect:/roles";
@@ -69,6 +75,13 @@ public class RolController {
 
     @PostMapping("/{id}")
     public String actualizarRol(@PathVariable Long id, @ModelAttribute Rol rol, RedirectAttributes redirectAttributes) {
+        // Validación para evitar duplicados al editar
+        Optional<Rol> rolExistente = rolService.obtenerRolPorNombre(rol.getNombreRol());
+        if (rolExistente.isPresent() && !rolExistente.get().getId().equals(id)) {
+            redirectAttributes.addFlashAttribute("error", "Rol ya existente, intenta con otro");
+            return "redirect:/roles/" + id + "/editar";
+        }
+
         rol.setId(id);
         rolService.guardarRol(rol);
         redirectAttributes.addFlashAttribute("mensaje", "Rol actualizado exitosamente");

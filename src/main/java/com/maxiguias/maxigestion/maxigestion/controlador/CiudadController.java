@@ -70,6 +70,10 @@ public class CiudadController {
 
     @PostMapping
     public String crearCiudad(@ModelAttribute Ciudad ciudad, RedirectAttributes redirectAttributes) {
+        if (ciudadService.obtenerCiudadPorNombre(ciudad.getNombre()).isPresent()) {
+            redirectAttributes.addFlashAttribute("error", "La ciudad ya existe, intenta con otro nombre");
+            return "redirect:/ciudades/nuevo";
+        }
         ciudadService.guardarCiudad(ciudad);
         redirectAttributes.addFlashAttribute("mensaje", "Ciudad creada exitosamente");
         return "redirect:/ciudades";
@@ -77,6 +81,11 @@ public class CiudadController {
 
     @PostMapping("/{id}")
     public String actualizarCiudad(@PathVariable Integer id, @ModelAttribute Ciudad ciudad, RedirectAttributes redirectAttributes) {
+        Optional<Ciudad> ciudadExistente = ciudadService.obtenerCiudadPorNombre(ciudad.getNombre());
+        if (ciudadExistente.isPresent() && !ciudadExistente.get().getId().equals(id)) {
+            redirectAttributes.addFlashAttribute("error", "La ciudad ya existe, intenta con otro nombre");
+            return "redirect:/ciudades/" + id + "/editar";
+        }
         ciudad.setId(id);
         ciudadService.guardarCiudad(ciudad);
         redirectAttributes.addFlashAttribute("mensaje", "Ciudad actualizada exitosamente");

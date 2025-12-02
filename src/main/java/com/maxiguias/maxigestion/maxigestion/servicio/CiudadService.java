@@ -29,6 +29,10 @@ public class CiudadService {
         return ciudadRepository.findById(id);
     }
 
+    public Optional<Ciudad> obtenerCiudadPorNombre(String nombre) {
+        return ciudadRepository.findByNombre(nombre);
+    }
+
     public Ciudad guardarCiudad(Ciudad ciudad) {
         return ciudadRepository.save(ciudad);
     }
