@@ -43,13 +43,13 @@
 
             <!-- Tabla de Formularios -->
             <div class="table-responsive">
-                <table class="table table-striped table-hover">
+                <table class="table tabla-usuarios align-middle text-center">
                     <thead class="table-dark">
                         <tr>
-                            <th><i class="fa-solid fa-hashtag me-2"></i>ID</th>
-                            <th><i class="fa-solid fa-file me-2"></i>Nombre</th>
-                            <th><i class="fa-solid fa-link me-2"></i>URL</th>
-                            <th style="text-align: center;"><i class="fa-solid fa-cog me-2"></i>Acciones</th>
+                            <th><i ></i>ID</th>
+                            <th><i ></i>Nombre</th>
+                            <th><i ></i>URL</th>
+                            <th style="text-align: center;"><i ></i>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -57,7 +57,7 @@
                             <td th:text="${formulario.id}"></td>
                             <td th:text="${formulario.nombreFormulario}"></td>
                             <td>
-                                <code th:text="${formulario.url}" style="font-size: 0.85rem;"></code>
+                                <code th:text="${formulario.url}" style="font-size: 0.85rem; color: #000 !important;"></code>
                             </td>
                             <td style="text-align: center;">
                                 <div class="dropdown d-inline-block">
@@ -125,8 +125,8 @@
                                No podrás deshacer esta acción.`,
                         icon: 'warning',
                         showCancelButton: true,
-                        confirmButtonColor: '#d33',
-                        cancelButtonColor: '#3085d6',
+                        confirmButtonColor: '#b8922f',
+                        cancelButtonColor: '#0A0A0A',
                         confirmButtonText: 'Sí, eliminar',
                         cancelButtonText: 'Cancelar'
                     });
