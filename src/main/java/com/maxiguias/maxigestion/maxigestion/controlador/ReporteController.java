@@ -222,7 +222,7 @@ public class ReporteController {
         if (fechaInicio != null && fechaFin != null) {
             LocalDateTime inicio = fechaInicio.atStartOfDay();
             LocalDateTime fin = fechaFin.atTime(LocalTime.MAX);
-            Long totalOrdenes = ordenRepository.countByEstadoInAndFechaEntregaBetween(estados, inicio, fin);
+            Long totalOrdenes = ordenRepository.countByEstadoInAndFechaOrdenBetween(estados, inicio, fin);
             estadisticas.put("total", totalOrdenes);
         } else {
             estadisticas.put("total", ordenRepository.countByEstadoIn(estados));
@@ -242,7 +242,7 @@ public class ReporteController {
         if (fechaInicio != null && fechaFin != null) {
             LocalDateTime inicio = fechaInicio.atStartOfDay();
             LocalDateTime fin = fechaFin.atTime(LocalTime.MAX);
-            ordenes = ordenRepository.findByEstadoInAndFechaEntregaBetween(estados, inicio, fin);
+            ordenes = ordenRepository.findByEstadoInAndFechaOrdenBetween(estados, inicio, fin);
         } else {
             ordenes = ordenRepository.findByEstadoIn(estados);
         }
