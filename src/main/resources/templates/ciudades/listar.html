@@ -29,7 +29,7 @@
                     </a>
                 </div>
 
-                <table class="table tabla-usuarios">
+                <table class="table tabla-usuarios align-middle text-center">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -45,7 +45,7 @@
                             <td>
                                 <span th:if="${ciudad.departamento != null}" 
                                       th:text="${ciudad.departamento.nombre}" 
-                                      class="badge bg-primary"></span>
+                                      ></span>
                                 <span th:if="${ciudad.departamento == null}" 
                                       class="text-muted">Sin departamento</span>
                             </td>
@@ -116,64 +116,66 @@
         </script>
         
         <script>
-            // Event listener para botones de eliminar
-            document.addEventListener('DOMContentLoaded', function() {
-                document.querySelectorAll('.btn-eliminar').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const id = this.getAttribute('data-id');
-                        const nombre = this.getAttribute('data-nombre');
-                        confirmarEliminar(id, nombre);
-                    });
+        // Event listener para botones de eliminar
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.btn-eliminar').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const nombre = this.getAttribute('data-nombre');
+                    confirmarEliminar(id, nombre);
                 });
             });
+        });
 
-            // Función para confirmar eliminación de ciudad
-            async function confirmarEliminar(id, nombre) {
-                const result = await Swal.fire({
-                    title: '¿Estás seguro?',
-                    html: `<strong>Ciudad: ${nombre}</strong><br><br>No podrás deshacer esta acción.`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Sí, eliminar',
-                    cancelButtonText: 'Cancelar'
+        // Función para confirmar eliminación de ciudad
+        async function confirmarEliminar(id, nombre) {
+            const result = await Swal.fire({
+                title: '¿Estás seguro?',
+                html: `<strong>Ciudad: ${nombre}</strong><br><br>No podrás deshacer esta acción.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#b8922f',  // dorado
+                cancelButtonColor: '#0A0A0A',   // negro
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!result.isConfirmed) return;
+
+            try {
+                const response = await fetch(`/ciudades/${id}/eliminar`, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
 
-                if (!result.isConfirmed) {
-                    return; 
-                }
+                if (response.ok) {
+                    Swal.fire({
+                        title: '¡Eliminado!',
+                        text: 'La ciudad ha sido eliminada con éxito.',
+                        icon: 'success',
+                        confirmButtonColor: '#0A0A0A', 
+                        confirmButtonText: 'OK'
+                    }).then(() => location.reload());
 
-                try {
-                    const response = await fetch(`/ciudades/${id}/eliminar`, {
-                        method: 'POST',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                        }
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: `No se pudo eliminar la ciudad. Código: ${response.status}`,
+                        icon: 'error',
+                        confirmButtonColor: '#0A0A0A', // negro
                     });
-
-                    if (response.ok) {
-                        Swal.fire(
-                            '¡Eliminado!',
-                            'La ciudad ha sido eliminada con éxito.',
-                            'success'
-                        ).then(() => location.reload());
-                    } else {
-                        const errorText = await response.text();
-                        Swal.fire(
-                            'Error',
-                            `No se pudo eliminar la ciudad. Código: ${response.status}`,
-                            'error'
-                        );
-                    }
-                } catch (error) {
-                    Swal.fire(
-                        'Error',
-                        'Ocurrió un problema al intentar eliminar.',
-                        'error'
-                    );
                 }
+
+            } catch (error) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Ocurrió un problema al intentar eliminar.',
+                    icon: 'error',
+                    confirmButtonColor: '#0A0A0A', // negro
+                });
             }
-        </script>
+        }
+    </script>
+
     </body>
 </html>

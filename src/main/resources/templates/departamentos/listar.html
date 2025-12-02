@@ -31,7 +31,7 @@
                 </a>
             </div>
 
-            <table class="table tabla-usuarios">
+            <table class="table tabla-usuarios align-middle text-center">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -46,8 +46,8 @@
                         <td th:text="${departamento.nombre}"></td>
                         <td>
                             <span th:if="${departamento.ciudades != null and not #lists.isEmpty(departamento.ciudades)}"
-                                th:text="${#lists.size(departamento.ciudades)} + ' ciudades'"
-                                class="badge bg-info"></span>
+                                th:text="${#lists.size(departamento.ciudades)}"
+                                class=></span>
                             <span th:if="${departamento.ciudades == null or #lists.isEmpty(departamento.ciudades)}"
                                 class="text-muted">Sin ciudades</span>
                         </td>
@@ -118,65 +118,66 @@
     </script>
 
     <script>
-        // Event listener para botones de eliminar
-        document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('.btn-eliminar').forEach(button => {
-                button.addEventListener('click', function () {
-                    const id = this.getAttribute('data-id');
-                    const nombre = this.getAttribute('data-nombre');
-                    confirmarEliminar(id, nombre);
-                });
+    // Event listener para botones de eliminar
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.btn-eliminar').forEach(button => {
+            button.addEventListener('click', function () {
+                const id = this.getAttribute('data-id');
+                const nombre = this.getAttribute('data-nombre');
+                confirmarEliminar(id, nombre);
             });
         });
+    });
 
-        // Función para confirmar eliminación de departamento
-        async function confirmarEliminar(id, nombre) {
-            const result = await Swal.fire({
-                title: '¿Estás seguro?',
-                html: `<strong>Departamento: ${nombre}</strong><br><br>No podrás deshacer esta acción.<br><br><strong>⚠️ Advertencia:</strong> Si este departamento tiene ciudades asociadas, la eliminación podría fallar.`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar'
+    // Función para confirmar eliminación de departamento
+    async function confirmarEliminar(id, nombre) {
+        const result = await Swal.fire({
+            title: '¿Estás seguro?',
+            html: `<strong>Departamento: ${nombre}</strong><br><br>No podrás deshacer esta acción.<br><br><strong>⚠️ Advertencia:</strong> No se puede eliminar el departamento si tiene ciudades asociadas.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#b8922f',  // dorado
+            cancelButtonColor: '#0A0A0A',   // negro
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            const response = await fetch(`/departamentos/${id}/eliminar`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
             });
 
-            if (!result.isConfirmed) {
-                return;
-            }
-
-            try {
-                const response = await fetch(`/departamentos/${id}/eliminar`, {
-                    method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                    }
+            if (response.ok) {
+                Swal.fire({
+                    title: '¡Eliminado!',
+                    text: 'El departamento ha sido eliminado con éxito.',
+                    icon: 'success',
+                    confirmButtonColor: '#0A0A0A',  // negro
+                    confirmButtonText: 'OK'
+                }).then(() => location.reload());
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: `No se puede eliminar el departamento porque tiene ciudades asociadas`,
+                    icon: 'error',
+                    confirmButtonColor: '#0A0A0A'
                 });
-
-                if (response.ok) {
-                    Swal.fire(
-                        '¡Eliminado!',
-                        'El departamento ha sido eliminado con éxito.',
-                        'success'
-                    ).then(() => location.reload());
-                } else {
-                    const errorText = await response.text();
-                    Swal.fire(
-                        'Error',
-                        `No se pudo eliminar el departamento. Código: ${response.status}`,
-                        'error'
-                    );
-                }
-            } catch (error) {
-                Swal.fire(
-                    'Error',
-                    'Ocurrió un problema al intentar eliminar.',
-                    'error'
-                );
             }
+        } catch (error) {
+            Swal.fire({
+                title: 'Error',
+                text: 'Ocurrió un problema al intentar eliminar.',
+                icon: 'error',
+                confirmButtonColor: '#0A0A0A'
+            });
         }
-    </script>
+    }
+</script>
 </body>
 
 </html>
