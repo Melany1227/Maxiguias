@@ -32,7 +32,8 @@
                             </a>
                         </div>
 
-                        <form th:action="${rol.id != null ? '/roles/' + rol.id : '/roles'}" 
+                        <form th:if="${rol != null}"
+                              th:action="${rol.id != null ? '/roles/' + rol.id : '/roles'}" 
                               th:object="${rol}" method="post" class="row g-3">
 
                             <div class="col-12 col-lg-8">
@@ -149,7 +150,7 @@
     <script th:if="${error}">
         Swal.fire({
             title: 'Error',
-            text: /*[[${error}]]*/ 'Ocurrió un error',
+            text: "[[${error}]]",
             icon: 'error',
             confirmButtonText: 'Aceptar',
             confirmButtonColor: "#d33"
